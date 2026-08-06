@@ -405,13 +405,12 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 /* Feed-grid preview — gradient placeholder tiles keyed to pillar accents (no images, file stays self-contained) */
 .feedgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .thumb{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;display:grid;place-items:center;border:1px solid var(--hairline);min-width:0}
-.thumb .th-glyph{position:absolute;inset:0;display:grid;place-items:center;opacity:.45}
-.thumb .th-init{font-family:var(--display);font-weight:800;font-size:20px;position:relative}
+.thumb .th-art{position:absolute;inset:0;width:100%;height:100%;display:block}
 .thumb .fmt-badge{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:6px;background:var(--surface);
   border:1px solid var(--hairline);color:var(--ink-2);display:grid;place-items:center}
 .thumb .th-date{position:absolute;bottom:4px;left:5px;font-size:9px;font-weight:700;color:var(--ink-2);background:var(--surface);border-radius:5px;padding:0 5px;line-height:1.6}
 .thumb.thumb-sched{border:1.5px dashed var(--muted)}
-.thumb.thumb-sched .th-glyph,.thumb.thumb-sched .th-init{opacity:.35}
+.thumb.thumb-sched .th-art{opacity:.55}
 .ptone-0{background:linear-gradient(135deg,var(--coral-soft),var(--surface-alt));color:var(--coral-deep)}
 .ptone-1{background:linear-gradient(135deg,var(--aqua-soft),var(--surface-alt));color:var(--aqua-deep)}
 .ptone-2{background:linear-gradient(135deg,var(--golden-soft),var(--surface-alt));color:var(--golden-deep)}
@@ -422,7 +421,6 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 /* Format-badged post cards */
 .postcard .pc-head{display:flex;gap:10px;align-items:center;padding:12px 14px 0}
 .pc-mini{width:38px;height:38px;aspect-ratio:auto;border-radius:9px;flex:0 0 auto}
-.pc-mini .th-init{font-size:15px}
 .postcard .pc-title{flex:1;min-width:0;font-weight:600}
 .postcard .pc-meta{display:flex;gap:6px;flex-wrap:wrap;padding:9px 14px 0;align-items:center;font-size:12px}
 .pc-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 14px}
@@ -771,9 +769,10 @@ const PLATFORM_META = {
   tt:  {label: 'TikTok',      short: 'TT', acc: '--teal'},
   yt:  {label: 'YouTube',     short: 'YT', acc: '--golden'},
   fb:  {label: 'Facebook',    short: 'FB', acc: '--aqua'},
+  th:  {label: 'Threads',     short: 'TH', acc: '--teal-deep'},
   pin: {label: 'Pinterest',   short: 'PN', acc: '--serious'},
   li:  {label: 'LinkedIn',    short: 'LI', acc: '--teal'},
-  x:   {label: 'X / Threads', short: 'X',  acc: '--aqua'},
+  x:   {label: 'X (Twitter)', short: 'X',  acc: '--aqua'},
 };
 const FORMATS = {
   reel:     {label: 'Reel / Short', icon: 'reel',     video: true},
@@ -798,6 +797,8 @@ function starterData() {
       {id: uid(), pid: 'ig', handle: '', type: 'creator', goal: '', cadence: 4, active: true, history: {}},
       {id: uid(), pid: 'tt', handle: '', type: 'creator', goal: '', cadence: 4, active: true, history: {}},
       {id: uid(), pid: 'yt', handle: '', type: 'creator', goal: '', cadence: 1, active: true, history: {}},
+      {id: uid(), pid: 'fb', handle: '', type: 'business', goal: '', cadence: null, active: false, history: {}},
+      {id: uid(), pid: 'th', handle: '', type: 'creator', goal: '', cadence: null, active: false, history: {}},
     ],
     pillars: [
       {id: pilA, name: 'Educate', color: 0, target: 30, notes: ''},
@@ -968,6 +969,8 @@ function sampleData() {
       {id: uid(), pid: 'ig', handle: '@clearly.studio', type: 'business', goal: 'Community + shop traffic', cadence: 3, active: true, history: hist(igH)},
       {id: uid(), pid: 'tt', handle: '@clearlystudio', type: 'creator', goal: 'Discovery + reach', cadence: 3, active: true, history: hist(ttH)},
       {id: uid(), pid: 'yt', handle: '@ClearlyStudio', type: 'creator', goal: 'Evergreen how-tos', cadence: 1, active: true, history: hist(ytH)},
+      {id: uid(), pid: 'fb', handle: 'Clearly Studio', type: 'business', goal: 'Local + marketplace later', cadence: null, active: false, history: {}},
+      {id: uid(), pid: 'th', handle: '@clearly.studio', type: 'creator', goal: 'Text takes — when there’s time', cadence: null, active: false, history: {}},
       {id: uid(), pid: 'pin', handle: '@clearlystudio', type: 'business', goal: 'Search traffic later', cadence: null, active: false, history: {}},
       {id: uid(), pid: 'li', handle: '', type: 'personal', goal: '', cadence: null, active: false, history: {}},
     ],
@@ -2023,14 +2026,45 @@ function pillarColorIdx(d, pillarId) {
   const pl = (d.pillars || []).find(x => x.id === pillarId);
   return pl ? (pl.color ?? 5) % 6 : 5;
 }
-/* 1 & 2 · Placeholder thumbnail tile — pillar-tinted gradient + format badge (no images ever) */
+/* Placeholder post art — six abstract editorial compositions drawn in the pillar's
+   ink (currentColor) so the grid reads like a real feed mosaic, never uploads an image.
+   The motif is deterministic per post, so tiles don't reshuffle between renders. */
+function thumbArt(p) {
+  const seed = [...String(p.id || p.title || '')].reduce((a, c) => a + c.charCodeAt(0), 0);
+  const ARTS = [
+    // sun over hills
+    `<circle cx="66" cy="32" r="14" fill="currentColor" opacity=".4"/>
+     <path d="M-10 76 Q 26 52 54 74 T 112 68 V112 H-10 Z" fill="currentColor" opacity=".26"/>
+     <path d="M-10 92 Q 36 72 72 88 T 112 84 V112 H-10 Z" fill="currentColor" opacity=".16"/>`,
+    // arch doorway + sun
+    `<path d="M30 84 V54 a20 20 0 0 1 40 0 V84 Z" fill="currentColor" opacity=".3"/>
+     <circle cx="50" cy="25" r="6.5" fill="currentColor" opacity=".45"/>
+     <rect x="22" y="84" width="56" height="4" rx="2" fill="currentColor" opacity=".35"/>`,
+    // product on a pedestal
+    `<ellipse cx="50" cy="79" rx="25" ry="4.5" fill="currentColor" opacity=".16"/>
+     <rect x="35" y="36" width="30" height="38" rx="9" fill="currentColor" opacity=".32"/>
+     <circle cx="50" cy="27" r="8" fill="currentColor" opacity=".45"/>`,
+    // diagonal ribbons
+    `<rect x="-24" y="44" width="150" height="14" rx="7" transform="rotate(-18 50 50)" fill="currentColor" opacity=".3"/>
+     <rect x="-24" y="65" width="150" height="8" rx="4" transform="rotate(-18 50 50)" fill="currentColor" opacity=".17"/>
+     <circle cx="75" cy="24" r="5.5" fill="currentColor" opacity=".4"/>`,
+    // concentric rings
+    `<circle cx="47" cy="52" r="25" fill="none" stroke="currentColor" stroke-width="7" opacity=".2"/>
+     <circle cx="47" cy="52" r="12" fill="currentColor" opacity=".38"/>
+     <circle cx="80" cy="21" r="5" fill="currentColor" opacity=".32"/>`,
+    // overlapping stones
+    `<circle cx="41" cy="43" r="19" fill="currentColor" opacity=".24"/>
+     <circle cx="61" cy="59" r="15" fill="currentColor" opacity=".34"/>
+     <circle cx="28" cy="74" r="6.5" fill="currentColor" opacity=".2"/>`,
+  ];
+  return `<svg class="th-art" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${ARTS[seed % ARTS.length]}</svg>`;
+}
+/* 1 & 2 · Placeholder thumbnail tile — pillar-tinted gradient + post art + format badge */
 function thumbTile(d, p, {mini = false} = {}) {
   const f = FORMATS[p.format] || FORMATS.static;
   const sched = p.status !== 'posted';
-  const init = String(p.title || '?').trim().charAt(0).toUpperCase() || '?';
   return `<span class="thumb ${mini ? 'pc-mini' : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && !mini ? 'thumb-sched' : ''}"${mini ? '' : ` data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}"`}>
-    <span class="th-glyph">${icon(f.icon, mini ? 16 : 24)}</span>
-    <span class="th-init">${esc(init)}</span>
+    ${thumbArt(p)}
     ${mini ? '' : `<span class="fmt-badge">${icon(f.icon, 11)}</span>`}
     ${!mini && sched && p.date ? `<span class="th-date">${esc(relDay(p.date))}</span>` : ''}
   </span>`;
