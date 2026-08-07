@@ -434,10 +434,10 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .ptone-5{background:linear-gradient(135deg,var(--info-soft),var(--surface-alt));color:var(--info-deep)}
 
 /* Fixed-size thumb variants — lg: post-card header · md: list rows · sm: compact rows */
-.thumb.th-lg{width:84px;height:84px;aspect-ratio:auto;border-radius:12px;flex:0 0 auto}
-.thumb.th-md{width:64px;height:64px;aspect-ratio:auto;border-radius:10px;flex:0 0 auto}
-.thumb.th-sm{width:34px;height:34px;aspect-ratio:auto;border-radius:8px;flex:0 0 auto}
-.thumb.th-md .fmt-badge{width:17px;height:17px;top:3px;right:3px;border-radius:5px}
+.thumb.th-lg{width:100px;height:100px;aspect-ratio:auto;border-radius:12px;flex:0 0 auto}
+.thumb.th-md{width:78px;height:78px;aspect-ratio:auto;border-radius:11px;flex:0 0 auto}
+.thumb.th-sm{width:46px;height:46px;aspect-ratio:auto;border-radius:9px;flex:0 0 auto}
+.thumb.th-md .fmt-badge{width:19px;height:19px;top:4px;right:4px;border-radius:6px}
 
 /* Format-badged post cards */
 .postcard .pc-head{display:flex;gap:12px;align-items:flex-start;padding:12px 14px 0}
@@ -1942,8 +1942,8 @@ function donutSegSVG(segs, {size = 74, centerBig = '', centerSub = '', label = '
     aria-label="${esc(label)}: ${segs.filter(s => num(s.v)).map(s => `${s.v} ${s.label}`).join(', ')}">
     <circle class="track" cx="${size / 2}" cy="${size / 2}" r="${R}" fill="none" stroke-width="9" style="stroke:var(--hairline)"/>
     ${rings}
-    ${centerBig ? `<text x="${size / 2}" y="${size / 2 + (centerSub ? 1.5 : 4.5)}" text-anchor="middle" style="font-size:${size / 5.2}px;font-weight:650;fill:var(--ink);font-family:var(--sans)">${esc(centerBig)}</text>` : ''}
-    ${centerSub ? `<text x="${size / 2}" y="${size / 2 + 13}" text-anchor="middle" style="font-size:8.5px;fill:var(--muted);font-family:var(--sans)">${esc(centerSub)}</text>` : ''}
+    ${centerBig ? `<text x="${size / 2}" y="${size / 2 + (centerSub ? size / 49 : size / 16.4)}" text-anchor="middle" style="font-size:${size / 5.2}px;font-weight:650;fill:var(--ink);font-family:var(--sans)">${esc(centerBig)}</text>` : ''}
+    ${centerSub ? `<text x="${size / 2}" y="${size / 2 + size / 5.7}" text-anchor="middle" style="font-size:${Math.max(8.5, size / 8.7).toFixed(1)}px;fill:var(--muted);font-family:var(--sans)">${esc(centerSub)}</text>` : ''}
   </svg>`;
 }
 
@@ -3361,7 +3361,7 @@ function viewMoney() {
             {v: r.dealRevPaid, colorVar: '--coral', label: 'brand deals'},
             {v: r.affiliateRev, colorVar: '--aqua', label: 'affiliate'},
             {v: r.shopRev, colorVar: '--golden', label: 'shop'},
-          ], {size: 84, centerBig: fmt.compact(r.monetizeRev), centerSub: 'total', label: 'Revenue mix'}) : donutSVG(null, {size: 84, label: 'Revenue mix'})}
+          ], {size: 148, centerBig: fmt.compact(r.monetizeRev), centerSub: 'total', label: 'Revenue mix'}) : donutSVG(null, {size: 148, label: 'Revenue mix'})}
           <div class="donutmeta" style="font-size:12px;line-height:1.8">
             <span><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--coral);margin-right:5px"></span>Deals ${fmt.money(r.dealRevPaid)}</span><br>
             <span><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--aqua);margin-right:5px"></span>Affiliate ${fmt.money(r.affiliateRev)}</span><br>
@@ -3468,7 +3468,7 @@ function viewReport() {
           <div>
             <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Content mix</h2>
             <div class="donutrow">
-              ${withPosts.length ? donutSegSVG(withPosts.map(pl => ({v: pl.n, colorVar: PTONE_VARS[pl.color % 6], label: pl.name})), {size: 74, centerBig: String(pp.total), centerSub: 'posts', label: 'Content mix'}) : ''}
+              ${withPosts.length ? donutSegSVG(withPosts.map(pl => ({v: pl.n, colorVar: PTONE_VARS[pl.color % 6], label: pl.name})), {size: 128, centerBig: String(pp.total), centerSub: 'posts', label: 'Content mix'}) : ''}
               <div style="font-size:12px;min-width:0;flex:1">
                 ${pp.list.filter(pl => pl.n > 0 || pl.target !== null).map(pl => `<div class="mixrow" style="padding:2px 0"><span class="sw" style="background:var(${PTONE_VARS[pl.color % 6]})"></span><span class="mx-name">${esc(pl.name)}</span><span class="mx-nums">${pl.actualPct === null ? '—' : fmt.num(pl.actualPct, 0) + '%'}${pl.target !== null ? ' / ' + fmt.num(pl.target, 0) + '%' : ''}</span></div>`).join('')}
               </div>
@@ -3482,7 +3482,7 @@ function viewReport() {
         <div class="rep-sec">
           <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Top posts</h2>
           ${topPosts.length ? `<div class="tablewrap"><table class="data"><thead><tr><th></th><th>Post</th><th>Platform</th><th>Format</th><th class="num">Reach</th><th class="num">ER</th><th class="num">Saves</th><th class="num">Follows</th></tr></thead>
-          <tbody>${topPosts.map(p => `<tr><td style="width:42px">${thumbTile(d, p, {size: 'sm'})}</td><td>${esc(p.title)}</td><td>${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}</td><td>${esc((FORMATS[p.format] || {label: p.format}).label)}</td>
+          <tbody>${topPosts.map(p => `<tr><td style="width:56px">${thumbTile(d, p, {size: 'sm'})}</td><td>${esc(p.title)}</td><td>${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}</td><td>${esc((FORMATS[p.format] || {label: p.format}).label)}</td>
             <td class="num">${fmt.int(p.reach)}</td><td class="num">${fmt.pct(div(postInteractions(p), p.reach) * 100)}</td><td class="num">${fmt.int(p.saves)}</td><td class="num">${p.follows === null ? '—' : '+' + fmt.int(p.follows)}</td></tr>`).join('')}</tbody></table></div>`
           : `<p style="color:var(--muted);font-size:12.5px;font-style:italic">No posted posts with metrics this period.</p>`}
         </div>
