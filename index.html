@@ -2107,6 +2107,12 @@ function tile(label, valueHTML, sub = '', hero = false, acc = '', extra = '') {
 /* ================================================================
    Bespoke social components
 ================================================================ */
+/* Bare brand glyph in currentColor (no badge circle) — for chips and inline labels */
+function platGlyph(pid, size = 12) {
+  const m = PLATFORM_META[pid];
+  if (!m || !m.glyph) return esc((m && m.short) || pid);
+  return `<svg viewBox="0 0 ${m.vb} ${m.vb}" width="${size}" height="${size}" aria-hidden="true" style="display:block"><path fill="currentColor" d="${m.glyph}"/></svg>`;
+}
 function platMono(pid, size = 22) {
   const m = PLATFORM_META[pid] || {short: '?', acc: '--teal'};
   return `<span class="plat-mono" style="background:var(${m.acc});width:${size}px;height:${size}px" role="img" aria-label="${esc(m.label || pid)}">${
@@ -2314,8 +2320,8 @@ function postCard(d, p, i, topDecile) {
             ${others.map(ap => {
               const m = PLATFORM_META[ap.pid] || {label: ap.pid, short: ap.pid};
               const sib = sibs.find(q => q.pid === ap.pid);
-              return `<button class="chip ${sib ? 'sagey' : 'neutral'}" data-action="crosspost" data-i="${i}" data-pid="${ap.pid}"
-                title="${sib ? `Linked ${esc(m.label)} copy exists — click to remove it (only while it has no numbers)` : `Create a linked copy of this post for ${esc(m.label)} — it gets its own numbers`}">${sib ? icon('check', 11) : icon('plus', 11)}${esc(m.short)}</button>`;
+              return `<button class="chip ${sib ? 'sagey' : 'neutral'}" data-action="crosspost" data-i="${i}" data-pid="${ap.pid}" aria-label="${sib ? `Remove the linked ${esc(m.label)} copy` : `Cross-post to ${esc(m.label)}`}"
+                title="${sib ? `Linked ${esc(m.label)} copy exists — click to remove it (only while it has no numbers)` : `Create a linked copy of this post for ${esc(m.label)} — it gets its own numbers`}">${sib ? icon('check', 11) : icon('plus', 11)}${platGlyph(ap.pid, 13)}</button>`;
             }).join('')}
           </div>`;
         })()}
