@@ -529,6 +529,27 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .duo-legend{display:flex;gap:14px;font-size:11px;color:var(--ink-2);margin-top:9px;align-items:center;flex-wrap:wrap}
 .duo-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px}
 
+/* Home hero content rail — big post tiles with performance overlaid on the image */
+.postrail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(150px,200px);gap:10px;overflow-x:auto;padding:14px 16px;scrollbar-width:thin;justify-content:start}
+.rail-tile{position:relative;aspect-ratio:4/5;border-radius:12px;overflow:hidden;cursor:pointer;border:1px solid var(--hairline);min-width:0}
+.rail-tile>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.rail-tile .rt-scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 42%,rgba(14,24,30,.85) 100%)}
+.rail-tile .rt-meta{position:absolute;left:9px;right:9px;bottom:8px;color:#fff;font-size:10.5px;line-height:1.4}
+.rail-tile .rt-title{font-weight:700;font-family:var(--display);letter-spacing:-.01em;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rail-tile .rt-sub{opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rail-tile .plat-mono{position:absolute;top:7px;left:7px}
+.rail-tile .fmt-badge{position:absolute;top:7px;right:7px;width:20px;height:20px;border-radius:6px;background:var(--surface);border:1px solid var(--hairline);color:var(--ink-2);display:grid;place-items:center}
+.rail-tile.rt-sched{border:1.5px dashed var(--muted)}
+.rail-tile.rt-sched>img{opacity:.78}
+.rail-tile.rt-ghost{border:1.5px dashed var(--hairline);cursor:default}
+.anim .postrail .rail-tile{animation:fadeUp .5s cubic-bezier(.22,.9,.35,1) both}
+.anim .postrail .rail-tile:nth-child(2){animation-delay:50ms}
+.anim .postrail .rail-tile:nth-child(3){animation-delay:100ms}
+.anim .postrail .rail-tile:nth-child(4){animation-delay:150ms}
+.anim .postrail .rail-tile:nth-child(5){animation-delay:200ms}
+.anim .postrail .rail-tile:nth-child(6){animation-delay:250ms}
+.anim .postrail .rail-tile:nth-child(n+7){animation-delay:300ms}
+
 /* Post editor modal — the full post card in an overlay; every field autosaves */
 .pmodal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:18px}
 .pmodal .pm-scrim{position:absolute;inset:0;background:rgba(20,30,34,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -1427,8 +1448,11 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
     }
   });
 
-  // Sub-scores — weighted average of whatever has data
-  r.subConsistency = r.consistencyPct === null ? null : clamp(Math.round(r.consistencyPct), 0, 100);
+  // Sub-scores — weighted average of whatever has data.
+  // Consistency only starts scoring once the user has EVER logged a post — a brand-new
+  // dashboard should read "no data yet", not "0/100 critical".
+  const hasAnyPosted = (d.posts || []).some(p => p.status === 'posted');
+  r.subConsistency = (r.consistencyPct === null || !hasAnyPosted) ? null : clamp(Math.round(r.consistencyPct), 0, 100);
   const ratios = [div(r.erReach, b.er), div(r.saveRate, b.saveRate), div(r.shareRate, b.shareRate)].filter(v => v !== null);
   r.subEngage = ratios.length
     ? clamp(Math.round(ratios.reduce((a, v) => a + Math.min(v, 1.3), 0) / ratios.length / 1.3 * 100), 0, 100)
@@ -1601,9 +1625,11 @@ function buildAlerts(d, r) {
     const drop = (1 - r.erReach / rPrev.erReach) * 100;
     A.push({sev: 'serious', text: `Engagement rate is down ${fmt.num(drop, 0)}% vs last period (${fmt.pct(r.erReach)} vs ${fmt.pct(rPrev.erReach)}) — check the format mix and your hooks.`, view: 'insights'});
   }
-  // 3 · Under posting cadence (current month, prorated to today)
+  // 3 · Under posting cadence (current month, prorated to today) — only meaningful
+  // once the user has ever logged a post (the per-platform "no posts yet" info rows
+  // cover the brand-new state)
   const rm = derive(d, [monthKey()], 'all');
-  if (rm.cadenceTarget && rm.cadenceActual < rm.cadenceTarget * 0.8) {
+  if ((d.posts || []).some(p => p.status === 'posted') && rm.cadenceTarget && rm.cadenceActual < rm.cadenceTarget * 0.8) {
     A.push({sev: 'warning', text: `Under your posting cadence this month — ${rm.cadenceActual} posted vs ~${rm.cadenceTarget} planned so far. Consistency is the score's biggest lever.`, view: 'calendar'});
   }
   // 4 · Golden hour — posts published within the last 60 minutes
@@ -2360,6 +2386,24 @@ function followerSeries(d, pid, endKey) {
   };
 }
 
+/* Home hero rail tile — a big post image with its performance (or schedule) overlaid */
+function railTile(d, p) {
+  const f = FORMATS[p.format] || FORMATS.static;
+  const sched = p.status !== 'posted';
+  const er = div(postInteractions(p), p.reach);
+  const stage = (CYCLE_SETS.pipeline.meta[p.status] || [])[2] || p.status;
+  const sub = !sched
+    ? (er !== null ? `${fmt.pct(er * 100)} ER${num(p.saves) ? ` · ${fmt.int(p.saves)} saves` : ''}` : 'posted — add the numbers')
+    : `${stage}${p.date ? ' · ' + relDay(p.date) : ''}${p.time ? ' ' + p.time : ''}`;
+  return `<div class="rail-tile ${sched ? 'rt-sched' : ''}" data-action="editpost" data-id="${p.id}" title="Click to edit this post" role="button" aria-label="${esc(p.title || 'Untitled')}: ${esc(sub)}">
+    <img src="${thumbSrc(d, p)}" alt="" loading="lazy">
+    <span class="rt-scrim"></span>
+    ${platMono(p.pid, 20)}
+    <span class="fmt-badge">${icon(f.icon, 11)}</span>
+    <span class="rt-meta"><span class="rt-title">${esc(p.title || 'Untitled')}</span><span class="rt-sub">${esc(sub)}</span></span>
+  </div>`;
+}
+
 /* Rule-based insight callouts — reads the tags (format/pillar/time) against results */
 function insightCallouts(d, keys, pid) {
   const out = [];
@@ -2411,12 +2455,27 @@ function viewHome() {
     .concat((d.deals || []).filter(dl => dl.due && !['delivered', 'invoiced', 'paid'].includes(dl.status) && daysUntil(dl.due) >= 0 && daysUntil(dl.due) <= 7)
       .map(dl => ({date: dl.due, title: `Deliverable: ${dl.brand}`, sub: dl.deliverable || 'Brand deal'})))
     .sort((a, c) => String(a.date).localeCompare(String(c.date))).slice(0, 8);
+  // Hero content rail: what's coming (soonest first), then the latest posted
+  const onPid = p => pid === 'all' || p.pid === pid;
+  const railUp = (d.posts || []).filter(p => p.status !== 'posted' && p.date && daysUntil(p.date) >= 0 && onPid(p))
+    .sort((a, c) => String(a.date).localeCompare(String(c.date))).slice(0, 3);
+  const railRecent = (d.posts || []).filter(p => p.status === 'posted' && p.date && onPid(p))
+    .sort((a, c) => String(c.date).localeCompare(String(a.date)));
+  const rail = [...railUp, ...railRecent].slice(0, 8);
 
   return `
   ${viewHead('Home', 'Is the program healthy right now — and what needs you today?')}
   ${periodBar()}
   ${platformPills(d)}
   <div class="grid">
+
+    <section class="card" aria-label="Your latest and upcoming content">
+      ${cardH('gridfeed', 'Your Content', `<button class="btn btn-ghost" data-action="goto" data-view="posts">All posts →</button>`, 'coral')}
+      <div class="card-b flush">
+        <div class="postrail">${rail.map(p => railTile(d, p)).join('')}${rail.length < 6 ? Array.from({length: 6 - rail.length}, (_, k) => `<div class="rail-tile rt-ghost ptone-${k % 4}" aria-hidden="true"></div>`).join('') : ''}</div>
+        ${rail.length ? '' : `<div style="text-align:center;padding:0 16px 16px"><button class="btn btn-primary" data-action="addrow" data-list="posts">${icon('plus', 14)}Log your first post</button></div>`}
+      </div>
+    </section>
 
     <section class="card c4" aria-label="Program health score">
       ${cardH('gauge', 'Program Health', `<span class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : band.cls === 'neutral' ? 'question' : band.cls === 'critical' ? 'octagon' : 'alert', 13)}${band.label}</span>`)}
@@ -2434,6 +2493,23 @@ function viewHome() {
       </div>
     </section>
 
+    <section class="card c4" aria-label="Smart alerts">
+      ${cardH('alert', 'Needs You Today', alerts.length ? `${alerts.length} item${alerts.length > 1 ? 's' : ''}` : 'clear', 'coral')}
+      ${alerts.length ? `<ul class="alerts">${alerts.slice(0, 7).map(a => `
+        <li class="sev-${a.sev}"><span class="a-ic">${icon(SEV_ICON[a.sev], 14)}</span>
+          <span class="a-txt"><span class="a-sev">${a.sev}</span>${a.text}
+          ${a.view ? ` <button class="btn btn-ghost" style="padding:0;font-size:11.5px;color:var(--brand-deep);font-weight:600" data-action="goto" data-view="${a.view}">Open →</button>` : ''}</span></li>`).join('')}
+        ${alerts.length > 7 ? `<li class="sev-info"><span class="a-ic">${icon('info', 14)}</span><span class="a-txt">+ ${alerts.length - 7} more — resolved as you work through the views.</span></li>` : ''}</ul>`
+      : `<div class="allclear"><span class="ac-ic">${icon('check', 20)}</span><strong>All clear.</strong><span>Nothing needs your attention — cadence on track, engagement healthy, no deliverables due.</span></div>`}
+    </section>
+
+    <section class="card c4" aria-label="This week">
+      ${cardH('calendar', 'This Week', `<button class="btn btn-ghost" data-action="goto" data-view="calendar">Calendar →</button>`, 'golden')}
+      ${week.length ? `<ul class="plainlist">${week.map(u => `
+        <li><span class="li-date">${relDay(u.date)}</span>${u.p ? thumbTile(d, u.p, {size: 'sm'}) : ''}<span class="li-main">${esc(u.title)}<div class="li-sub">${esc(u.sub)}</div></span></li>`).join('')}</ul>`
+      : `<div class="emptystate">Nothing scheduled in the next 7 days — add posts in the Content Calendar.</div>`}
+    </section>
+
     <section class="card c8" aria-label="Follower growth">
       ${cardH('spark', `Follower Growth${pid === 'all' ? '' : ' — ' + esc((PLATFORM_META[pid] || {}).label || '')}`, `<button class="btn btn-ghost" data-action="goto" data-view="funnel">Open funnel →</button>`, 'aqua')}
       <div class="card-b">
@@ -2447,17 +2523,12 @@ function viewHome() {
       </div>
     </section>
 
-    <section class="card c4" aria-label="Smart alerts">
-      ${cardH('alert', 'Needs You Today', alerts.length ? `${alerts.length} item${alerts.length > 1 ? 's' : ''}` : 'clear', 'coral')}
-      ${alerts.length ? `<ul class="alerts">${alerts.slice(0, 7).map(a => `
-        <li class="sev-${a.sev}"><span class="a-ic">${icon(SEV_ICON[a.sev], 14)}</span>
-          <span class="a-txt"><span class="a-sev">${a.sev}</span>${a.text}
-          ${a.view ? ` <button class="btn btn-ghost" style="padding:0;font-size:11.5px;color:var(--brand-deep);font-weight:600" data-action="goto" data-view="${a.view}">Open →</button>` : ''}</span></li>`).join('')}
-        ${alerts.length > 7 ? `<li class="sev-info"><span class="a-ic">${icon('info', 14)}</span><span class="a-txt">+ ${alerts.length - 7} more — resolved as you work through the views.</span></li>` : ''}</ul>`
-      : `<div class="allclear"><span class="ac-ic">${icon('check', 20)}</span><strong>All clear.</strong><span>Nothing needs your attention — cadence on track, engagement healthy, no deliverables due.</span></div>`}
+    <section class="card c4" aria-label="Posting streak">
+      ${cardH('flame', 'Posting Streak', `<button class="btn btn-ghost" data-action="goto" data-view="calendar">Pipeline →</button>`, 'coral')}
+      <div class="card-b">${streakCal(d)}</div>
     </section>
 
-    <section class="card c8" aria-label="Key metrics">
+    <section class="card" aria-label="Key metrics">
       ${cardH('pulse', 'KPIs — Auto-Calculated From Your Post Log', 'log posts in Post Performance', 'coral')}
       <div class="card-b"><div class="tiles">
         ${tile('Engagement rate', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, b.er) + deltaBadge(r.erReach, rPrev.erReach), false, 'coral', miniSparkSVG(seriesFor('erReach'), {colorVar: '--coral'}))}
@@ -2467,23 +2538,6 @@ function viewHome() {
         ${tile('Link clicks', `<span class="derived">${fmt.int(r.linkClicks)}</span>`, benchBadge(r.linkCtr, b.linkCtr), false, 'teal', miniSparkSVG(seriesFor('linkClicks'), {colorVar: '--teal'}))}
         ${tile('Posts published', `<span class="derived">${fmt.int(r.nPosts)}</span>`, r.cadenceTarget ? `of ~${r.cadenceTarget} planned` : '<span class="hint-edit">set cadences for a target</span>', false, 'coral')}
       </div></div>
-    </section>
-
-    <section class="card c4" aria-label="This week">
-      ${cardH('calendar', 'This Week', `<button class="btn btn-ghost" data-action="goto" data-view="calendar">Calendar →</button>`, 'golden')}
-      ${week.length ? `<ul class="plainlist">${week.map(u => `
-        <li><span class="li-date">${relDay(u.date)}</span>${u.p ? thumbTile(d, u.p, {size: 'sm'}) : ''}<span class="li-main">${esc(u.title)}<div class="li-sub">${esc(u.sub)}</div></span></li>`).join('')}</ul>`
-      : `<div class="emptystate">Nothing scheduled in the next 7 days — add posts in the Content Calendar.</div>`}
-    </section>
-
-    <section class="card c4" aria-label="Posting streak">
-      ${cardH('flame', 'Posting Streak', `<button class="btn btn-ghost" data-action="goto" data-view="calendar">Pipeline →</button>`, 'coral')}
-      <div class="card-b">${streakCal(d)}</div>
-    </section>
-
-    <section class="card c4" aria-label="Feed preview">
-      ${cardH('gridfeed', 'Feed Preview', `<button class="btn btn-ghost" data-action="goto" data-view="posts">Posts →</button>`, 'aqua')}
-      <div class="card-b">${feedGrid(d, {max: 6})}</div>
     </section>
   </div>`;
 }
