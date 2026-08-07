@@ -2058,9 +2058,9 @@ function periodBar() {
   </div>`;
 }
 /* A monthly flow value: editable in Monthly view, an auto-summed rollup otherwise */
-function flowVal(field, label, {min = 5, money = false, prefix = ''} = {}) {
+function flowVal(field, label, {min = 5, money = false, prefix = '', cls = ''} = {}) {
   const r = derive(D());
-  if (ui.period.mode === 'month') return prefix + edField(`months.${ui.period.ref}.${field}`, {type: 'num', min, label});
+  if (ui.period.mode === 'month') return prefix + edField(`months.${ui.period.ref}.${field}`, {type: 'num', min, label, cls});
   return `<span class="derived">${money ? fmt.money(r[field]) : fmt.int(r[field])}</span>`;
 }
 (function initRoute() {
@@ -3356,12 +3356,12 @@ function viewMoney() {
     <section class="card c4" aria-label="Revenue mix">
       ${cardH('barchart', 'Revenue Mix', periodLabel(), 'aqua')}
       <div class="card-b">
-        <div class="donutrow">
+        <div class="donutrow" style="justify-content:center;gap:22px;padding:8px 0">
           ${(r.dealRevPaid || r.affiliateRev || r.shopRev) ? donutSegSVG([
             {v: r.dealRevPaid, colorVar: '--coral', label: 'brand deals'},
             {v: r.affiliateRev, colorVar: '--aqua', label: 'affiliate'},
             {v: r.shopRev, colorVar: '--golden', label: 'shop'},
-          ], {size: 148, centerBig: fmt.compact(r.monetizeRev), centerSub: 'total', label: 'Revenue mix'}) : donutSVG(null, {size: 148, label: 'Revenue mix'})}
+          ], {size: 190, centerBig: fmt.compact(r.monetizeRev), centerSub: 'total', label: 'Revenue mix'}) : donutSVG(null, {size: 190, label: 'Revenue mix'})}
           <div class="donutmeta" style="font-size:12px;line-height:1.8">
             <span><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--coral);margin-right:5px"></span>Deals ${fmt.money(r.dealRevPaid)}</span><br>
             <span><span class="sw" style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--aqua);margin-right:5px"></span>Affiliate ${fmt.money(r.affiliateRev)}</span><br>
@@ -3373,8 +3373,8 @@ function viewMoney() {
     <section class="card c3" aria-label="Link in bio">
       ${cardH('link', 'Link-in-Bio', periodLabel(), 'coral')}
       <div class="card-b"><div class="tiles" style="grid-template-columns:1fr">
-        ${tile('Clicks', flowVal('bioClicks', 'Link-in-bio clicks', {min: 4}))}
-        ${tile('Conversions', flowVal('bioConv', 'Link-in-bio conversions', {min: 4}))}
+        ${tile('Clicks', flowVal('bioClicks', 'Link-in-bio clicks', {min: 4, cls: 'ed-big'}))}
+        ${tile('Conversions', flowVal('bioConv', 'Link-in-bio conversions', {min: 4, cls: 'ed-big'}))}
         ${tile('Conversion rate', `<span class="derived">${fmt.pct(r.bioConvRate)}</span>`, 'conversions ÷ clicks')}
       </div></div>
     </section>
@@ -3467,16 +3467,18 @@ function viewReport() {
         <div class="rep-sec" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
           <div>
             <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Content mix</h2>
-            <div class="donutrow">
+            <div class="donutrow" style="gap:18px">
               ${withPosts.length ? donutSegSVG(withPosts.map(pl => ({v: pl.n, colorVar: PTONE_VARS[pl.color % 6], label: pl.name})), {size: 128, centerBig: String(pp.total), centerSub: 'posts', label: 'Content mix'}) : ''}
-              <div style="font-size:12px;min-width:0;flex:1">
+              <div style="font-size:12px;min-width:0;flex:1;max-width:290px">
                 ${pp.list.filter(pl => pl.n > 0 || pl.target !== null).map(pl => `<div class="mixrow" style="padding:2px 0"><span class="sw" style="background:var(${PTONE_VARS[pl.color % 6]})"></span><span class="mx-name">${esc(pl.name)}</span><span class="mx-nums">${pl.actualPct === null ? '—' : fmt.num(pl.actualPct, 0) + '%'}${pl.target !== null ? ' / ' + fmt.num(pl.target, 0) + '%' : ''}</span></div>`).join('')}
               </div>
             </div>
           </div>
           <div>
             <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Formats</h2>
+            <div style="max-width:420px">
             ${fmts.length ? fmts.map(f => `<div class="mixrow" style="padding:3px 0">${icon((FORMATS[f.format] || {}).icon || 'image', 13)}<span class="mx-name">${esc((FORMATS[f.format] || {label: f.format}).label)}</span><span class="mx-nums">${f.n} posts · ${fmt.pct(f.er)} ER${f.index !== null ? ' · ' + fmt.num(f.index, 0) + ' idx' : ''}</span></div>`).join('') : '<p class="hint-edit">no format data this period</p>'}
+            </div>
           </div>
         </div>
         <div class="rep-sec">
