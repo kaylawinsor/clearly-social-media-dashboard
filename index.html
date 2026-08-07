@@ -225,7 +225,8 @@ main:focus{outline:none}
 /* Status dropdown pills — same look as chips, but an obvious select */
 .chipsel{cursor:pointer;padding-right:7px}
 .chipsel select.statussel{appearance:none;-webkit-appearance:none;-moz-appearance:none;background:transparent;border:none;
-  font:inherit;font-weight:600;color:inherit;padding:0;margin:0;cursor:pointer;text-overflow:ellipsis}
+  font:inherit;font-weight:600;color:inherit;padding:0;margin:0;cursor:pointer;text-overflow:ellipsis;min-width:0;max-width:100%}
+.chipsel{max-width:100%;overflow:hidden}
 .chipsel select.statussel:focus{outline:none}
 .chipsel:focus-within{outline:2px solid var(--teal);outline-offset:2px}
 .chipsel svg.chev{opacity:.65;margin-left:-2px}
@@ -238,7 +239,7 @@ main:focus{outline:none}
 
 /* ============ Editable fields ============ */
 .ed{font:inherit;color:inherit;background:transparent;border:none;border-bottom:1px dashed transparent;
-  padding:0 1px;margin:0;border-radius:0;min-width:2ch;transition:border-color .12s;font-variant-numeric:inherit}
+  padding:0 1px;margin:0;border-radius:0;min-width:2ch;max-width:100%;transition:border-color .12s;font-variant-numeric:inherit}
 .ed:hover{border-bottom-color:var(--muted)}
 /* Empty fields read as a fill-me-in box so buyers can spot where their data goes */
 .ed.ed-empty{background:var(--slate-soft);border-bottom:1px dashed var(--muted);border-radius:6px 6px 2px 2px;padding:0 6px}
@@ -419,10 +420,17 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .ptone-4{background:linear-gradient(135deg,var(--serious-soft),var(--surface-alt));color:var(--serious-deep)}
 .ptone-5{background:linear-gradient(135deg,var(--info-soft),var(--surface-alt));color:var(--info-deep)}
 
+/* Fixed-size thumb variants — lg: post-card header · md: list rows · sm: compact rows */
+.thumb.th-lg{width:84px;height:84px;aspect-ratio:auto;border-radius:12px;flex:0 0 auto}
+.thumb.th-md{width:64px;height:64px;aspect-ratio:auto;border-radius:10px;flex:0 0 auto}
+.thumb.th-sm{width:34px;height:34px;aspect-ratio:auto;border-radius:8px;flex:0 0 auto}
+.thumb.th-md .fmt-badge{width:17px;height:17px;top:3px;right:3px;border-radius:5px}
+
 /* Format-badged post cards */
-.postcard .pc-head{display:flex;gap:10px;align-items:center;padding:12px 14px 0}
-.pc-mini{width:38px;height:38px;aspect-ratio:auto;border-radius:9px;flex:0 0 auto}
-.postcard .pc-title{flex:1;min-width:0;font-weight:600}
+.postcard .pc-head{display:flex;gap:12px;align-items:flex-start;padding:12px 14px 0}
+.postcard .pc-headmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.postcard .pc-title{display:flex;align-items:center;gap:6px;min-width:0;font-weight:600}
+.postcard .pc-title .ed{flex:1}
 .postcard .pc-meta{display:flex;gap:6px;flex-wrap:wrap;padding:9px 14px 0;align-items:center;font-size:12px}
 .pc-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 14px}
 .pcs{background:var(--surface-alt);border:1px solid var(--hairline);border-radius:8px;padding:4px 7px;min-width:0}
@@ -479,10 +487,12 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .mixrow .mx-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mixrow .mx-nums{color:var(--ink-2);font-variant-numeric:tabular-nums;font-size:11.5px;white-space:nowrap}
 
-/* Trend watchlist rows with expiry chips */
-.trendcard{display:grid;grid-template-columns:auto 1fr auto auto auto;gap:9px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--hairline);font-size:13px}
+/* Trend watchlist rows with expiry chips — stacked layout, nothing can overlap */
+.trendcard{display:flex;flex-direction:column;gap:6px;padding:10px 16px;border-bottom:1px solid var(--hairline);font-size:13px;min-width:0}
 .trendcard:last-child{border-bottom:none}
-@media (max-width:700px){.trendcard{grid-template-columns:auto 1fr auto;row-gap:5px}}
+.trendcard .tr-top{display:flex;gap:8px;align-items:center;min-width:0}
+.trendcard .tr-top .ed{flex:1}
+.trendcard .tr-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-left:28px;color:var(--ink-2);font-size:12px}
 
 /* Golden-hour pulse — the reduced-motion block below disables the animation */
 .golden-dot{width:9px;height:9px;border-radius:50%;background:var(--golden);flex:0 0 auto;animation:pulseDot 1.6s ease-in-out infinite}
@@ -492,8 +502,9 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .pipeboard{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .pipecol{background:var(--surface-alt);border:1px solid var(--hairline);border-radius:10px;padding:8px;min-width:0}
 .pipecol h4{margin:0 0 6px;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;font-weight:700}
-.pipeitem{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:6px 8px;font-size:11.5px;margin-bottom:6px;min-width:0}
-.pipeitem .pi-meta{display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap}
+.pipeitem{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:6px 8px;font-size:11.5px;margin-bottom:6px;min-width:0;overflow:hidden}
+.pipeitem .pi-meta{display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap;min-width:0;max-width:100%}
+.pipeitem .chip{max-width:100%;overflow:hidden}
 @media (max-width:1100px){.pipeboard{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:700px){.pipeboard{grid-template-columns:repeat(2,1fr)}}
 
@@ -819,7 +830,7 @@ function starterData() {
       {id: uid(), title: 'My first tracked post', date: todayISO(), time: '', pid: 'ig', format: 'reel',
        pillar: pilA, hook: '', cta: '', status: 'idea', approval: 'na',
        reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-       watchPct: null, visits: null, follows: null, linkClicks: null, notes: ''},
+       watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
     ],
     months: {},
     community: {weeklyBudgetMin: 300, cadenceNote: 'Reply to every comment in the first hour after posting; batch DMs twice a day.'},
@@ -894,9 +905,11 @@ function sampleData() {
         let reach = Math.round(plan.base * wob * drift);
         let follows = Math.round(reach * 0.0016);
         let notes = '';
-        if (pid === 'tt' && w === 3 && s === 0) { reach = Math.round(plan.base * 7.4); follows = 240; notes = 'Breakout — trend audio, pinned comment'; }
-        if (pid === 'ig' && w === 6 && s === 0) { reach = Math.round(plan.base * 4.8); follows = 130; notes = 'Reel picked up by explore'; }
+        let boostSpend = null;
+        if (pid === 'tt' && w === 3 && s === 0) { reach = Math.round(plan.base * 7.4); follows = 240; notes = 'Breakout — trend audio, pinned comment'; boostSpend = 60; }
+        if (pid === 'ig' && w === 6 && s === 0) { reach = Math.round(plan.base * 4.8); follows = 130; notes = 'Reel picked up by explore — boosted'; boostSpend = 45; }
         if (pid === 'yt' && w === 8 && s === 0) { reach = Math.round(plan.base * 3.2); follows = 85; notes = 'Search traffic — evergreen topic'; }
+        if (pid === 'ig' && w === 2 && s === 1) { boostSpend = 40; notes = 'Boosted to cold audiences'; }
         const er = plan.er * FMT_ER[format] * (0.85 + ((w + s + n) % 5) * 0.075);
         const inter = Math.round(reach * er / 100);
         const saveShare = pi === 0 ? 0.22 : 0.16;                       // educational posts get saved more
@@ -911,7 +924,7 @@ function sampleData() {
           reach, impressions: Math.round(reach * 1.35), likes, comments, shares, saves,
           watchPct: FORMATS[format].video ? 36 + ((w + s + n) % 4) * 7 : null,
           visits: Math.round(reach * 0.021), follows, linkClicks: Math.round(reach * 0.004),
-          notes,
+          boostSpend, notes,
         });
         n++;
       });
@@ -925,18 +938,18 @@ function sampleData() {
     time: `${String(gh.getHours()).padStart(2, '0')}:${String(gh.getMinutes()).padStart(2, '0')}`,
     pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[3], cta: CTAS[1], status: 'posted', approval: 'na',
     reach: 1830, impressions: 2400, likes: 96, comments: 21, shares: 9, saves: 17,
-    watchPct: 52, visits: 41, follows: 6, linkClicks: 8, notes: 'Just published — golden hour',
+    watchPct: 52, visits: 41, follows: 6, linkClicks: 8, boostSpend: null, notes: 'Just published — golden hour',
   });
   /* Pipeline — ideas through scheduled, incl. client-approval states */
   posts.push(
-    {id: uid(), title: 'Holiday gift guide teaser', date: isoOffset(1), time: '18:30', pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[7], cta: CTAS[3], status: 'scheduled', approval: 'approved', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: ''},
-    {id: uid(), title: 'Studio tour, part 2', date: isoOffset(2), time: '19:30', pid: 'tt', format: 'reel', pillar: pilBts, hook: HOOKS[5], cta: CTAS[2], status: 'scheduled', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: ''},
-    {id: uid(), title: 'Client reel: fall lookbook', date: isoOffset(4), time: '18:00', pid: 'ig', format: 'reel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'awaiting', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: 'V2 sent for sign-off'},
-    {id: uid(), title: 'Linen care explainer', date: isoOffset(5), time: '', pid: 'yt', format: 'video', pillar: pilEd, hook: HOOKS[2], cta: CTAS[3], status: 'film', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: 'Script locked, filming Thu'},
-    {id: uid(), title: 'Client carousel: testimonials', date: isoOffset(6), time: '', pid: 'ig', format: 'carousel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'changes', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: 'Client wants slide 3 swapped'},
-    {id: uid(), title: '5 storage myths, busted', date: isoOffset(7), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: HOOKS[0], cta: CTAS[0], status: 'script', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: ''},
-    {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: 'Pair with trend audio if still alive'},
-    {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, notes: ''},
+    {id: uid(), title: 'Holiday gift guide teaser', date: isoOffset(1), time: '18:30', pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[7], cta: CTAS[3], status: 'scheduled', approval: 'approved', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
+    {id: uid(), title: 'Studio tour, part 2', date: isoOffset(2), time: '19:30', pid: 'tt', format: 'reel', pillar: pilBts, hook: HOOKS[5], cta: CTAS[2], status: 'scheduled', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
+    {id: uid(), title: 'Client reel: fall lookbook', date: isoOffset(4), time: '18:00', pid: 'ig', format: 'reel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'awaiting', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'V2 sent for sign-off'},
+    {id: uid(), title: 'Linen care explainer', date: isoOffset(5), time: '', pid: 'yt', format: 'video', pillar: pilEd, hook: HOOKS[2], cta: CTAS[3], status: 'film', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'Script locked, filming Thu'},
+    {id: uid(), title: 'Client carousel: testimonials', date: isoOffset(6), time: '', pid: 'ig', format: 'carousel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'changes', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'Client wants slide 3 swapped'},
+    {id: uid(), title: '5 storage myths, busted', date: isoOffset(7), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: HOOKS[0], cta: CTAS[0], status: 'script', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
+    {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'Pair with trend audio if still alive'},
+    {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
   );
 
   /* 12 months of follower snapshots — believable curves, varying month to month */
@@ -952,6 +965,7 @@ function sampleData() {
   const affiliate  = [40, 55, 45, 70, 85, 90, 110, 105, 135, 150, 140, 165];
   const shopRev    = [0, 0, 60, 45, 120, 90, 160, 140, 210, 180, 260, 240];
   const bioClicks  = [410, 440, 430, 490, 540, 610, 590, 660, 740, 720, 810, 790];
+  const adSpendArr = [0, 0, 20, 0, 35, 30, 45, 40, 55, 50, 65, 40];
   const months = {};
   k12.forEach((k, i) => {
     months[k] = {
@@ -960,6 +974,7 @@ function sampleData() {
       engageMin: 880 + (i % 4) * 120,
       affiliateRev: affiliate[i], shopRev: shopRev[i],
       bioClicks: bioClicks[i], bioConv: Math.round(bioClicks[i] * (2.1 + (i % 3) * 0.4) / 100),
+      adSpend: adSpendArr[i],
     };
   });
 
@@ -1340,6 +1355,15 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
   r.dealRevBooked = sumFees(deals.filter(x => ['signed', 'delivered', 'invoiced', 'paid'].includes(x.status) && inKeys(x.due)));
   const mon = [r.dealRevPaid, r.affiliateRev, r.shopRev];
   r.monetizeRev = mon.every(v => v === null) ? null : mon.reduce((a, v) => a + (v ?? 0), 0);
+
+  // Ads & boosts — spend only, by design: the ads manager keeps the campaign detail,
+  // this connects spend to the net number. boostSpend lives on posts, adSpend on months.
+  r.boostSpend = S('boostSpend');
+  r.adSpendMonthly = F('adSpend');
+  const spend = [r.boostSpend, r.adSpendMonthly];
+  r.adSpend = spend.every(v => v === null) ? null : spend.reduce((a, v) => a + (v ?? 0), 0);
+  r.costPer1kReach = (r.adSpend !== null && r.reach) ? r.adSpend / (r.reach / 1000) : null;
+  r.netMonetize = (r.monetizeRev === null && r.adSpend === null) ? null : (r.monetizeRev ?? 0) - (r.adSpend ?? 0);
 
   // Most recent posted date per platform (all-time) — staleness chips + alerts
   r.lastPostByPid = {};
@@ -2065,15 +2089,19 @@ function thumbSrc(d, p) {
   const group = THUMBS[slot < THUMBS.length ? slot : seed % THUMBS.length];
   return group[seed % group.length];
 }
-/* 1 & 2 · Placeholder thumbnail tile — pillar-themed post photo + format badge */
-function thumbTile(d, p, {mini = false} = {}) {
+/* 1 & 2 · Placeholder thumbnail tile — pillar-themed post photo + format badge.
+   size: '' = feed-grid cell · 'lg' 84px (post-card header) · 'md' 64px (list rows) · 'sm' 34px (compact rows) */
+function thumbTile(d, p, {size = ''} = {}) {
   const f = FORMATS[p.format] || FORMATS.static;
   const sched = p.status !== 'posted';
-  return `<span class="thumb ${mini ? 'pc-mini' : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && !mini ? 'thumb-sched' : ''}"${mini ? '' : ` data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}"`}>
+  const grid = size === '';
+  const badge = grid || size === 'lg' || size === 'md';
+  const dot = grid || size === 'lg';
+  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}" data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}">
     <img class="th-img" src="${thumbSrc(d, p)}" alt="" loading="lazy">
-    ${mini ? '' : `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>`}
-    ${mini ? '' : `<span class="fmt-badge">${icon(f.icon, 11)}</span>`}
-    ${!mini && sched && p.date ? `<span class="th-date">${esc(relDay(p.date))}</span>` : ''}
+    ${dot ? `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>` : ''}
+    ${badge ? `<span class="fmt-badge">${icon(f.icon, 11)}</span>` : ''}
+    ${grid && sched && p.date ? `<span class="th-date">${esc(relDay(p.date))}</span>` : ''}
   </span>`;
 }
 /* 1 · Feed-grid preview — upcoming + recent posts as your grid will look */
@@ -2172,21 +2200,23 @@ function postCard(d, p, i, topDecile) {
   const er = div(postInteractions(p), p.reach);
   const sv = div(p.saves, p.reach);
   const cells = [['reach', 'Reach'], ['impressions', 'Impr.'], ['likes', 'Likes'], ['comments', 'Comm.'], ['shares', 'Shares'],
-    ['saves', 'Saves'], ['watchPct', 'Watch %'], ['visits', 'Visits'], ['follows', 'Follows'], ['linkClicks', 'Link clk']];
+    ['saves', 'Saves'], ['watchPct', 'Watch %'], ['visits', 'Visits'], ['follows', 'Follows'], ['linkClicks', 'Link clk'], ['boostSpend', 'Boost $']];
   return `<section class="card c4 postcard" aria-label="Post: ${esc(p.title || 'Untitled')}">
-    <div class="pc-head">${thumbTile(d, p, {mini: true})}
-      <span class="pc-title">${edField(`posts.${i}.title`, {min: 12, max: 22, label: 'Post title'})}</span>
-      <button class="rowdel" style="opacity:.6" data-action="delrow" data-list="posts" data-i="${i}" aria-label="Delete post">${icon('x', 13)}</button>
-    </div>
-    <div class="pc-meta">
-      ${listSel(`posts.${i}.pid`, platOptions(), 'Platform')}
-      ${listSel(`posts.${i}.format`, formatOptions(), 'Format')}
-      ${listSel(`posts.${i}.pillar`, pillarOptions(d), 'Content pillar')}
-    </div>
-    <div class="pc-meta" style="color:var(--ink-2)">
-      ${edField(`posts.${i}.date`, {type: 'date', min: 10, label: 'Post date'})}
-      ${edField(`posts.${i}.time`, {min: 5, max: 6, label: 'Post time, 24h HH:MM', ph: 'HH:MM'})}
-      <span class="li-sub">${relDay(p.date)}</span>
+    <div class="pc-head">${thumbTile(d, p, {size: 'lg'})}
+      <div class="pc-headmain">
+        <span class="pc-title">${edField(`posts.${i}.title`, {min: 12, max: 22, label: 'Post title'})}
+          <button class="rowdel" style="opacity:.6" data-action="delrow" data-list="posts" data-i="${i}" aria-label="Delete post">${icon('x', 13)}</button></span>
+        <div class="pc-meta" style="padding:0">
+          ${listSel(`posts.${i}.pid`, platOptions(), 'Platform')}
+          ${listSel(`posts.${i}.format`, formatOptions(), 'Format')}
+          ${listSel(`posts.${i}.pillar`, pillarOptions(d), 'Content pillar')}
+        </div>
+        <div class="pc-meta" style="padding:0;color:var(--ink-2)">
+          ${edField(`posts.${i}.date`, {type: 'date', min: 10, label: 'Post date'})}
+          ${edField(`posts.${i}.time`, {min: 5, max: 6, label: 'Post time, 24h HH:MM', ph: 'HH:MM'})}
+          <span class="li-sub">${relDay(p.date)}</span>
+        </div>
+      </div>
     </div>
     <div class="pc-meta">${icon('zap', 12)}${edField(`posts.${i}.hook`, {min: 18, max: 30, label: 'Hook', ph: 'hook / first line'})}</div>
     <div class="pc-meta">${icon('megaphone', 12)}${edField(`posts.${i}.cta`, {min: 18, max: 30, label: 'Call to action', ph: 'call to action'})}</div>
@@ -2196,6 +2226,7 @@ function postCard(d, p, i, topDecile) {
         : staticChip(num(b.er) !== null && er * 100 >= num(b.er) ? 'good' : 'neutral', 'heart', fmt.pct(er * 100) + ' ER')}
       ${sv === null ? '' : staticChip(num(b.saveRate) !== null && sv * 100 >= num(b.saveRate) ? 'good' : 'neutral', 'bookmark', fmt.pct(sv * 100) + ' save rate')}
       ${num(p.follows) ? staticChip('sagey', 'usersplus', `+${fmt.int(p.follows)} follows`) : ''}
+      ${num(p.boostSpend) ? staticChip('warning', 'zap', fmt.money(p.boostSpend) + ' boost') : ''}
       ${topDecile ? staticChip('warning', 'flame', 'Top 10%') : ''}
     </div>
   </section>`;
@@ -2261,7 +2292,7 @@ function viewHome() {
   const band = healthBand(rAll.health);
   const alerts = buildAlerts(d, rAll);
   const week = (d.posts || []).filter(p => p.status === 'scheduled' && daysUntil(p.date) !== null && daysUntil(p.date) >= 0 && daysUntil(p.date) <= 7)
-    .map(p => ({date: p.date, title: p.title, sub: `${(PLATFORM_META[p.pid] || {label: p.pid}).label} · ${(FORMATS[p.format] || {}).label || ''}${p.time ? ' · ' + p.time : ''}`}))
+    .map(p => ({date: p.date, title: p.title, p, sub: `${(PLATFORM_META[p.pid] || {label: p.pid}).label} · ${(FORMATS[p.format] || {}).label || ''}${p.time ? ' · ' + p.time : ''}`}))
     .concat((d.deals || []).filter(dl => dl.due && !['delivered', 'invoiced', 'paid'].includes(dl.status) && daysUntil(dl.due) >= 0 && daysUntil(dl.due) <= 7)
       .map(dl => ({date: dl.due, title: `Deliverable: ${dl.brand}`, sub: dl.deliverable || 'Brand deal'})))
     .sort((a, c) => String(a.date).localeCompare(String(c.date))).slice(0, 8);
@@ -2326,7 +2357,7 @@ function viewHome() {
     <section class="card c4" aria-label="This week">
       ${cardH('calendar', 'This Week', `<button class="btn btn-ghost" data-action="goto" data-view="calendar">Calendar →</button>`, 'golden')}
       ${week.length ? `<ul class="plainlist">${week.map(u => `
-        <li><span class="li-date">${relDay(u.date)}</span><span class="li-main">${esc(u.title)}<div class="li-sub">${esc(u.sub)}</div></span></li>`).join('')}</ul>`
+        <li><span class="li-date">${relDay(u.date)}</span>${u.p ? thumbTile(d, u.p, {size: 'sm'}) : ''}<span class="li-main">${esc(u.title)}<div class="li-sub">${esc(u.sub)}</div></span></li>`).join('')}</ul>`
       : `<div class="emptystate">Nothing scheduled in the next 7 days — add posts in the Content Calendar.</div>`}
     </section>
 
@@ -2392,6 +2423,7 @@ function viewSetup() {
           ${tile('Shop / storefront revenue', edField(`months.${em}.shopRev`, {type: 'num', min: 5, label: 'Shop revenue'}))}
           ${tile('Link-in-bio clicks', edField(`months.${em}.bioClicks`, {type: 'num', min: 4, label: 'Link-in-bio clicks'}))}
           ${tile('Link-in-bio conversions', edField(`months.${em}.bioConv`, {type: 'num', min: 4, label: 'Link-in-bio conversions'}))}
+          ${tile('Ad spend', edField(`months.${em}.adSpend`, {type: 'num', min: 4, label: 'Monthly ad spend'}), 'account-level ads; per-post boosts live on posts')}
         </div>
       </div>`; })()}
     </section>
@@ -2603,16 +2635,21 @@ function viewVault() {
       <div class="card-b flush">
         ${trends.length ? trends.map(({t, i}) => `
           <div class="trendcard">
-            ${platMono(t.pid, 20)}
-            <span style="min-width:0">${edField(`trends.${i}.name`, {min: 18, max: 30, label: 'Trend name'})}<div class="li-sub">${edField(`trends.${i}.note`, {min: 16, max: 28, label: 'Trend note', ph: 'how would you use it?'})}</div></span>
-            <span style="display:inline-flex;align-items:center;gap:4px">${edField(`trends.${i}.expires`, {type: 'date', min: 10, label: 'Trend expiry date'})}${expiryChip(t.expires)}</span>
-            ${cycleChip(`trends.${i}.status`, 'trend', 'Trend status')}
-            <button class="rowdel" data-action="delrow" data-list="trends" data-i="${i}" aria-label="Delete trend">${icon('x', 13)}</button>
+            <div class="tr-top">
+              ${platMono(t.pid, 20)}
+              ${edField(`trends.${i}.name`, {min: 18, max: 34, label: 'Trend name'})}
+              ${cycleChip(`trends.${i}.status`, 'trend', 'Trend status')}
+              <button class="rowdel" data-action="delrow" data-list="trends" data-i="${i}" aria-label="Delete trend">${icon('x', 13)}</button>
+            </div>
+            <div class="tr-sub">
+              ${edField(`trends.${i}.note`, {min: 16, max: 30, label: 'Trend note', ph: 'how would you use it?'})}
+              <span style="display:inline-flex;align-items:center;gap:5px">${icon('clock', 11)}${edField(`trends.${i}.expires`, {type: 'date', min: 10, label: 'Trend expiry date'})}${t.status === 'expired' ? '' : expiryChip(t.expires)}</span>
+            </div>
           </div>`).join('') : `<div class="emptystate">Spot a trend or audio worth riding? Park it here with an expiry date.</div>`}
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="trends">${icon('plus', 13)}Add trend</button>
       </div>
     </section>
-    <section class="card c5" aria-label="Idea backlog">
+    <section class="card c7" aria-label="Idea backlog">
       ${cardH('bulb', 'Idea Backlog', `${(d.ideas || []).length}`, 'aqua')}
       <div class="card-b flush">
         ${(d.ideas || []).length ? `<ul class="plainlist">${(d.ideas || []).map((it, i) => `
@@ -2623,7 +2660,7 @@ function viewVault() {
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ideas">${icon('plus', 13)}Add idea</button>
       </div>
     </section>
-    <section class="card c3" aria-label="CTA bank">
+    <section class="card c5" aria-label="CTA bank">
       ${cardH('megaphone', 'CTA Bank', `${(d.ctas || []).length}`, 'coral')}
       <div class="card-b flush">
         ${(d.ctas || []).length ? `<ul class="plainlist">${(d.ctas || []).map((c, i) => `
@@ -2634,15 +2671,16 @@ function viewVault() {
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ctas">${icon('plus', 13)}Add CTA</button>
       </div>
     </section>
-    <section class="card c4" aria-label="Repurposing tracker">
+    <section class="card" aria-label="Repurposing tracker">
       ${cardH('repeat', 'Repurposing Tracker', 'one idea → every platform', 'golden')}
-      <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:360px">
-        <thead><tr><th>Idea / asset</th><th>Source</th><th>Cut for</th><th></th></tr></thead>
+      <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:0">
+        <thead><tr><th>Idea / asset</th><th>Notes</th><th>Source</th><th>Cut for</th><th></th></tr></thead>
         <tbody>${(d.repurpose || []).map((rp, i) => `
           <tr>
-            <td>${edField(`repurpose.${i}.idea`, {min: 14, max: 22, label: 'Repurposed idea'})}<div class="li-sub">${edField(`repurpose.${i}.notes`, {min: 12, max: 22, label: 'Repurposing notes', ph: 'next cut?'})}</div></td>
+            <td>${edField(`repurpose.${i}.idea`, {min: 18, max: 30, label: 'Repurposed idea'})}</td>
+            <td>${edField(`repurpose.${i}.notes`, {min: 18, max: 34, label: 'Repurposing notes', ph: 'next cut?'})}</td>
             <td>${listSel(`repurpose.${i}.source`, platOptions(), 'Source platform')}</td>
-            <td>${edField(`repurpose.${i}.cuts`, {min: 14, max: 24, label: 'Platforms and formats already cut', ph: 'e.g. IG reel · TT · short'})}</td>
+            <td>${edField(`repurpose.${i}.cuts`, {min: 22, max: 40, label: 'Platforms and formats already cut', ph: 'e.g. IG reel · TT · YT short'})}</td>
             <td><button class="rowdel" data-action="delrow" data-list="repurpose" data-i="${i}" aria-label="Delete row">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div>
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="repurpose">${icon('plus', 13)}Add asset</button>
@@ -2727,8 +2765,8 @@ function viewCalendar() {
             return `<div class="pipecol"><h4><span>${stageMeta[stage][2]}</span><span>${items.length}</span></h4>
               ${shown.map(({p, i}) => `
                 <div class="pipeitem">
-                  <div style="display:flex;gap:6px;align-items:center">${platMono(p.pid, 17)}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(p.title || 'Untitled')}</span></div>
-                  <div class="pi-meta"><span class="li-sub">${p.date ? relDay(p.date) : 'no date'}</span></div>
+                  <div style="display:flex;gap:7px;align-items:center;min-width:0">${thumbTile(d, p, {size: 'sm'})}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(p.title || 'Untitled')}</span></div>
+                  <div class="pi-meta">${platMono(p.pid, 15)}<span class="li-sub">${p.date ? relDay(p.date) : 'no date'}</span></div>
                   <div class="pi-meta">${cycleChip(`posts.${i}.status`, 'pipeline', 'Post status')}</div>
                   ${p.approval && p.approval !== 'na' ? `<div class="pi-meta">${cycleChip(`posts.${i}.approval`, 'approval', 'Client approval')}</div>` : ''}
                 </div>`).join('') || `<div class="emptystate" style="padding:12px 4px">—</div>`}
@@ -2824,7 +2862,7 @@ function viewInsights() {
   const bestFmt = fmts.find(f => f.n >= 3 && f.index !== null);
   const perfRow = ({p, i}) => {
     const er = div(postInteractions(p), p.reach);
-    return `<li>${thumbTile(d, p, {mini: true})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
+    return `<li>${thumbTile(d, p, {size: 'md'})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
       <div class="li-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)} · ${esc((FORMATS[p.format] || {}).label || '')} · reach ${fmt.int(p.reach)}${num(p.saves) ? ` · ${fmt.int(p.saves)} saves` : ''}</div></span>
       <strong style="font-variant-numeric:tabular-nums">${fmt.pct(er * 100)}</strong></li>`;
   };
@@ -2930,7 +2968,7 @@ function viewFunnel() {
     <section class="card c5" aria-label="Growth drivers">
       ${cardH('usersplus', 'Growth Drivers', 'posts that earned the most follows', 'aqua')}
       ${drivers.length ? `<ul class="plainlist">${drivers.map(p => `
-        <li>${thumbTile(d, p, {mini: true})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
+        <li>${thumbTile(d, p, {size: 'md'})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
           <div class="li-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)} · reach ${fmt.int(p.reach)} · ${fmtDate(p.date)}</div></span>
         <strong style="white-space:nowrap">+${fmt.int(p.follows)}</strong></li>`).join('')}</ul>
         <p class="hint-edit" style="margin:0;padding:10px 16px">Study what these share — hook, format, pillar — and make more of it.</p>`
@@ -3000,7 +3038,7 @@ function viewCommunity() {
         ${hot.length ? hot.map(({p, mns}) => `
           <div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--hairline)">
             <span class="golden-dot"></span>
-            ${thumbTile(d, p, {mini: true})}
+            ${thumbTile(d, p, {size: 'md'})}
             <span style="flex:1;min-width:0"><strong>${esc(p.title || 'Untitled')}</strong>
               <div class="li-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)} · posted ${mns} min ago</div></span>
             <span class="chip warning">${icon('clock', 13)}${60 - mns} min left — reply now</span>
@@ -3099,7 +3137,7 @@ function viewMoney() {
   ${periodBar()}
   <div class="grid">
     <section class="card"><div class="card-b"><div class="tiles">
-      ${tile('Monetization — ' + periodLabel(), `<span class="derived">${fmt.money(r.monetizeRev)}</span>`, goalTarget ? `<span class="meterbar" style="max-width:110px;display:inline-block"><i style="width:${clamp((r.monetizeRev ?? 0) / goalTarget * 100, 0, 100)}%;background:var(--golden)"></i></span> ${fmt.pct(div(r.monetizeRev, goalTarget) * 100 || 0, 0)} of goal` : '<span class="hint-edit">set a goal →</span>', true, 'golden')}
+      ${tile('Monetization — ' + periodLabel(), `<span class="derived">${fmt.money(r.monetizeRev)}</span>`, (goalTarget ? `<span class="meterbar" style="max-width:110px;display:inline-block"><i style="width:${clamp((r.monetizeRev ?? 0) / goalTarget * 100, 0, 100)}%;background:var(--golden)"></i></span> ${fmt.pct(div(r.monetizeRev, goalTarget) * 100 || 0, 0)} of goal` : '<span class="hint-edit">set a goal →</span>') + (r.adSpend ? ` · net <strong>${fmt.money(r.netMonetize)}</strong> after ads` : ''), true, 'golden')}
       ${tile('Income goal / month', edField('money.incomeGoal', {type: 'num', min: 5, label: 'Monthly income goal'}), 'drives the Monetization sub-score')}
       ${tile('Deals paid', `<span class="derived">${fmt.money(r.dealRevPaid)}</span>`, periodLabel(), false, 'aqua')}
       ${tile('Booked pipeline', `<span class="derived">${fmt.money(booked || null)}</span>`, 'signed · delivered · invoiced', false, 'teal')}
@@ -3164,12 +3202,52 @@ function viewMoney() {
         ${tile('Conversion rate', `<span class="derived">${fmt.pct(r.bioConvRate)}</span>`, 'conversions ÷ clicks')}
       </div></div>
     </section>
+    <section class="card c7" aria-label="Ads and boosts">
+      ${cardH('zap', 'Ads & Boosts — Spend Only', 'so you always know your NET number', 'golden')}
+      <div class="card-b">
+        <div class="tiles" style="margin-bottom:10px">
+          ${tile('Monthly ad spend', flowVal('adSpend', 'Monthly ad spend', {min: 4, money: true, prefix: '<span class="unit">$</span>'}), 'account-level / always-on ads')}
+          ${tile('Post boosts', `<span class="derived">${fmt.money(r.boostSpend)}</span>`, 'sum of “Boost $” on posts', false, 'coral')}
+          ${tile('Total spend', `<span class="derived">${fmt.money(r.adSpend)}</span>`, r.costPer1kReach === null ? '' : fmt.money2(r.costPer1kReach) + ' per 1k reach', false, 'golden')}
+          ${tile('Net after spend', `<span class="derived">${fmt.money(r.netMonetize)}</span>`, 'monetization − ad spend', false, 'aqua')}
+        </div>
+        <p style="font-size:12px;color:var(--ink-2);line-height:1.6;margin:0">Log <strong style="color:var(--ink)">just the spend</strong> — your ads manager already keeps the campaign detail, so nothing here is double bookkeeping. Clearly connects spend to your net number, and boosted posts wear a ⚡ chip in Post Performance so paid reach is visible next to organic.</p>
+      </div>
+    </section>
   </div>`;
 }
 
 /* ================================================================
    REPORT — Goals, Benchmarks & Client Report
 ================================================================ */
+/* Compose a starting narrative from this period's actual numbers — computed locally
+   from derive(), nothing uploaded. The user edits it like any typed note. */
+function draftReportNotes(d, r) {
+  const b = d.benchmarks;
+  const S = [];
+  if (r.health !== null) {
+    const band = healthBand(r.health);
+    S.push(`Program health is ${r.health}/100 — ${band.label.toLowerCase()}${r.weakest && r.weakest.v < 85 ? `, with ${r.weakest.name.toLowerCase()} the main drag at ${r.weakest.v}` : ''}.`);
+  }
+  if (r.netFollowers !== null) S.push(`Followers ${r.netFollowers >= 0 ? 'grew' : 'fell'} ${r.netFollowers >= 0 ? '+' : ''}${fmt.int(r.netFollowers)} (${fmt.signed(r.growthPct)}) to ${fmt.int(r.followersNow)}.`);
+  if (r.erReach !== null) S.push(`Engagement rate ${num(b.er) !== null ? `${r.erReach >= num(b.er) ? 'held above' : 'slipped below'} the ${fmt.pct(b.er)} benchmark at ` : 'was '}${fmt.pct(r.erReach)}${r.saveRate !== null ? `, with saves at ${fmt.pct(r.saveRate, 2)} of reach` : ''}.`);
+  const keys = periodMonthsKeys();
+  const top = (d.posts || []).filter(p => p.status === 'posted' && p.date && keys.includes(p.date.slice(0, 7)) && div(postInteractions(p), p.reach) !== null)
+    .sort((a, c) => div(postInteractions(c), c.reach) - div(postInteractions(a), a.reach))[0];
+  if (top) S.push(`Best post: “${top.title}” (${(PLATFORM_META[top.pid] || {label: top.pid}).label} ${(FORMATS[top.format] || {label: ''}).label.toLowerCase()}, ${fmt.pct(div(postInteractions(top), top.reach) * 100)} ER${num(top.follows) ? `, +${fmt.int(top.follows)} follows` : ''}).`);
+  if (r.nPosts >= 8) {
+    const drift = derivePillars(d, keys, 'all').list
+      .filter(pl => pl.target !== null && pl.actualPct !== null)
+      .map(pl => ({pl, diff: pl.actualPct - pl.target}))
+      .sort((a, c) => Math.abs(c.diff) - Math.abs(a.diff))[0];
+    if (drift && Math.abs(drift.diff) > 10) S.push(`Content mix drifted ${drift.diff > 0 ? 'over' : 'under'} on “${drift.pl.name}” (${fmt.num(drift.pl.actualPct, 0)}% of posts vs ${fmt.num(drift.pl.target, 0)}% planned) — rebalance next period.`);
+  }
+  if (r.cadenceTarget) S.push(`Publishing: ${r.cadenceActual} of ~${r.cadenceTarget} planned posts${r.consistencyPct !== null && r.consistencyPct < 85 ? ' — tightening the cadence is the quickest win' : ''}.`);
+  const goal = num(d.money && d.money.incomeGoal);
+  if (r.monetizeRev !== null || goal) S.push(`Monetization came to ${fmt.money(r.monetizeRev)}${goal ? ` (${fmt.pct(div(r.monetizeRev, goal * r.monthCount) * 100 || 0, 0)} of the ${fmt.money(goal * r.monthCount)} goal)` : ''}${r.adSpend ? `; net ${fmt.money(r.netMonetize)} after ${fmt.money(r.adSpend)} in ads and boosts` : ''}.`);
+  return S.join(' ');
+}
+
 function viewReport() {
   const d = D(), b = d.benchmarks;
   const pKeys = periodMonthsKeys();
@@ -3198,7 +3276,7 @@ function viewReport() {
           ${tile('Reach', fmt.int(r.reach), `${fmt.int(r.nPosts)} posts published`)}
           ${tile('Save rate', fmt.pct(r.saveRate, 2), benchBadge(r.saveRate, b.saveRate))}
           ${tile('Follow conversion', fmt.pct(r.followConv, 2), benchBadge(r.followConv, b.followConv))}
-          ${tile('Monetization', fmt.money(r.monetizeRev), `deals ${fmt.money(r.dealRevPaid)} · affiliate ${fmt.money(r.affiliateRev)} · shop ${fmt.money(r.shopRev)}`)}
+          ${tile('Monetization', fmt.money(r.monetizeRev), `deals ${fmt.money(r.dealRevPaid)} · affiliate ${fmt.money(r.affiliateRev)} · shop ${fmt.money(r.shopRev)}${r.adSpend ? ` · net ${fmt.money(r.netMonetize)} after ${fmt.money(r.adSpend)} ads` : ''}`)}
         </div>
         <div class="rep-sec" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
           <div>
@@ -3227,8 +3305,8 @@ function viewReport() {
         </div>
         <div class="rep-sec">
           <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Top posts</h2>
-          ${topPosts.length ? `<div class="tablewrap"><table class="data"><thead><tr><th>Post</th><th>Platform</th><th>Format</th><th class="num">Reach</th><th class="num">ER</th><th class="num">Saves</th><th class="num">Follows</th></tr></thead>
-          <tbody>${topPosts.map(p => `<tr><td>${esc(p.title)}</td><td>${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}</td><td>${esc((FORMATS[p.format] || {label: p.format}).label)}</td>
+          ${topPosts.length ? `<div class="tablewrap"><table class="data"><thead><tr><th></th><th>Post</th><th>Platform</th><th>Format</th><th class="num">Reach</th><th class="num">ER</th><th class="num">Saves</th><th class="num">Follows</th></tr></thead>
+          <tbody>${topPosts.map(p => `<tr><td style="width:42px">${thumbTile(d, p, {size: 'sm'})}</td><td>${esc(p.title)}</td><td>${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}</td><td>${esc((FORMATS[p.format] || {label: p.format}).label)}</td>
             <td class="num">${fmt.int(p.reach)}</td><td class="num">${fmt.pct(div(postInteractions(p), p.reach) * 100)}</td><td class="num">${fmt.int(p.saves)}</td><td class="num">${p.follows === null ? '—' : '+' + fmt.int(p.follows)}</td></tr>`).join('')}</tbody></table></div>`
           : `<p style="color:var(--muted);font-size:12.5px;font-style:italic">No posted posts with metrics this period.</p>`}
         </div>
@@ -3251,7 +3329,11 @@ function viewReport() {
           <button class="addrow noprint" data-action="addrow" data-list="goals">${icon('plus', 13)}Add goal</button>
         </div>
         <div class="rep-sec">
-          <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Notes & next period</h2>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 4px">
+            <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:0">Notes & next period</h2>
+            <button class="btn noprint" data-action="draftnotes">${icon('zap', 13)}Draft from my numbers</button>
+          </div>
+          <p class="hint-edit noprint" style="margin:0 0 6px">Your narrative — type it, or draft it from this period's numbers and edit.</p>
           <textarea class="ed ed-area${(d.reportNotes ?? '') === '' ? ' ed-empty' : ''}" data-path="reportNotes" data-etype="text" rows="4" aria-label="Report notes">${esc(d.reportNotes)}</textarea>
         </div>
         <p style="font-size:11px;color:var(--muted);border-top:1px solid var(--hairline);padding-top:10px;margin:6px 0 0">Prepared with Clearly — everything, clearly. · ${new Date().toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}</p>
@@ -3322,7 +3404,7 @@ const NEW_ROW = {
   posts: () => ({id: uid(), title: 'New post', date: todayISO(), time: '', pid: (activePlatforms(D())[0] || {pid: 'ig'}).pid, format: 'reel',
     pillar: '', hook: '', cta: '', status: 'idea', approval: 'na',
     reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-    watchPct: null, visits: null, follows: null, linkClicks: null, notes: ''}),
+    watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''}),
   platforms: () => ({id: uid(), pid: 'ig', handle: '@handle', type: 'creator', goal: '', cadence: 3, active: true, history: {}}),
   pillars: () => ({id: uid(), name: 'New pillar', color: (D().pillars || []).length % 6, target: null, notes: ''}),
   competitors: () => ({id: uid(), name: 'New competitor', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''}),
@@ -3386,6 +3468,16 @@ document.addEventListener('click', e => {
   else if (act === 'reset') { doReset(); }
   else if (act === 'nudge-dismiss') { state.meta.nudgeSnoozed = new Date().toISOString(); save(false); render(); }
   else if (act === 'brandswitch') { toast('Multi-brand tip: keep one copy of this file per client — File → Duplicate, then rename.'); }
+  else if (act === 'draftnotes') {
+    const d = D();
+    const draft = draftReportNotes(d, derive(d, periodMonthsKeys(), 'all'));
+    if (!draft) { toast('Not enough data yet — log a few posts first'); return; }
+    if ((d.reportNotes || '').trim() && !confirm('Replace the current notes with a fresh draft from this period’s numbers?')) return;
+    setPath('reportNotes', draft);
+    save(true);
+    render();
+    toast('✓ Draft written — edit away');
+  }
   else if (act === 'print') { window.print(); }
   else if (act === 'month') {
     const dir = parseInt(btn.dataset.dir, 10);
