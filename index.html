@@ -408,6 +408,10 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .thumb{position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;display:grid;place-items:center;border:1px solid var(--hairline);min-width:0}
 .thumb .th-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .thumb .th-pill{position:absolute;bottom:5px;right:6px;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--surface)}
+.thumb .th-add{position:absolute;bottom:5px;left:5px;width:22px;height:22px;border-radius:7px;background:var(--surface);
+  border:1px solid var(--hairline);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;opacity:.92}
+.thumb .th-add:hover{color:var(--teal-deep);border-color:var(--teal)}
+.thumb .th-del{left:31px}
 .thumb .fmt-badge{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:6px;background:var(--surface);
   border:1px solid var(--hairline);color:var(--ink-2);display:grid;place-items:center}
 .thumb .th-date{position:absolute;bottom:4px;left:5px;font-size:9px;font-weight:700;color:var(--ink-2);background:var(--surface);border-radius:5px;padding:0 5px;line-height:1.6}
@@ -611,6 +615,7 @@ code{background:var(--surface-alt);border:1px solid var(--hairline);border-radiu
 <div id="toast" role="status" aria-live="polite"></div>
 <div id="tooltip" class="tooltip" hidden></div>
 <input type="file" id="restoreFile" accept=".json,application/json" hidden aria-hidden="true">
+<input type="file" id="postImgFile" accept="image/*" hidden aria-hidden="true">
 <script>
 'use strict';
 /* ================================================================
@@ -830,7 +835,7 @@ function starterData() {
       {id: uid(), title: 'My first tracked post', date: todayISO(), time: '', pid: 'ig', format: 'reel',
        pillar: pilA, hook: '', cta: '', status: 'idea', approval: 'na',
        reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-       watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
+       watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
     ],
     months: {},
     community: {weeklyBudgetMin: 300, cadenceNote: 'Reply to every comment in the first hour after posting; batch DMs twice a day.'},
@@ -924,7 +929,7 @@ function sampleData() {
           reach, impressions: Math.round(reach * 1.35), likes, comments, shares, saves,
           watchPct: FORMATS[format].video ? 36 + ((w + s + n) % 4) * 7 : null,
           visits: Math.round(reach * 0.021), follows, linkClicks: Math.round(reach * 0.004),
-          boostSpend, notes,
+          boostSpend, img: null, notes,
         });
         n++;
       });
@@ -938,18 +943,18 @@ function sampleData() {
     time: `${String(gh.getHours()).padStart(2, '0')}:${String(gh.getMinutes()).padStart(2, '0')}`,
     pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[3], cta: CTAS[1], status: 'posted', approval: 'na',
     reach: 1830, impressions: 2400, likes: 96, comments: 21, shares: 9, saves: 17,
-    watchPct: 52, visits: 41, follows: 6, linkClicks: 8, boostSpend: null, notes: 'Just published — golden hour',
+    watchPct: 52, visits: 41, follows: 6, linkClicks: 8, boostSpend: null, img: null, notes: 'Just published — golden hour',
   });
   /* Pipeline — ideas through scheduled, incl. client-approval states */
   posts.push(
-    {id: uid(), title: 'Holiday gift guide teaser', date: isoOffset(1), time: '18:30', pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[7], cta: CTAS[3], status: 'scheduled', approval: 'approved', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
-    {id: uid(), title: 'Studio tour, part 2', date: isoOffset(2), time: '19:30', pid: 'tt', format: 'reel', pillar: pilBts, hook: HOOKS[5], cta: CTAS[2], status: 'scheduled', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
-    {id: uid(), title: 'Client reel: fall lookbook', date: isoOffset(4), time: '18:00', pid: 'ig', format: 'reel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'awaiting', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'V2 sent for sign-off'},
-    {id: uid(), title: 'Linen care explainer', date: isoOffset(5), time: '', pid: 'yt', format: 'video', pillar: pilEd, hook: HOOKS[2], cta: CTAS[3], status: 'film', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'Script locked, filming Thu'},
-    {id: uid(), title: 'Client carousel: testimonials', date: isoOffset(6), time: '', pid: 'ig', format: 'carousel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'changes', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'Client wants slide 3 swapped'},
-    {id: uid(), title: '5 storage myths, busted', date: isoOffset(7), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: HOOKS[0], cta: CTAS[0], status: 'script', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
-    {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: 'Pair with trend audio if still alive'},
-    {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''},
+    {id: uid(), title: 'Holiday gift guide teaser', date: isoOffset(1), time: '18:30', pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[7], cta: CTAS[3], status: 'scheduled', approval: 'approved', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
+    {id: uid(), title: 'Studio tour, part 2', date: isoOffset(2), time: '19:30', pid: 'tt', format: 'reel', pillar: pilBts, hook: HOOKS[5], cta: CTAS[2], status: 'scheduled', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
+    {id: uid(), title: 'Client reel: fall lookbook', date: isoOffset(4), time: '18:00', pid: 'ig', format: 'reel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'awaiting', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'V2 sent for sign-off'},
+    {id: uid(), title: 'Linen care explainer', date: isoOffset(5), time: '', pid: 'yt', format: 'video', pillar: pilEd, hook: HOOKS[2], cta: CTAS[3], status: 'film', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'Script locked, filming Thu'},
+    {id: uid(), title: 'Client carousel: testimonials', date: isoOffset(6), time: '', pid: 'ig', format: 'carousel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'changes', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'Client wants slide 3 swapped'},
+    {id: uid(), title: '5 storage myths, busted', date: isoOffset(7), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: HOOKS[0], cta: CTAS[0], status: 'script', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
+    {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'Pair with trend audio if still alive'},
+    {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
   );
 
   /* 12 months of follower snapshots — believable curves, varying month to month */
@@ -2037,7 +2042,7 @@ function nudgeHTML() {
 function demoBanner() {
   if (!DEMO) return '';
   return `<div class="nudge" style="border-left-color:var(--pink)" role="region" aria-label="Live demo notice">
-    ${icon('bulb', 16)}<span>You're in the <strong>live demo</strong> of the Clearly Social Media Dashboard, filled with sample data. Click any number or label — it's all editable, and everything recalculates as you type.${DEMO_LOCKED ? ' Demo edits reset on refresh; the full version saves everything automatically and adds Backup & Restore.' : ' Your download opens clean, ready for your own numbers.'}</span></div>`;
+    ${icon('bulb', 16)}<span>You're in the <strong>live demo</strong> of the Clearly Social Media Dashboard, filled with sample data. Click any number or label — it's all editable, and everything recalculates as you type. Add your own post photos too — they stay on your device.${DEMO_LOCKED ? ' Demo edits reset on refresh; the full version saves everything automatically and adds Backup & Restore.' : ' Your download opens clean, ready for your own numbers.'}</span></div>`;
 }
 
 function viewHead(title, sub, aux = '') {
@@ -2084,25 +2089,51 @@ function pillarColorIdx(d, pillarId) {
    (THUMBS bank in p2b.js). Themed by content pillar, deterministic per post so the
    grid never reshuffles between renders. Purely decorative — no uploads, ever. */
 function thumbSrc(d, p) {
+  if (p.img) return p.img; // the user's own photo — attached locally, never uploaded
   const seed = [...String(p.id || p.title || '')].reduce((a, c) => a + c.charCodeAt(0), 0);
   const slot = pillarColorIdx(d, p.pillar);
   const group = THUMBS[slot < THUMBS.length ? slot : seed % THUMBS.length];
   return group[seed % group.length];
 }
-/* 1 & 2 · Placeholder thumbnail tile — pillar-themed post photo + format badge.
-   size: '' = feed-grid cell · 'lg' 84px (post-card header) · 'md' 64px (list rows) · 'sm' 34px (compact rows) */
-function thumbTile(d, p, {size = ''} = {}) {
+/* 1 & 2 · Post thumbnail tile — the user's own photo, or pillar-themed placeholder art.
+   size: '' = feed-grid cell · 'lg' 84px (post-card header) · 'md' 64px (list rows) · 'sm' 34px (compact rows)
+   editIdx (post-card header only): shows the add/remove-photo controls for d.posts[editIdx]. */
+function thumbTile(d, p, {size = '', editIdx = null} = {}) {
   const f = FORMATS[p.format] || FORMATS.static;
   const sched = p.status !== 'posted';
   const grid = size === '';
   const badge = grid || size === 'lg' || size === 'md';
   const dot = grid || size === 'lg';
-  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}" data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}">
+  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}" data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}${p.img ? '' : ' · placeholder art'}">
     <img class="th-img" src="${thumbSrc(d, p)}" alt="" loading="lazy">
     ${dot ? `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>` : ''}
     ${badge ? `<span class="fmt-badge">${icon(f.icon, 11)}</span>` : ''}
     ${grid && sched && p.date ? `<span class="th-date">${esc(relDay(p.date))}</span>` : ''}
+    ${editIdx !== null ? `<button class="th-add" data-action="postimg" data-i="${editIdx}" title="${p.img ? 'Replace' : 'Add'} this post’s photo — stored only on this device, never uploaded" aria-label="${p.img ? 'Replace' : 'Add'} this post’s photo">${icon('image', 12)}</button>${p.img ? `<button class="th-add th-del" data-action="postimgdel" data-i="${editIdx}" title="Remove photo (back to placeholder art)" aria-label="Remove this post’s photo">${icon('x', 11)}</button>` : ''}` : ''}
   </span>`;
+}
+/* Read a user-picked image locally, cover-crop to a small square thumbnail, store with the post.
+   Everything happens on-device — the file is never uploaded anywhere. */
+function attachPostImg(file, idx) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const S = 240;
+      const c = document.createElement('canvas');
+      c.width = S; c.height = S;
+      const side = Math.min(im.width, im.height);
+      c.getContext('2d').drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, S, S);
+      setPath(`posts.${idx}.img`, c.toDataURL('image/jpeg', 0.72));
+      save(true);
+      render();
+      toast('✓ Photo added — stored only on this device');
+    };
+    im.onerror = () => toast('Couldn’t read that image — try a JPG or PNG');
+    im.src = reader.result;
+  };
+  reader.onerror = () => toast('Couldn’t read that file');
+  reader.readAsDataURL(file);
 }
 /* 1 · Feed-grid preview — upcoming + recent posts as your grid will look */
 function feedGrid(d, {max = 9} = {}) {
@@ -2110,7 +2141,7 @@ function feedGrid(d, {max = 9} = {}) {
     .sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, max);
   if (!items.length) return `<div class="emptystate">Schedule or log a few posts and your grid preview appears here.</div>`;
   return `<div class="feedgrid" role="img" aria-label="Feed preview — ${items.length} recent and upcoming posts">${items.map(p => thumbTile(d, p)).join('')}</div>
-  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>placeholder art, themed + dotted by content pillar</span></div>`;
+  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>add your own photo on any post card — placeholder art (themed by pillar) fills the gaps</span></div>`;
 }
 
 /* 7 · Posting-streak calendar */
@@ -2202,7 +2233,7 @@ function postCard(d, p, i, topDecile) {
   const cells = [['reach', 'Reach'], ['impressions', 'Impr.'], ['likes', 'Likes'], ['comments', 'Comm.'], ['shares', 'Shares'],
     ['saves', 'Saves'], ['watchPct', 'Watch %'], ['visits', 'Visits'], ['follows', 'Follows'], ['linkClicks', 'Link clk'], ['boostSpend', 'Boost $']];
   return `<section class="card c4 postcard" aria-label="Post: ${esc(p.title || 'Untitled')}">
-    <div class="pc-head">${thumbTile(d, p, {size: 'lg'})}
+    <div class="pc-head">${thumbTile(d, p, {size: 'lg', editIdx: i})}
       <div class="pc-headmain">
         <span class="pc-title">${edField(`posts.${i}.title`, {min: 12, max: 22, label: 'Post title'})}
           <button class="rowdel" style="opacity:.6" data-action="delrow" data-list="posts" data-i="${i}" aria-label="Delete post">${icon('x', 13)}</button></span>
@@ -3404,7 +3435,7 @@ const NEW_ROW = {
   posts: () => ({id: uid(), title: 'New post', date: todayISO(), time: '', pid: (activePlatforms(D())[0] || {pid: 'ig'}).pid, format: 'reel',
     pillar: '', hook: '', cta: '', status: 'idea', approval: 'na',
     reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-    watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, notes: ''}),
+    watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''}),
   platforms: () => ({id: uid(), pid: 'ig', handle: '@handle', type: 'creator', goal: '', cadence: 3, active: true, history: {}}),
   pillars: () => ({id: uid(), name: 'New pillar', color: (D().pillars || []).length % 6, target: null, notes: ''}),
   competitors: () => ({id: uid(), name: 'New competitor', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''}),
@@ -3468,6 +3499,15 @@ document.addEventListener('click', e => {
   else if (act === 'reset') { doReset(); }
   else if (act === 'nudge-dismiss') { state.meta.nudgeSnoozed = new Date().toISOString(); save(false); render(); }
   else if (act === 'brandswitch') { toast('Multi-brand tip: keep one copy of this file per client — File → Duplicate, then rename.'); }
+  else if (act === 'postimg') {
+    imgTargetIdx = parseInt(btn.dataset.i, 10);
+    $('#postImgFile').click();
+  }
+  else if (act === 'postimgdel') {
+    setPath(`posts.${parseInt(btn.dataset.i, 10)}.img`, null);
+    save(true); render();
+    toast('Photo removed — placeholder art is back');
+  }
   else if (act === 'draftnotes') {
     const d = D();
     const draft = draftReportNotes(d, derive(d, periodMonthsKeys(), 'all'));
@@ -3500,6 +3540,13 @@ $('#scrim').addEventListener('click', () => document.body.classList.remove('nav-
 $('#restoreFile').addEventListener('change', e => {
   const f = e.target.files && e.target.files[0];
   if (f) doRestore(f);
+  e.target.value = '';
+});
+let imgTargetIdx = null;
+$('#postImgFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (f && imgTargetIdx !== null && D().posts[imgTargetIdx]) attachPostImg(f, imgTargetIdx);
+  imgTargetIdx = null;
   e.target.value = '';
 });
 
