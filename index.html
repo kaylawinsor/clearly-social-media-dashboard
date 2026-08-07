@@ -375,6 +375,8 @@ details.tablefall table{margin-top:6px}
 .cal .day.today .dnum{color:var(--brand-deep)}
 .cal .ev{display:block;background:var(--coral-soft);color:var(--coral-deep);border-radius:5px;padding:1px 5px;margin-top:3px;
   font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal .ev[data-action]{cursor:pointer}
+.cal .ev[data-action]:hover{filter:brightness(.96)}
 .cal .ev.ev-auto{background:var(--teal-soft);color:var(--teal-deep)}
 .cal .busy{position:absolute;top:4px;right:5px;font-size:9px;font-weight:700;color:var(--warning-deep);background:var(--warning-soft);
   border-radius:99px;padding:0 5px;line-height:1.5}
@@ -513,7 +515,8 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .pipeboard{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .pipecol{background:var(--surface-alt);border:1px solid var(--hairline);border-radius:10px;padding:8px;min-width:0}
 .pipecol h4{margin:0 0 6px;font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between;font-weight:700}
-.pipeitem{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:6px 8px;font-size:11.5px;margin-bottom:6px;min-width:0;overflow:hidden}
+.pipeitem{background:var(--surface);border:1px solid var(--hairline);border-radius:8px;padding:6px 8px;font-size:11.5px;margin-bottom:6px;min-width:0;overflow:hidden;cursor:pointer}
+.pipeitem:hover{border-color:var(--teal)}
 .pipeitem .pi-meta{display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap;min-width:0;max-width:100%}
 .pipeitem .chip{max-width:100%;overflow:hidden}
 @media (max-width:1100px){.pipeboard{grid-template-columns:repeat(3,1fr)}}
@@ -525,6 +528,15 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .hbar:hover .hb-fill.hb-aqua{background:var(--aqua-deep)}
 .duo-legend{display:flex;gap:14px;font-size:11px;color:var(--ink-2);margin-top:9px;align-items:center;flex-wrap:wrap}
 .duo-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px}
+
+/* Post editor modal — the full post card in an overlay; every field autosaves */
+.pmodal{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:18px}
+.pmodal .pm-scrim{position:absolute;inset:0;background:rgba(20,30,34,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.pmodal .pm-panel{position:relative;width:min(470px,94vw);max-height:92vh;overflow:auto;border-radius:var(--radius);box-shadow:0 24px 80px -24px rgba(0,0,0,.5);background:var(--surface)}
+.pmodal .pm-head{display:flex;align-items:center;gap:9px;padding:11px 16px;background:var(--surface-alt);border-bottom:1px solid var(--hairline);position:sticky;top:0;z-index:1}
+.pmodal .pm-head h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.11em;font-weight:700}
+.pmodal .pm-head .pm-hint{font-size:11.5px;color:var(--muted);font-style:italic}
+.pmodal .postcard{grid-column:unset;width:100%;border:none;border-radius:0;box-shadow:none}
 
 /* Milestone flags on sparklines */
 .spark line.mark-stem{stroke:var(--golden-deep);stroke-width:1.5}
@@ -1957,7 +1969,7 @@ const VIEWS = [
   {id: 'money',       label: 'Monetization & Brand Deals',        group: 'Monetize',          icon: 'dollar'},
   {id: 'report',      label: 'Goals, Benchmarks & Client Report', group: 'Report',            icon: 'file'},
 ];
-const ui = {view: 'home', monthOffset: 0, period: {mode: 'month', ref: monthKey()}, platform: 'all', filterPosts: 'all', postSort: 'date'};
+const ui = {view: 'home', monthOffset: 0, period: {mode: 'month', ref: monthKey()}, platform: 'all', filterPosts: 'all', postSort: 'date', editPost: null};
 const PTONE_VARS = ['--coral', '--aqua', '--golden', '--teal', '--serious', '--info-deep'];
 const DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -2119,13 +2131,13 @@ function thumbSrc(d, p) {
 /* 1 & 2 · Post thumbnail tile — the user's own photo, or pillar-themed placeholder art.
    size: '' = feed-grid cell · 'lg' 84px (post-card header) · 'md' 64px (list rows) · 'sm' 34px (compact rows)
    editIdx (post-card header only): shows the add/remove-photo controls for d.posts[editIdx]. */
-function thumbTile(d, p, {size = '', editIdx = null} = {}) {
+function thumbTile(d, p, {size = '', editIdx = null, editId = null} = {}) {
   const f = FORMATS[p.format] || FORMATS.static;
   const sched = p.status !== 'posted';
   const grid = size === '';
   const badge = grid || size === 'lg' || size === 'md';
   const dot = grid || size === 'lg';
-  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}" data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}${p.img ? '' : ' · placeholder art'}">
+  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}"${editId ? ` data-action="editpost" data-id="${editId}" style="cursor:pointer" title="Click to edit this post"` : ''} data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}${p.img ? '' : ' · placeholder art'}">
     <img class="th-img" src="${thumbSrc(d, p)}" alt="" loading="lazy">
     ${dot ? `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>` : ''}
     ${badge ? `<span class="fmt-badge">${icon(f.icon, 11)}</span>` : ''}
@@ -2161,8 +2173,8 @@ function feedGrid(d, {max = 9} = {}) {
   const items = (d.posts || []).filter(p => (p.status === 'posted' || p.status === 'scheduled') && p.date)
     .sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, max);
   if (!items.length) return `<div class="emptystate">Schedule or log a few posts and your grid preview appears here.</div>`;
-  return `<div class="feedgrid" role="img" aria-label="Feed preview — ${items.length} recent and upcoming posts">${items.map(p => thumbTile(d, p)).join('')}</div>
-  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>add your own photo on any post card — placeholder art (themed by pillar) fills the gaps</span></div>`;
+  return `<div class="feedgrid" aria-label="Feed preview — ${items.length} recent and upcoming posts; click a tile to edit that post">${items.map(p => thumbTile(d, p, {editId: p.id})).join('')}</div>
+  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>click a tile to edit its post — placeholder art (themed by pillar) fills photo gaps</span></div>`;
 }
 
 /* 7 · Posting-streak calendar */
@@ -2267,6 +2279,10 @@ function postCard(d, p, i, topDecile) {
           ${edField(`posts.${i}.date`, {type: 'date', min: 10, label: 'Post date'})}
           ${edField(`posts.${i}.time`, {min: 5, max: 6, label: 'Post time, 24h HH:MM', ph: 'HH:MM'})}
           <span class="li-sub">${relDay(p.date)}</span>
+        </div>
+        <div class="pc-meta" style="padding:0">
+          ${cycleChip(`posts.${i}.status`, 'pipeline', 'Post status')}
+          ${cycleChip(`posts.${i}.approval`, 'approval', 'Client approval')}
         </div>
       </div>
     </div>
@@ -2754,7 +2770,7 @@ function viewCalendar() {
   (d.posts || []).forEach(p => {
     if (!p.date) return;
     const kind = p.status === 'posted' ? 'posted' : p.status === 'scheduled' ? 'sched' : 'pipe';
-    (byDate[p.date] = byDate[p.date] || []).push({title: p.title || 'Untitled', kind, pid: p.pid});
+    (byDate[p.date] = byDate[p.date] || []).push({title: p.title || 'Untitled', kind, pid: p.pid, id: p.id});
   });
   (d.deals || []).forEach(dl => {
     if (dl.due && !['paid'].includes(dl.status)) (byDate[dl.due] = byDate[dl.due] || []).push({title: `Due: ${dl.brand || 'deal'}`, kind: 'deal'});
@@ -2790,7 +2806,7 @@ function viewCalendar() {
             return `<div class="day ${iso === tISO ? 'today' : ''}" role="group" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? dayEvs.map(e => e.title).join('; ') : 'no items'}${busy ? '. Busy day' : ''}">
               <span class="dnum">${day}</span>
               ${busy ? `<span class="busy" title="3+ items — consider spacing posts">busy</span>` : ''}
-              ${dayEvs.slice(0, 3).map(e => `<span class="ev" ${evStyle[e.kind] || ''}>${esc(e.title)}</span>`).join('')}
+              ${dayEvs.slice(0, 3).map(e => `<span class="ev" ${evStyle[e.kind] || ''}${e.id ? ` data-action="editpost" data-id="${e.id}" title="Click to edit"` : ''}>${esc(e.title)}</span>`).join('')}
               ${dayEvs.length > 3 ? `<span class="ev" style="background:var(--info-soft);color:var(--info-deep)">+${dayEvs.length - 3} more</span>` : ''}
               <span class="evdots">${dayEvs.slice(0, 5).map(e => `<span class="evdot ${e.kind === 'sched' ? 'ev-auto' : ''}"></span>`).join('')}</span>
             </div>`; }).join('')}
@@ -2816,7 +2832,7 @@ function viewCalendar() {
             const shown = stage === 'posted' ? items.slice(-3).reverse() : items;
             return `<div class="pipecol"><h4><span>${stageMeta[stage][2]}</span><span>${items.length}</span></h4>
               ${shown.map(({p, i}) => `
-                <div class="pipeitem">
+                <div class="pipeitem" data-action="editpost" data-id="${p.id}" title="Click to edit this post">
                   <div style="display:flex;gap:7px;align-items:center;min-width:0">${thumbTile(d, p, {size: 'sm'})}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(p.title || 'Untitled')}</span></div>
                   <div class="pi-meta">${platMono(p.pid, 15)}<span class="li-sub">${p.date ? relDay(p.date) : 'no date'}</span></div>
                   <div class="pi-meta">${cycleChip(`posts.${i}.status`, 'pipeline', 'Post status')}</div>
@@ -2825,7 +2841,7 @@ function viewCalendar() {
               ${stage === 'posted' && items.length > 3 ? `<div class="li-sub" style="text-align:center">+ ${items.length - 3} more in Post Performance</div>` : ''}
             </div>`; }).join('')}
         </div>
-        <p class="hint-edit" style="margin:10px 0 0">Freelancer tip: set a post's approval chip (No client → Drafting → Awaiting client → Approved) to track sign-offs; it shows here automatically.</p>
+        <p class="hint-edit" style="margin:10px 0 0">Click any card to edit everything about the post — title, platform, date, hook, photo. Freelancer tip: set a post's approval chip (No client → Drafting → Awaiting client → Approved) to track sign-offs; it shows here automatically.</p>
       </div>
     </section>
     <section class="card c6" aria-label="Posting streak">
@@ -2835,7 +2851,7 @@ function viewCalendar() {
     <section class="card c6">
       ${cardH('info', 'How the Pipeline Works')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
-        <p style="margin:0 0 8px"><strong style="color:var(--ink)">One row, whole lifecycle.</strong> A post starts as an idea, moves through script → film → edit → scheduled, and once you flip it to <em>Posted</em> its card in Post Performance opens up for the numbers.</p>
+        <p style="margin:0 0 8px"><strong style="color:var(--ink)">One row, whole lifecycle.</strong> A post starts as an idea, moves through script → film → edit → scheduled, and once you flip it to <em>Posted</em> its card in Post Performance opens up for the numbers. <strong style="color:var(--ink)">Click any pipeline card or calendar pill to edit the post</strong> — title, platform, pillar, date, hook, photo.</p>
         <p style="margin:0">Give scheduled posts a date and time — they appear on this calendar, in the feed preview, and in the golden-hour reminder after they go live.</p>
       </div>
     </section>
@@ -3428,7 +3444,22 @@ function render() {
   renderNav();
   renderTopbar();
   const main = $('#main');
-  main.innerHTML = demoBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)();
+  // Post editor modal — the same fully-editable card from Post Performance, so a post
+  // in ANY stage (idea → posted) always has a complete editing surface.
+  let modal = '';
+  if (ui.editPost) {
+    const d = D();
+    const i = (d.posts || []).findIndex(p => p.id === ui.editPost);
+    if (i < 0) ui.editPost = null; // deleted from inside the card — modal closes itself
+    else modal = `<div class="pmodal" role="dialog" aria-modal="true" aria-label="Edit post">
+      <div class="pm-scrim" data-action="editclose"></div>
+      <div class="pm-panel">
+        <div class="pm-head">${icon('sliders', 14)}<h3>Edit post</h3><span class="pm-hint">every field autosaves — close when you're done</span>
+          <button class="btn btn-ghost" data-action="editclose" aria-label="Close editor" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+        ${postCard(d, d.posts[i], i, false)}
+      </div></div>`;
+  }
+  main.innerHTML = demoBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
@@ -3440,9 +3471,13 @@ function scheduleRender() {
   renderTimer = setTimeout(() => {
     const ae = document.activeElement;
     const path = ae && ae.classList && ae.classList.contains('ed') ? ae.dataset.path : null;
+    // the same post card can exist in the grid AND the editor modal — refocus in the
+    // container the user was actually typing in
+    const wasInModal = ae && ae.closest && !!ae.closest('.pmodal');
     render();
     if (path) {
-      const el = document.querySelector(`.ed[data-path="${CSS.escape(path)}"]`);
+      const scope = (wasInModal && document.querySelector('.pmodal')) || document;
+      const el = scope.querySelector(`.ed[data-path="${CSS.escape(path)}"]`);
       if (el) { el.focus(); if (el.select) el.select(); }
     }
   }, 40);
@@ -3478,6 +3513,7 @@ document.addEventListener('click', e => {
   if (act === 'nav' || act === 'goto') {
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
+    ui.editPost = null;
     document.body.classList.remove('nav-open');
     try { history.replaceState(null, '', '#' + ui.view); } catch (err) {}
     animPending = true;
@@ -3489,6 +3525,14 @@ document.addEventListener('click', e => {
     btn.setAttribute('aria-expanded', document.body.classList.contains('nav-open'));
   } else if (act === 'platfilter') {
     ui.platform = btn.dataset.pid;
+    render();
+  } else if (act === 'editpost') {
+    // ignore clicks that were really aimed at a control inside the card
+    if (e.target.closest('select, .chipsel, .rowdel, .th-add, input, a')) return;
+    ui.editPost = btn.dataset.id;
+    render();
+  } else if (act === 'editclose') {
+    ui.editPost = null;
     render();
   } else if (act === 'pillarcolor') {
     const i = parseInt(btn.dataset.i, 10);
@@ -3546,7 +3590,14 @@ document.addEventListener('click', e => {
     render();
   } else if (act === 'addrow') {
     const list = btn.dataset.list;
-    listRef(list).push(NEW_ROW[list]());
+    const row = NEW_ROW[list]();
+    if (list === 'posts') {
+      // In the performance log you're logging something already published;
+      // in the calendar you're planning. Either way, open the editor right away.
+      if (ui.view === 'posts') row.status = 'posted';
+      ui.editPost = row.id;
+    }
+    listRef(list).push(row);
     save(true); render();
   } else if (act === 'delrow') {
     const list = btn.dataset.list, i = parseInt(btn.dataset.i, 10);
@@ -3580,6 +3631,7 @@ document.addEventListener('keydown', e => {
   const el = e.target;
   if (!el.classList || !el.classList.contains('ed')) {
     if (e.key === 'Escape' && document.body.classList.contains('nav-open')) document.body.classList.remove('nav-open');
+    else if (e.key === 'Escape' && ui.editPost) { ui.editPost = null; render(); }
     return;
   }
   if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); el.blur(); }
@@ -3618,10 +3670,12 @@ document.addEventListener('change', e => {
     render();
   } else if (el.classList && el.classList.contains('statussel')) {
     const path = el.dataset.path;
+    const wasInModal = el.closest && !!el.closest('.pmodal');
     setPath(path, el.value);
     save(true);
     render();
-    const again = document.querySelector(`select.statussel[data-path="${CSS.escape(path)}"]`);
+    const scope = (wasInModal && document.querySelector('.pmodal')) || document;
+    const again = scope.querySelector(`select.statussel[data-path="${CSS.escape(path)}"]`);
     if (again) again.focus();
   }
 });
