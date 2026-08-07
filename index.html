@@ -872,7 +872,7 @@ function starterData() {
       {id: uid(), title: 'My first tracked post', date: todayISO(), time: '', pid: 'ig', format: 'reel',
        pillar: pilA, hook: '', cta: '', status: 'idea', approval: 'na',
        reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-       watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
+       watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
     ],
     months: {},
     community: {weeklyBudgetMin: 300, cadenceNote: 'Reply to every comment in the first hour after posting; batch DMs twice a day.'},
@@ -966,7 +966,7 @@ function sampleData() {
           reach, impressions: Math.round(reach * 1.35), likes, comments, shares, saves,
           watchPct: FORMATS[format].video ? 36 + ((w + s + n) % 4) * 7 : null,
           visits: Math.round(reach * 0.021), follows, linkClicks: Math.round(reach * 0.004),
-          boostSpend, img: null, notes,
+          boostSpend, img: null, groupId: null, notes,
         });
         n++;
       });
@@ -980,19 +980,31 @@ function sampleData() {
     time: `${String(gh.getHours()).padStart(2, '0')}:${String(gh.getMinutes()).padStart(2, '0')}`,
     pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[3], cta: CTAS[1], status: 'posted', approval: 'na',
     reach: 1830, impressions: 2400, likes: 96, comments: 21, shares: 9, saves: 17,
-    watchPct: 52, visits: 41, follows: 6, linkClicks: 8, boostSpend: null, img: null, notes: 'Just published — golden hour',
+    watchPct: 52, visits: 41, follows: 6, linkClicks: 8, boostSpend: null, img: null, groupId: null, notes: 'Just published — golden hour',
   });
   /* Pipeline — ideas through scheduled, incl. client-approval states */
   posts.push(
-    {id: uid(), title: 'Holiday gift guide teaser', date: isoOffset(1), time: '18:30', pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[7], cta: CTAS[3], status: 'scheduled', approval: 'approved', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
-    {id: uid(), title: 'Studio tour, part 2', date: isoOffset(2), time: '19:30', pid: 'tt', format: 'reel', pillar: pilBts, hook: HOOKS[5], cta: CTAS[2], status: 'scheduled', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
-    {id: uid(), title: 'Client reel: fall lookbook', date: isoOffset(4), time: '18:00', pid: 'ig', format: 'reel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'awaiting', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'V2 sent for sign-off'},
-    {id: uid(), title: 'Linen care explainer', date: isoOffset(5), time: '', pid: 'yt', format: 'video', pillar: pilEd, hook: HOOKS[2], cta: CTAS[3], status: 'film', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'Script locked, filming Thu'},
-    {id: uid(), title: 'Client carousel: testimonials', date: isoOffset(6), time: '', pid: 'ig', format: 'carousel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'changes', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'Client wants slide 3 swapped'},
-    {id: uid(), title: '5 storage myths, busted', date: isoOffset(7), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: HOOKS[0], cta: CTAS[0], status: 'script', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
-    {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: 'Pair with trend audio if still alive'},
-    {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''},
+    {id: uid(), title: 'Holiday gift guide teaser', date: isoOffset(1), time: '18:30', pid: 'ig', format: 'reel', pillar: pilProd, hook: HOOKS[7], cta: CTAS[3], status: 'scheduled', approval: 'approved', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
+    {id: uid(), title: 'Studio tour, part 2', date: isoOffset(2), time: '19:30', pid: 'tt', format: 'reel', pillar: pilBts, hook: HOOKS[5], cta: CTAS[2], status: 'scheduled', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
+    {id: uid(), title: 'Client reel: fall lookbook', date: isoOffset(4), time: '18:00', pid: 'ig', format: 'reel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'awaiting', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: 'V2 sent for sign-off'},
+    {id: uid(), title: 'Linen care explainer', date: isoOffset(5), time: '', pid: 'yt', format: 'video', pillar: pilEd, hook: HOOKS[2], cta: CTAS[3], status: 'film', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: 'Script locked, filming Thu'},
+    {id: uid(), title: 'Client carousel: testimonials', date: isoOffset(6), time: '', pid: 'ig', format: 'carousel', pillar: pilProd, hook: '', cta: '', status: 'edit', approval: 'changes', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: 'Client wants slide 3 swapped'},
+    {id: uid(), title: '5 storage myths, busted', date: isoOffset(7), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: HOOKS[0], cta: CTAS[0], status: 'script', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
+    {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: 'Pair with trend audio if still alive'},
+    {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
   );
+
+  /* Link one real cross-post group (same content on 2+ platforms) so the demo
+     shows the ×N cross-posted chip and the editor's toggle state */
+  {
+    const byTitle = {};
+    posts.forEach(p => { if (p.status === 'posted') (byTitle[p.title] = byTitle[p.title] || []).push(p); });
+    const grp = Object.values(byTitle).find(g => new Set(g.map(p => p.pid)).size > 1);
+    if (grp) {
+      const gid = uid(), seen = new Set();
+      grp.forEach(p => { if (!seen.has(p.pid)) { seen.add(p.pid); p.groupId = gid; } });
+    }
+  }
 
   /* 12 months of follower snapshots — believable curves, varying month to month */
   const igH = [9840, 10160, 10420, 10780, 11150, 11900, 12240, 12610, 13480, 13740, 14290, 14620];
@@ -2291,6 +2303,22 @@ function postCard(d, p, i, topDecile) {
           ${cycleChip(`posts.${i}.status`, 'pipeline', 'Post status')}
           ${cycleChip(`posts.${i}.approval`, 'approval', 'Client approval')}
         </div>
+        ${(() => {
+          // Cross-post fan-out: one entry → a linked, independent copy per platform.
+          // Copies, not a multi-select, because every metric is per-platform.
+          const others = activePlatforms(d).filter(ap => ap.pid !== p.pid);
+          if (!others.length) return '';
+          const sibs = p.groupId ? (d.posts || []).filter(q => q.groupId === p.groupId && q.id !== p.id) : [];
+          return `<div class="pc-meta" style="padding:0">
+            <span class="hint-edit" style="font-style:normal;font-weight:600">Cross-post:</span>
+            ${others.map(ap => {
+              const m = PLATFORM_META[ap.pid] || {label: ap.pid, short: ap.pid};
+              const sib = sibs.find(q => q.pid === ap.pid);
+              return `<button class="chip ${sib ? 'sagey' : 'neutral'}" data-action="crosspost" data-i="${i}" data-pid="${ap.pid}"
+                title="${sib ? `Linked ${esc(m.label)} copy exists — click to remove it (only while it has no numbers)` : `Create a linked copy of this post for ${esc(m.label)} — it gets its own numbers`}">${sib ? icon('check', 11) : icon('plus', 11)}${esc(m.short)}</button>`;
+            }).join('')}
+          </div>`;
+        })()}
       </div>
     </div>
     <div class="pc-meta">${icon('zap', 12)}${edField(`posts.${i}.hook`, {min: 18, max: 30, label: 'Hook', ph: 'hook / first line'})}</div>
@@ -2302,6 +2330,12 @@ function postCard(d, p, i, topDecile) {
       ${sv === null ? '' : staticChip(num(b.saveRate) !== null && sv * 100 >= num(b.saveRate) ? 'good' : 'neutral', 'bookmark', fmt.pct(sv * 100) + ' save rate')}
       ${num(p.follows) ? staticChip('sagey', 'usersplus', `+${fmt.int(p.follows)} follows`) : ''}
       ${num(p.boostSpend) ? staticChip('warning', 'zap', fmt.money(p.boostSpend) + ' boost') : ''}
+      ${(() => {
+        if (!p.groupId) return '';
+        const sibs = (d.posts || []).filter(q => q.groupId === p.groupId);
+        if (sibs.length < 2) return '';
+        return `<span data-tt="Cross-posted: ${sibs.map(q => (PLATFORM_META[q.pid] || {short: q.pid}).short).join(' · ')}">${staticChip('neutral', 'repeat', `×${sibs.length} cross-posted`)}</span>`;
+      })()}
       ${topDecile ? staticChip('warning', 'flame', 'Top 10%') : ''}
     </div>
   </section>`;
@@ -2841,7 +2875,7 @@ function viewCalendar() {
               ${shown.map(({p, i}) => `
                 <div class="pipeitem" data-action="editpost" data-id="${p.id}" title="Click to edit this post">
                   <div style="display:flex;gap:7px;align-items:center;min-width:0">${thumbTile(d, p, {size: 'sm'})}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(p.title || 'Untitled')}</span></div>
-                  <div class="pi-meta">${platMono(p.pid, 15)}<span class="li-sub">${p.date ? relDay(p.date) : 'no date'}</span></div>
+                  <div class="pi-meta">${platMono(p.pid, 15)}<span class="li-sub">${p.date ? relDay(p.date) : 'no date'}</span>${p.groupId && (d.posts || []).filter(q => q.groupId === p.groupId).length > 1 ? `<span class="li-sub" data-tt="Cross-posted on ${(d.posts || []).filter(q => q.groupId === p.groupId).map(q => (PLATFORM_META[q.pid] || {short: q.pid}).short).join(' · ')}">${icon('repeat', 10)} ×${(d.posts || []).filter(q => q.groupId === p.groupId).length}</span>` : ''}</div>
                   <div class="pi-meta">${cycleChip(`posts.${i}.status`, 'pipeline', 'Post status')}</div>
                   ${p.approval && p.approval !== 'na' ? `<div class="pi-meta">${cycleChip(`posts.${i}.approval`, 'approval', 'Client approval')}</div>` : ''}
                 </div>`).join('') || `<div class="emptystate" style="padding:12px 4px">—</div>`}
@@ -3498,7 +3532,7 @@ const NEW_ROW = {
   posts: () => ({id: uid(), title: 'New post', date: todayISO(), time: '', pid: (activePlatforms(D())[0] || {pid: 'ig'}).pid, format: 'reel',
     pillar: '', hook: '', cta: '', status: 'idea', approval: 'na',
     reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-    watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, notes: ''}),
+    watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''}),
   platforms: () => ({id: uid(), pid: 'ig', handle: '@handle', type: 'creator', goal: '', cadence: 3, active: true, history: {}}),
   pillars: () => ({id: uid(), name: 'New pillar', color: (D().pillars || []).length % 6, target: null, notes: ''}),
   competitors: () => ({id: uid(), name: 'New competitor', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''}),
@@ -3571,6 +3605,29 @@ document.addEventListener('click', e => {
   else if (act === 'reset') { doReset(); }
   else if (act === 'nudge-dismiss') { state.meta.nudgeSnoozed = new Date().toISOString(); save(false); render(); }
   else if (act === 'brandswitch') { toast('Multi-brand tip: keep one copy of this file per client — File → Duplicate, then rename.'); }
+  else if (act === 'crosspost') {
+    const i = parseInt(btn.dataset.i, 10), pid = btn.dataset.pid;
+    const d = D(), src = d.posts[i];
+    if (!src) return;
+    if (!src.groupId) src.groupId = uid();
+    const sib = d.posts.find(q => q.groupId === src.groupId && q.id !== src.id && q.pid === pid);
+    const label = (PLATFORM_META[pid] || {label: pid}).label;
+    if (sib) {
+      if (num(sib.reach) !== null || postInteractions(sib) !== null) {
+        toast(`The ${label} copy has logged numbers — delete it from Post Performance instead`);
+        return;
+      }
+      d.posts.splice(d.posts.indexOf(sib), 1);
+      toast(`${label} copy removed`);
+    } else {
+      // an independent copy: planning fields + photo travel, numbers start empty
+      d.posts.push({...src, id: uid(), pid,
+        reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
+        watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null});
+      toast(`✓ Copied to ${label} — it's now its own post`);
+    }
+    save(true); render();
+  }
   else if (act === 'postimg') {
     imgTargetIdx = parseInt(btn.dataset.i, 10);
     $('#postImgFile').click();
