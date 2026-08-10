@@ -954,9 +954,11 @@ function sampleData() {
   Object.entries(PLANS).forEach(([pid, plan]) => {
     for (let w = 0; w <= 10; w++) {
       plan.slots.forEach((slot, s) => {
-        // consistency slipped recently: the last ~4 weeks drop a slot here and there,
-        // while the earlier weeks ran clean — so the streak grid shows a real best run
-        if (w >= 1 && w <= 4 && (w + s) % 4 === 2) return;
+        // a rough patch ~6–9 weeks back drops a slot here and there, so the streak
+        // grid shows a believable dip + best run — while RECENT weeks run clean,
+        // keeping current-month consistency (and the health score) high no matter
+        // what day of the month the demo/screenshots regenerate on
+        if (w >= 6 && w <= 9 && (w + s) % 4 === 2) return;
         const [dow0, time0, format, pi] = slot;
         // wobble the exact weekday/time a little so the best-time heatmap has texture
         const dow = (w % 4 === 1 && s === 2) ? (dow0 + 1) % 7 : dow0;
@@ -979,10 +981,10 @@ function sampleData() {
         if (pid === 'ig' && w === 2 && s === 1) { boostSpend = 40; notes = 'Boosted to cold audiences'; }
         const er = plan.er * FMT_ER[format] * (0.85 + ((w + s + n) % 5) * 0.075);
         const inter = Math.round(reach * er / 100);
-        const saveShare = pi === 0 ? 0.22 : 0.16;                       // educational posts get saved more
+        const saveShare = pi === 0 ? 0.30 : 0.235;                      // educational posts get saved more
         const saves = Math.round(inter * saveShare);
         const comments = Math.round(inter * 0.08);
-        const shares = Math.round(inter * 0.13);
+        const shares = Math.round(inter * 0.155);
         const likes = inter - saves - comments - shares;
         posts.push({
           id: uid(), title: TITLES[PILS[pi]][(w + s) % 6], date, time, pid, format,
@@ -1137,7 +1139,7 @@ function sampleData() {
       {id: uid(), brand: 'Wren & Willow decor', deliverable: 'Story takeover (3 frames)', pid: 'ig', due: monthKey() + '-02', fee: 850, status: 'paid', notes: 'Paid same week — easy renewal'},
       {id: uid(), brand: 'Grove kitchenware', deliverable: 'YT integration (60s)', pid: 'yt', due: null, fee: 900, status: 'pitched', notes: 'Sent rate card + case study'},
     ],
-    money: {incomeGoal: 2000, rcPid: 'ig', rcBase: 12, rcFollowers: null, rcER: null},
+    money: {incomeGoal: 1500, rcPid: 'ig', rcBase: 12, rcFollowers: null, rcER: null},
     goals: [
       {id: uid(), name: 'Instagram followers', target: 15000, actual: 14620, unit: ''},
       {id: uid(), name: 'TikTok followers', target: 12000, actual: 11450, unit: ''},
