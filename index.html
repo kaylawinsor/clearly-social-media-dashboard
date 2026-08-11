@@ -1199,15 +1199,32 @@ const THUMBS = [
 ================================================================ */
 const KEY = DEMO ? 'clearlySocial.demo.v1' : 'clearlySocial.v1';
 let storageOK = true;
+let storageWhy = 'ok';   // 'ok' | 'full' (out of room) | 'blocked' (storage switched off)
 const memStore = {};
 
 function storeGet() {
   try { return localStorage.getItem(KEY); }
-  catch (e) { storageOK = false; return memStore[KEY] ?? null; }
+  catch (e) { storageOK = false; storageWhy = 'blocked'; return memStore[KEY] ?? null; }
+}
+/* "Out of room" and "storage is switched off" need different words: one is the buyer's fault
+   and fixable by them, the other isn't. Browsers signal a full bucket in three different ways
+   depending on age and engine, so check all of them. Returns 'ok' | 'full' | 'blocked'.
+   This matters here because every file:// page shares ONE bucket — the photos attached to
+   posts in this planner compete with every other Clearly file in the buyer's Downloads. */
+function quotaError(e) {
+  return e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    || e.code === 22 || e.code === 1014);
 }
 function storeSet(v) {
-  try { localStorage.setItem(KEY, v); return true; }
-  catch (e) { storageOK = false; memStore[KEY] = v; return false; }
+  try {
+    localStorage.setItem(KEY, v);
+    storageOK = true; storageWhy = 'ok';    // a transient failure must not downgrade us forever
+    return 'ok';
+  } catch (e) {
+    storageOK = false; storageWhy = quotaError(e) ? 'full' : 'blocked';
+    memStore[KEY] = v;
+    return storageWhy;
+  }
 }
 
 
@@ -1260,6 +1277,41 @@ function sampleActive() {
 }
 function sampleChip(row) {
   return (row && row.sample) ? '<span class="chip neutral sample-chip">SAMPLE</span>' : '';
+}
+/* Unmissable notice when the browser is not actually saving. Deliberately different
+   from sampleBanner in two ways: it shows on EVERY view, not just Home (a buyer who
+   is deep in the Calendar needs to know their work is not being kept), and it cannot
+   be dismissed — dismissing it would be agreeing to lose data silently.
+   Only renders once storage has genuinely failed, so a healthy file never sees it.
+   Skipped in the locked demo, where save() returns before touching storage at all. */
+function storageBanner() {
+  if (DEMO_LOCKED || storageWhy === 'ok') return '';
+  const full = storageWhy === 'full';
+  return `<div class="nudge" style="border-left-color:var(--serious)" role="alert" aria-label="Storage problem" data-why="${storageWhy}">
+    ${icon('alert', 16)}<span>${full
+      ? `<strong>This browser is out of storage, so your latest edits are not being saved.</strong>
+         Post photos are the usual cause. Remove one or two, or back up now and start a fresh file.`
+      : `<strong>This browser is blocking storage, so nothing is being saved to this device.</strong>
+         Your edits last until you close the tab. Back up now to keep them.`}</span>
+    <span class="n-actions">
+      <button class="btn btn-primary" data-action="backup">${icon('download', 13)}Back up now</button>
+    </span></div>`;
+}
+/* A failed save changes storageWhy but nothing re-renders, so the banner above would
+   stay invisible until the buyer happened to switch views — the one moment it needs to
+   be visible is the moment it wasn't. save() cannot simply call render(): that replaces
+   #main and yanks focus out of the field being typed in. So patch the banner in place. */
+function syncStorageBanner() {
+  const main = $('#main');
+  if (!main) return;
+  const cur = main.querySelector('.nudge[aria-label="Storage problem"]');
+  const html = storageBanner();
+  if (!html) { if (cur) cur.remove(); return; }        // storage recovered
+  if (cur && cur.dataset.why === storageWhy) return;   // already showing the right message
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const el = tmp.firstElementChild;
+  if (cur) cur.replaceWith(el); else main.insertBefore(el, main.firstChild);
 }
 function sampleBanner() {
   if (ui.view !== 'home' || !sampleActive()) return '';
@@ -1325,8 +1377,13 @@ function save(countEdit) {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     if (DEMO_LOCKED) { toast('✓ Updated — demo edits reset on refresh'); return; }
-    storeSet(JSON.stringify(state));
-    toast('✓ Saved' + (storageOK ? '' : ' (this session only — storage is blocked)'));
+    /* Never lead with "✓ Saved" when nothing was saved — and when the bucket is full, say so.
+       Blaming the browser for a payload problem sends the buyer looking in the wrong place. */
+    const res = storeSet(JSON.stringify(state));
+    syncStorageBanner();   // the toast fades; the banner has to persist
+    toast(res === 'ok' ? '✓ Saved'
+      : res === 'full' ? '⚠ Not saved — this browser is out of storage. Remove a photo, then back up.'
+      : '⚠ Not saved to this device — storage is blocked, so changes last for this session only.');
   }, 300);
 }
 function toast(msg) {
@@ -2686,7 +2743,13 @@ function viewSetup() {
         <p style="margin:0">The <strong>full version</strong> autosaves every edit to your own device (nothing is uploaded anywhere), and its <strong>Backup</strong> / <strong>Restore</strong> buttons move your data between computers as a portable <code>.json</code> file.</p>
       </div>` : `<div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.65">
         <p style="margin:0 0 8px">Everything lives <strong>in this browser, on this device</strong> — nothing is uploaded anywhere. <strong>Backup</strong> downloads a portable <code>.json</code> file; <strong>Restore</strong> loads one on any device. That's also how you move between computers.</p>
-        <p style="margin:0 0 12px">${storageOK ? staticChip('good', 'checkcircle', 'Autosave active') : staticChip('warning', 'alert', 'Storage blocked — session-only')} &nbsp;Saved automatically ~0.3s after every edit.</p>
+        <p style="margin:0 0 12px">${
+          storageWhy === 'full' ? staticChip('serious', 'alert', 'Out of storage — not saving')
+          : storageOK ? staticChip('good', 'checkcircle', 'Autosave active')
+          : staticChip('warning', 'alert', 'Storage blocked — session-only')
+        } &nbsp;${storageWhy === 'full'
+          ? 'This browser is out of room — post photos are the usual cause. Remove one or two, or back up and start a fresh file.'
+          : 'Saved automatically ~0.3s after every edit.'}</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-primary" data-action="backup">${icon('download', 14)}Backup now</button>
           <button class="btn" data-action="restore">${icon('upload', 14)}Restore from file</button>
@@ -3716,7 +3779,8 @@ function render() {
         ${postCard(d, d.posts[i], i, false)}
       </div></div>`;
   }
-  main.innerHTML = demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
+  // storage first: "your work is not being saved" outranks every other notice
+  main.innerHTML = storageBanner() + demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
