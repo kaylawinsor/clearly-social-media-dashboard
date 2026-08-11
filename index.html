@@ -647,6 +647,16 @@ textarea.ed-area.ed-empty{background:var(--slate-soft);border-color:var(--muted)
 textarea.ed-area:focus{outline:none;border:1px solid var(--teal);background:var(--surface)}
 abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
 code{background:var(--surface-alt);border:1px solid var(--hairline);border-radius:4px;padding:0 4px;font-size:.9em}
+.sample-chip{font-size:9.5px;letter-spacing:.06em;padding:1px 6px;margin-left:6px;
+  vertical-align:1px;opacity:.75}
+.startgrid{gap:13px}
+.startlist{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.startlist li{display:flex;gap:10px;align-items:baseline;font-size:12.5px}
+.startlist li strong{flex:0 0 148px;color:var(--ink)}
+.startre{margin:10px 0 0;padding-top:9px;border-top:1px solid var(--hairline);
+  color:var(--ink-2);font-size:12.5px}
+.ed-demo{background:var(--golden-soft);border-bottom:1px dashed var(--golden-deep);
+  border-radius:4px;padding:0 5px}
 </style>
 </head>
 <body>
@@ -939,8 +949,8 @@ function sampleData() {
      Slot: [dow(0=Mon), 'HH:MM', format, pillarIdx]. Times cluster in the
      evening and on Tue/Thu/Sun so the best-time heatmap shows a real pattern. */
   const PLANS = {
-    ig: {er: 4.4, base: 5200, slots: [[1, '18:30', 'reel', 3], [3, '12:15', 'carousel', 0], [6, '19:45', 'static', 1]]},
-    tt: {er: 5.2, base: 8400, slots: [[1, '19:30', 'reel', 3], [2, '18:15', 'reel', 0], [4, '20:00', 'reel', 2]]},
+    ig: {er: 3.7, base: 5200, slots: [[1, '18:30', 'reel', 3], [3, '12:15', 'carousel', 0], [6, '19:45', 'static', 1]]},
+    tt: {er: 4.3, base: 8400, slots: [[1, '19:30', 'reel', 3], [2, '18:15', 'reel', 0], [4, '20:00', 'reel', 2]]},
     yt: {er: 3.8, base: 2400, slots: [[5, '17:00', 'video', 0]]},
     // smaller warm-up channels — modest reach + ER, so the demo shows the dashboard
     // isn't limited to the big three
@@ -1065,10 +1075,10 @@ function sampleData() {
     brand: {name: 'Clearly Studio', niche: 'Handmade home goods', persona: 'Small-space renters, 25–40, care about calm + craft', voice: 'Warm, practical, a little wry — never salesy', goal: 'Turn followers into shop customers without burning out', owner: 'Run by Mia — 6 hrs/week on social'},
     benchmarks: {...BENCH_DEFAULTS},
     platforms: [
-      {id: uid(), pid: 'ig', handle: '@clearly.studio', type: 'business', goal: 'Community + shop traffic', cadence: 3, active: true, history: hist(igH)},
-      {id: uid(), pid: 'tt', handle: '@clearlystudio', type: 'creator', goal: 'Discovery + reach', cadence: 3, active: true, history: hist(ttH)},
+      {id: uid(), pid: 'ig', handle: '@clearly.studio', type: 'business', goal: 'Community + shop traffic', cadence: 4, active: true, history: hist(igH)},
+      {id: uid(), pid: 'tt', handle: '@clearlystudio', type: 'creator', goal: 'Discovery + reach', cadence: 4, active: true, history: hist(ttH)},
       {id: uid(), pid: 'yt', handle: '@ClearlyStudio', type: 'creator', goal: 'Evergreen how-tos', cadence: 1, active: true, history: hist(ytH)},
-      {id: uid(), pid: 'fb', handle: 'Clearly Studio', type: 'business', goal: 'Local + marketplace traffic', cadence: 2, active: true, history: hist(fbH)},
+      {id: uid(), pid: 'fb', handle: 'Clearly Studio', type: 'business', goal: 'Local + marketplace traffic', cadence: 3, active: true, history: hist(fbH)},
       {id: uid(), pid: 'x', handle: '@clearlystudio', type: 'creator', goal: 'Repurposed tips + link clicks', cadence: 2, active: true, history: hist(xH)},
       {id: uid(), pid: 'th', handle: '@clearly.studio', type: 'creator', goal: 'Text takes — when there’s time', cadence: null, active: false, history: {}},
       {id: uid(), pid: 'pin', handle: '@clearlystudio', type: 'business', goal: 'Search traffic later', cadence: null, active: false, history: {}},
@@ -1139,7 +1149,7 @@ function sampleData() {
       {id: uid(), brand: 'Wren & Willow decor', deliverable: 'Story takeover (3 frames)', pid: 'ig', due: monthKey() + '-02', fee: 850, status: 'paid', notes: 'Paid same week — easy renewal'},
       {id: uid(), brand: 'Grove kitchenware', deliverable: 'YT integration (60s)', pid: 'yt', due: null, fee: 900, status: 'pitched', notes: 'Sent rate card + case study'},
     ],
-    money: {incomeGoal: 1500, rcPid: 'ig', rcBase: 12, rcFollowers: null, rcER: null},
+    money: {incomeGoal: 2200, rcPid: 'ig', rcBase: 12, rcFollowers: null, rcER: null},
     goals: [
       {id: uid(), name: 'Instagram followers', target: 15000, actual: 14620, unit: ''},
       {id: uid(), name: 'TikTok followers', target: 12000, actual: 11450, unit: ''},
@@ -1200,11 +1210,72 @@ function storeSet(v) {
   catch (e) { storageOK = false; memStore[KEY] = v; return false; }
 }
 
+
+/* ================================================================
+   Sample data lifecycle — the file ships populated so a buyer can see
+   how everything works, then clears it in one click. Row collections
+   carry sample:true; Setup-style scalars revert only if untouched.
+================================================================ */
+const SAMPLE_ROW_PATHS = ['posts', 'platforms', 'pillars', 'hooks', 'ideas', 'ctas',
+  'trends', 'repurpose', 'competitors', 'milestones', 'deals', 'goals', 'tests'];
+
+function atPath(o, path) {
+  return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+}
+function flagSampleRows(d) {
+  SAMPLE_ROW_PATHS.forEach(p => {
+    const arr = atPath(d, p);
+    if (Array.isArray(arr)) arr.forEach(r => { if (r && typeof r === 'object') r.sample = true; });
+  });
+  return d;
+}
+function clearSampleData(d) {
+  const smp = flagSampleRows(sampleData()), st = starterData();
+  SAMPLE_ROW_PATHS.forEach(p => {
+    const arr = atPath(d, p);
+    if (!Array.isArray(arr)) return;
+    const parent = p.includes('.') ? atPath(d, p.slice(0, p.lastIndexOf('.'))) : d;
+    const key = p.slice(p.lastIndexOf('.') + 1);
+    parent[key] = arr.filter(r => !(r && r.sample));
+  });
+  ['brand', 'benchmarks', 'money', 'community'].forEach(grp => {
+    if (!d[grp] || !smp[grp] || Array.isArray(d[grp])) return;
+    Object.keys(smp[grp]).forEach(k => {
+      if (JSON.stringify(d[grp][k]) === JSON.stringify(smp[grp][k])) {
+        const fb = (st[grp] || {})[k];
+        d[grp][k] = fb !== undefined ? fb : (typeof smp[grp][k] === 'number' ? null : '');
+      }
+    });
+  });
+  if (d.months && smp.months) {
+    Object.keys(smp.months).forEach(k => {
+      if (d.months[k] && JSON.stringify(d.months[k]) === JSON.stringify(smp.months[k])) delete d.months[k];
+    });
+  }
+  if (d.reportNotes === smp.reportNotes) d.reportNotes = st.reportNotes || '';
+  return d;
+}
+function sampleActive() {
+  return state.meta && state.meta.sample === 'active';
+}
+function sampleChip(row) {
+  return (row && row.sample) ? '<span class="chip neutral sample-chip">SAMPLE</span>' : '';
+}
+function sampleBanner() {
+  if (ui.view !== 'home' || !sampleActive()) return '';
+  return `<div class="nudge" role="region" aria-label="Sample data notice">
+    ${icon('bulb', 16)}<span><strong>This is sample data so you can see how everything works.</strong>
+    Clear it whenever you're ready — nothing else changes.</span>
+    <span class="n-actions">
+      <button class="btn btn-primary" data-action="sample-clear">Clear sample data &amp; start fresh</button>
+      <button class="btn" data-action="sample-keep">Keep it for now</button>
+    </span></div>`;
+}
 function freshState() {
   return {
     version: 1,
-    data: DEMO ? sampleData() : starterData(),
-    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO()},
+    data: flagSampleRows(sampleData()),
+    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO(), sample: 'active'},
   };
 }
 /* Accepts a current-shape state (a Clearly Social backup) — anything else is rejected */
@@ -1475,9 +1546,11 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
   // Monetization is optional — no goal and no revenue leaves it out of the average
   // entirely, so hobbyist creators aren't penalized for not selling
   const goal = num(d.money && d.money.incomeGoal);
+  /* No goal and no revenue is "no data", not a perfect score — an empty or
+     freshly cleared file must not read Excellent. */
   r.subMonetize = goal
     ? clamp(Math.round((r.monetizeRev ?? 0) / (goal * keys.length) * 100), 0, 100)
-    : (r.monetizeRev ? 100 : null);
+    : (num(r.monetizeRev) ? 100 : null);
 
   const parts = [
     {v: r.subConsistency, w: .25, name: 'Consistency'},
@@ -2009,6 +2082,7 @@ document.addEventListener('pointerout', e => {
    Views, router, shell — social-native IA
 ================================================================ */
 const VIEWS = [
+  {id: 'start', label: 'Start Here', group: '', icon: 'target'},
   {id: 'home',        label: 'Home',                              group: '',                  icon: 'home'},
   {id: 'setup',       label: 'Setup & Brand Profile',             group: 'Plan',              icon: 'sliders'},
   {id: 'platforms',   label: 'Accounts & Platforms',              group: 'Plan',              icon: 'globe'},
@@ -2328,7 +2402,7 @@ function postCard(d, p, i, topDecile) {
   return `<section class="card c4 postcard" aria-label="Post: ${esc(p.title || 'Untitled')}">
     <div class="pc-head">${thumbTile(d, p, {size: 'lg', editIdx: i})}
       <div class="pc-headmain">
-        <span class="pc-title">${edField(`posts.${i}.title`, {min: 12, max: 22, label: 'Post title'})}
+        <span class="pc-title">${edField(`posts.${i}.title`, {min: 12, max: 22, label: 'Post title'})}${sampleChip(p)}
           <button class="rowdel" style="opacity:.6" data-action="delrow" data-list="posts" data-i="${i}" aria-label="Delete post">${icon('x', 13)}</button></span>
         <div class="pc-meta" style="padding:0">
           ${listSel(`posts.${i}.pid`, platOptions(), 'Platform')}
@@ -3525,7 +3599,78 @@ function viewReport() {
 /* ================================================================
    Render + events
 ================================================================ */
+function startStep(n, title, body, act) {
+  return `<section class="card c4">
+    ${cardH(n === 1 ? 'sliders' : (n === 2 ? 'barchart' : 'gauge'), title, 'Step ' + n, n === 1 ? 'coral' : (n === 2 ? 'golden' : 'aqua'))}
+    <div class="card-b"><p style="margin:0 0 10px">${body}</p>
+      <button class="btn btn-primary" data-action="goto" data-view="${act[0]}">${act[1]}</button></div>
+  </section>`;
+}
+function startLegend() {
+  return `<section class="card c4">
+    ${cardH('sliders', 'What you type, what it works out')}
+    <div class="card-b">
+      <p style="margin:0 0 8px"><span class="ed-demo">like this</span> &nbsp;is yours to type in — click it and start typing.</p>
+      <p style="margin:0 0 8px"><strong>Bold numbers</strong> and every chart, rate and score are worked out from what you typed. You never edit those.</p>
+      <p style="margin:0;color:var(--muted)">Enter saves, Escape undoes. Everything saves by itself about a third of a second after you stop typing.</p>
+    </div></section>`;
+}
+function startData() {
+  return `<section class="card c4">
+    ${cardH('shield', 'Where your data lives')}
+    <div class="card-b">
+      <p style="margin:0 0 8px">On this computer, in this browser. It is never uploaded and I never see it.</p>
+      <p style="margin:0 0 10px">That means the file is private — and that it is the only copy. <strong>Backup</strong> saves a dated file you can keep anywhere; <strong>Restore</strong> loads it back, on any computer.</p>
+      <button class="btn" data-action="backup">${icon('download', 14)}Back up now</button>
+    </div></section>`;
+}
+function startSample() {
+  const active = sampleActive();
+  return `<section class="card c4">
+    ${cardH('bulb', 'The example data')}
+    <div class="card-b">
+      <p style="margin:0 0 10px">${active
+        ? 'This file opens filled with a realistic example so you can see how every part works before you type anything. Clear it whenever you like — your own entries and settings stay.'
+        : 'The example data has been cleared. Anything you add from here is yours.'}</p>
+      ${active ? `<button class="btn btn-primary" data-action="sample-clear">Clear example data &amp; start fresh</button>` : staticChip('good', 'checkcircle', 'Cleared')}
+    </div></section>`;
+}
+function viewStart() {
+  return `
+  ${viewHead('Start Here', 'Three things and this is running. Nothing here takes more than a few minutes.')}
+  <div class="grid startgrid">
+    ${startStep(1, 'Name your brand', 'Open Setup and type your brand name, then tick the platforms you actually post on. A couple of minutes.', ['setup', 'Open Setup'])}
+    ${startStep(2, 'Log two or three posts', 'Add your last few posts with the numbers off the app — reach, likes, comments, saves. Engagement rate and the rest work themselves out.', ['posts', 'Open Post Performance'])}
+    ${startStep(3, 'Look at Home', 'That is enough for the whole planner to come alive — rates, benchmarks, your streak and what needs you today.', ['home', 'Open Home'])}
+
+    <section class="card c8">
+      ${cardH('target', 'What each part is for', '6 sections')}
+      <div class="card-b">
+        <ul class="startlist">
+      <li><strong>Plan</strong><span class="li-sub">Your brand, your platforms, your content pillars, and the hooks and ideas you are collecting.</span></li>
+      <li><strong>Create &amp; Publish</strong><span class="li-sub">The calendar — what is going out, on which platform, and when.</span></li>
+      <li><strong>Analyze</strong><span class="li-sub">What each post actually did, and which patterns are worth repeating.</span></li>
+      <li><strong>Engage &amp; Grow</strong><span class="li-sub">Replies, DMs and the experiments you are running.</span></li>
+      <li><strong>Monetize</strong><span class="li-sub">Brand deals, what to charge, and what you have actually been paid.</span></li>
+      <li><strong>Report</strong><span class="li-sub">Goals, benchmarks, and the one-page report you send a client.</span></li>
+        </ul>
+        <p class="startre">You do not have to fill in every section. Most people use three or four and ignore the rest — that is the intended way to use it, not a shortcut.</p>
+      </div>
+    </section>
+    ${startLegend()}
+
+    ${startData()}
+    ${startSample()}
+    <section class="card c4">
+      ${cardH('bulb', 'If you get stuck')}
+      <div class="card-b">
+        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you hover.</p>
+        <p style="margin:0">Still stuck? Message me through the shop — I answer my own messages, usually within a few hours.</p>
+      </div></section>
+  </div>`;
+}
 const VIEW_FN = {
+  start: viewStart,
   home: viewHome, setup: viewSetup, platforms: viewPlatforms, pillars: viewPillars,
   vault: viewVault, calendar: viewCalendar, posts: viewPosts, insights: viewInsights,
   funnel: viewFunnel, community: viewCommunity, experiments: viewExperiments,
@@ -3571,7 +3716,7 @@ function render() {
         ${postCard(d, d.posts[i], i, false)}
       </div></div>`;
   }
-  main.innerHTML = demoBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
+  main.innerHTML = demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
@@ -3622,6 +3767,22 @@ document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
   const act = btn.dataset.action;
+  if (act === 'sample-clear') {
+    if (!confirm('Clear the sample data?\n\nThis removes only the example rows that came with the file. Anything you have typed yourself — your brand details, your platforms, your own posts — is kept exactly as it is.')) return;
+    clearSampleData(state.data);
+    state.meta.sample = 'cleared';
+    save();
+    render();
+    toast('✓ Sample data cleared — the file is yours now');
+    return;
+  }
+  if (act === 'sample-keep') {
+    state.meta.sample = 'kept';
+    save();
+    render();
+    toast('✓ Kept — you can clear it later from Start Here');
+    return;
+  }
   if (act === 'nav' || act === 'goto') {
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
