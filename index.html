@@ -271,9 +271,18 @@ table.data td{padding:8px 10px;border-bottom:1px solid var(--hairline);vertical-
 table.data tr:last-child td{border-bottom:none}
 table.data tbody tr:hover{background:var(--surface-alt)}
 table.data td.num,table.data th.num{text-align:right;font-variant-numeric:tabular-nums}
-.rowdel{opacity:0;color:var(--muted);padding:2px 5px;border-radius:6px;font-size:13px;line-height:1}
-tr:hover .rowdel,.rowdel:focus-visible{opacity:1}
+/* Always visible (dimmed) — hover-only reveal made delete undiscoverable on
+   touch, and never revealed at all outside <tr> contexts (ideas, milestones…). */
+.rowdel,.rowedit{opacity:.5;color:var(--muted);padding:2px 5px;border-radius:6px;font-size:13px;line-height:1}
+tr:hover .rowdel,.rowdel:focus-visible,.rowdel:hover,
+tr:hover .rowedit,.rowedit:focus-visible,.rowedit:hover{opacity:1}
 .rowdel:hover{color:var(--critical);background:var(--critical-soft)}
+.rowedit:hover{color:var(--teal-deep);background:var(--teal-soft)}
+/* Rows/cards that open an editor when tapped */
+.rowlink{cursor:pointer}
+.rowlink:hover{background:var(--surface-alt)}
+.cal .day[data-action]{cursor:pointer}
+.cal .day[data-action]:focus-visible{outline:2px solid var(--teal);outline-offset:-2px}
 .addrow{display:inline-flex;align-items:center;gap:6px;color:var(--brand-deep);font-weight:600;font-size:12.5px;padding:8px 4px}
 .addrow:hover{text-decoration:underline}
 
@@ -650,7 +659,7 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 /* ============ Print (Client Report) ============ */
 @media print{
   body{background:#fff}
-  #sidebar,#topbar,#toast,.nudge,.noprint,#scrim{display:none!important}
+  #sidebar,#topbar,#toast,.nudge,.noprint,#scrim,.rowdel,.rowedit,.pmodal{display:none!important}
   main{padding:0;max-width:none}
   .card{box-shadow:none;break-inside:avoid}
   .viewhead .vh-aux{display:none}
@@ -2245,7 +2254,8 @@ const VIEWS = [
   {id: 'money',       label: 'Monetization & Brand Deals',        group: 'Monetize',          icon: 'dollar'},
   {id: 'report',      label: 'Goals, Benchmarks & Client Report', group: 'Report',            icon: 'file'},
 ];
-const ui = {view: 'home', monthOffset: 0, period: {mode: 'month', ref: monthKey()}, platform: 'all', filterPosts: 'all', postSort: 'date', editPost: null};
+const ui = {view: 'home', monthOffset: 0, period: {mode: 'month', ref: monthKey()}, platform: 'all', filterPosts: 'all', postSort: 'date',
+  editPost: null, postsSnapshot: null, addModal: null, dayPeek: null};
 const PTONE_VARS = ['--coral', '--aqua', '--golden', '--teal', '--serious', '--info-deep'];
 const DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -2754,7 +2764,7 @@ function viewHome() {
     <section class="card c4" aria-label="This week">
       ${cardH('calendar', 'This Week', `<button class="btn btn-ghost" data-action="goto" data-view="calendar">Calendar →</button>`, 'golden')}
       ${week.length ? `<ul class="plainlist">${week.map(u => `
-        <li><span class="li-date">${relDay(u.date)}</span>${u.p ? thumbTile(d, u.p, {size: 'sm'}) : ''}<span class="li-main">${esc(u.title)}<div class="li-sub">${esc(u.sub)}</div></span></li>`).join('')}</ul>`
+        <li${u.p ? ` class="rowlink" data-action="editpost" data-id="${u.p.id}" role="button" tabindex="0" title="Click to open this post"` : ''}><span class="li-date">${relDay(u.date)}</span>${u.p ? thumbTile(d, u.p, {size: 'sm'}) : ''}<span class="li-main">${esc(u.title)}<div class="li-sub">${esc(u.sub)}</div></span></li>`).join('')}</ul>`
       : `<div class="emptystate">Nothing scheduled in the next 7 days — add posts in the Content Calendar.</div>`}
     </section>
 
@@ -2923,7 +2933,7 @@ function viewPlatforms() {
             <td>${miniSparkSVG(k12.map(k => p.history ? num(p.history[k]) : null), {colorVar: '--aqua'}) || '<span class="hint-edit">add monthly snapshots below</span>'}</td>
             <td>${!p.active ? '<span class="dash">—</span>' : gap === null ? staticChip('neutral', 'question', 'No posts yet') : gap > staleAfter ? staticChip('warning', 'clock', gap + 'd ago') : staticChip('good', 'checkcircle', gap === 0 ? 'Today' : gap + 'd ago')}</td>
             <td><input type="checkbox" data-checkpath="platforms.${i}.active" ${p.active ? 'checked' : ''} aria-label="Platform active"></td>
-            <td><button class="rowdel" data-action="delrow" data-list="platforms" data-i="${i}" aria-label="Delete platform">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="platforms" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="platforms" data-i="${i}" aria-label="Delete platform">${icon('x', 13)}</button></td>
           </tr>`; }).join('')}</tbody></table></div></div>
     </section>
     ${(d.platforms || []).map((p, i) => {
@@ -2968,12 +2978,12 @@ function viewPillars() {
         <div class="donutrow">
           ${withPosts.length ? donutSegSVG(withPosts.map(pl => ({v: pl.n, colorVar: PTONE_VARS[pl.color % 6], label: pl.name})), {size: 92, centerBig: String(pp.total), centerSub: 'posts', label: 'Actual content mix'}) : donutSVG(null, {size: 92, label: 'Content mix'})}
           <div class="donutmeta" style="flex:1;min-width:0">
-            ${pp.list.map(pl => `
-              <div class="mixrow"><span class="sw" style="background:var(${PTONE_VARS[pl.color % 6]})"></span>
+            ${pp.list.map(pl => { const pi = (d.pillars || []).findIndex(x => x.id === pl.id); return `
+              <div class="mixrow${pi >= 0 ? ' rowlink' : ''}"${pi >= 0 ? ` data-action="editrow" data-list="pillars" data-i="${pi}" role="button" tabindex="0" title="Click to edit this pillar"` : ''}><span class="sw" style="background:var(${PTONE_VARS[pl.color % 6]})"></span>
                 <span class="mx-name">${esc(pl.name)}</span>
                 <span class="mx-nums">${pl.actualPct === null ? '—' : fmt.num(pl.actualPct, 0) + '%'}${pl.target !== null ? ` vs ${fmt.num(pl.target, 0)}%` : ''}</span>
                 ${pl.target !== null && pl.actualPct !== null ? deltaBadge(pl.actualPct, pl.target, {unit: ' pts', dec: 0, higherIsBetter: true}).replace('vs prev', 'vs plan') : ''}
-              </div>`).join('')}
+              </div>`; }).join('')}
           </div>
         </div>
         ${!pp.total ? `<p class="hint-edit" style="margin:10px 0 0">Tag your posts with a pillar in Post Performance — the ring fills in as you log.</p>` : ''}
@@ -2982,13 +2992,13 @@ function viewPillars() {
     <section class="card c7" aria-label="Pillar performance">
       ${cardH('barchart', 'Which Pillars Actually Perform', 'avg engagement rate · saves · follows', 'aqua')}
       <div class="card-b">
-        ${withPosts.length ? `<div class="hbars">${withPosts.slice().sort((a, c) => (c.er ?? -1) - (a.er ?? -1)).map(pl => `
-          <div class="hbar" data-tt="${esc(pl.name)} · ${pl.n} posts · ${fmt.pct(pl.er)} avg ER · ${fmt.int(pl.saves)} saves · +${fmt.int(pl.follows)} follows">
+        ${withPosts.length ? `<div class="hbars">${withPosts.slice().sort((a, c) => (c.er ?? -1) - (a.er ?? -1)).map(pl => { const pi = (d.pillars || []).findIndex(x => x.id === pl.id); return `
+          <div class="hbar${pi >= 0 ? ' rowlink' : ''}"${pi >= 0 ? ` data-action="editrow" data-list="pillars" data-i="${pi}" role="button" tabindex="0"` : ''} data-tt="${esc(pl.name)} · ${pl.n} posts · ${fmt.pct(pl.er)} avg ER · ${fmt.int(pl.saves)} saves · +${fmt.int(pl.follows)} follows">
             <span class="hb-label">${esc(pl.name)} <span style="color:var(--muted)">· ${pl.n}</span></span>
             <span class="hb-track"><span class="hb-fill" style="width:${Math.max((pl.er ?? 0) / maxEr * 100, 2).toFixed(1)}%"></span></span>
             <span class="hb-val">${fmt.pct(pl.er)}</span>
-          </div>`).join('')}</div>
-          <p class="hint-edit" style="margin:10px 0 0">Hover a bar for saves + follows — the metrics that compound.</p>`
+          </div>`; }).join('')}</div>
+          <p class="hint-edit" style="margin:10px 0 0">Click a bar to edit its pillar — hover for saves + follows.</p>`
         : `<div class="emptystate">Once tagged posts have reach + interaction counts, pillars rank themselves here.</div>`}
       </div>
     </section>
@@ -3002,7 +3012,7 @@ function viewPillars() {
             <td>${edField(`pillars.${i}.name`, {min: 14, max: 22, label: 'Pillar name'})}</td>
             <td class="num">${edField(`pillars.${i}.target`, {type: 'num', min: 3, label: 'Target share percent'})}</td>
             <td>${edField(`pillars.${i}.notes`, {min: 22, max: 40, label: 'Pillar notes', ph: 'what belongs here?'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="pillars" data-i="${i}" aria-label="Delete pillar">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="pillars" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="pillars" data-i="${i}" aria-label="Delete pillar">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div></div>
     </section>
     <section class="card c5">
@@ -3020,7 +3030,7 @@ function viewPillars() {
             <td class="num">${edField(`competitors.${i}.er`, {type: 'num', min: 3, label: 'Competitor engagement rate'})}</td>
             <td>${erDiff === null ? '<span class="dash">—</span>' : erDiff >= 0 ? staticChip('good', 'checkcircle', `+${fmt.num(erDiff)} pts ER`) : staticChip('neutral', 'info', `${fmt.num(erDiff)} pts ER`)}</td>
             <td>${edField(`competitors.${i}.lastChecked`, {type: 'date', min: 10, label: 'Last checked'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="competitors" data-i="${i}" aria-label="Delete competitor">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="competitors" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="competitors" data-i="${i}" aria-label="Delete competitor">${icon('x', 13)}</button></td>
           </tr>`; }).join('')}</tbody></table></div>
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="competitors">${icon('plus', 13)}Add competitor</button>
       </div>
@@ -3048,7 +3058,7 @@ function viewVault() {
             <td>${listSel(`hooks.${i}.format`, formatOptions(), 'Hook format')}</td>
             <td>${cycleChip(`hooks.${i}.tag`, 'hooktag', 'Hook performance tag')}</td>
             <td>${edField(`hooks.${i}.notes`, {min: 14, max: 26, label: 'Hook notes'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="hooks" data-i="${i}" aria-label="Delete hook">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="hooks" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="hooks" data-i="${i}" aria-label="Delete hook">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div>
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="hooks">${icon('plus', 13)}Add hook</button>
       </div>
@@ -3062,7 +3072,7 @@ function viewVault() {
               ${platMono(t.pid, 20)}
               ${edField(`trends.${i}.name`, {min: 18, max: 34, label: 'Trend name'})}
               ${cycleChip(`trends.${i}.status`, 'trend', 'Trend status')}
-              <button class="rowdel" data-action="delrow" data-list="trends" data-i="${i}" aria-label="Delete trend">${icon('x', 13)}</button>
+              <button class="rowedit" data-action="editrow" data-list="trends" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="trends" data-i="${i}" aria-label="Delete trend">${icon('x', 13)}</button>
             </div>
             <div class="tr-sub">
               ${edField(`trends.${i}.note`, {min: 16, max: 30, label: 'Trend note', ph: 'how would you use it?'})}
@@ -3078,7 +3088,7 @@ function viewVault() {
         ${(d.ideas || []).length ? `<ul class="plainlist">${(d.ideas || []).map((it, i) => `
           <li><span class="li-main">${edField(`ideas.${i}.text`, {min: 24, max: 38, label: 'Idea'})}
             <div class="li-sub" style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap">${listSel(`ideas.${i}.pillar`, pillarOptions(d), 'Idea pillar')}${listSel(`ideas.${i}.format`, formatOptions(), 'Idea format')}</div></span>
-          <button class="rowdel" data-action="delrow" data-list="ideas" data-i="${i}" aria-label="Delete idea">${icon('x', 13)}</button></li>`).join('')}</ul>`
+          <button class="rowedit" data-action="editrow" data-list="ideas" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="ideas" data-i="${i}" aria-label="Delete idea">${icon('x', 13)}</button></li>`).join('')}</ul>`
         : `<div class="emptystate">Capture content ideas the moment they hit.</div>`}
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ideas">${icon('plus', 13)}Add idea</button>
       </div>
@@ -3089,7 +3099,7 @@ function viewVault() {
         ${(d.ctas || []).length ? `<ul class="plainlist">${(d.ctas || []).map((c, i) => `
           <li><span class="li-main">${edField(`ctas.${i}.text`, {min: 18, max: 28, label: 'Call to action'})}
             <div class="li-sub">→ ${edField(`ctas.${i}.goal`, {min: 10, max: 18, label: 'CTA goal', ph: 'drives what?'})}</div></span>
-          <button class="rowdel" data-action="delrow" data-list="ctas" data-i="${i}" aria-label="Delete CTA">${icon('x', 13)}</button></li>`).join('')}</ul>`
+          <button class="rowedit" data-action="editrow" data-list="ctas" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="ctas" data-i="${i}" aria-label="Delete CTA">${icon('x', 13)}</button></li>`).join('')}</ul>`
         : `<div class="emptystate">Save the asks that work.</div>`}
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ctas">${icon('plus', 13)}Add CTA</button>
       </div>
@@ -3104,7 +3114,7 @@ function viewVault() {
             <td>${edField(`repurpose.${i}.notes`, {min: 18, max: 34, label: 'Repurposing notes', ph: 'next cut?'})}</td>
             <td>${listSel(`repurpose.${i}.source`, platOptions(), 'Source platform')}</td>
             <td>${edField(`repurpose.${i}.cuts`, {min: 22, max: 40, label: 'Platforms and formats already cut', ph: 'e.g. IG reel · TT · YT short'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="repurpose" data-i="${i}" aria-label="Delete row">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="repurpose" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="repurpose" data-i="${i}" aria-label="Delete row">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div>
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="repurpose">${icon('plus', 13)}Add asset</button>
       </div>
@@ -3127,8 +3137,8 @@ function viewCalendar() {
     const kind = p.status === 'posted' ? 'posted' : p.status === 'scheduled' ? 'sched' : 'pipe';
     (byDate[p.date] = byDate[p.date] || []).push({title: p.title || 'Untitled', kind, pid: p.pid, id: p.id});
   });
-  (d.deals || []).forEach(dl => {
-    if (dl.due && !['paid'].includes(dl.status)) (byDate[dl.due] = byDate[dl.due] || []).push({title: `Due: ${dl.brand || 'deal'}`, kind: 'deal'});
+  (d.deals || []).forEach((dl, di) => {
+    if (dl.due && !['paid'].includes(dl.status)) (byDate[dl.due] = byDate[dl.due] || []).push({title: `Due: ${dl.brand || 'deal'}`, kind: 'deal', list: 'deals', i: di});
   });
   const cells = [];
   for (let i = 0; i < startDow; i++) cells.push(null);
@@ -3158,10 +3168,10 @@ function viewCalendar() {
             const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const dayEvs = byDate[iso] || [];
             const busy = dayEvs.length > 2;
-            return `<div class="day ${iso === tISO ? 'today' : ''}" role="group" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? dayEvs.map(e => e.title).join('; ') : 'no items'}${busy ? '. Busy day' : ''}">
+            return `<div class="day ${iso === tISO ? 'today' : ''}" data-action="daypeek" data-date="${iso}" role="button" tabindex="0" aria-label="${fmtDate(iso, {month: 'long', day: 'numeric'})}: ${dayEvs.length ? dayEvs.map(e => e.title).join('; ') : 'no items'}${busy ? '. Busy day' : ''}. Click to open this day">
               <span class="dnum">${day}</span>
               ${busy ? `<span class="busy" title="3+ items — consider spacing posts">busy</span>` : ''}
-              ${dayEvs.slice(0, 3).map(e => `<span class="ev" ${evStyle[e.kind] || ''}${e.id ? ` data-action="editpost" data-id="${e.id}" title="Click to edit"` : ''}>${esc(e.title)}</span>`).join('')}
+              ${dayEvs.slice(0, 3).map(e => `<span class="ev" ${evStyle[e.kind] || ''}${e.id ? ` data-action="editpost" data-id="${e.id}" title="Click to edit"` : e.list ? ` data-action="editrow" data-list="${e.list}" data-i="${e.i}" title="Click to edit"` : ''}>${esc(e.title)}</span>`).join('')}
               ${dayEvs.length > 3 ? `<span class="ev" style="background:var(--info-soft);color:var(--info-deep)">+${dayEvs.length - 3} more</span>` : ''}
               <span class="evdots">${dayEvs.slice(0, 5).map(e => `<span class="evdot ${e.kind === 'sched' ? 'ev-auto' : ''}"></span>`).join('')}</span>
             </div>`; }).join('')}
@@ -3285,7 +3295,7 @@ function viewInsights() {
   const bestFmt = fmts.find(f => f.n >= 3 && f.index !== null);
   const perfRow = ({p, i}) => {
     const er = div(postInteractions(p), p.reach);
-    return `<li>${thumbTile(d, p, {size: 'md'})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
+    return `<li class="rowlink" data-action="editpost" data-id="${p.id}" role="button" tabindex="0" title="Click to open this post">${thumbTile(d, p, {size: 'md'})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
       <div class="li-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)} · ${esc((FORMATS[p.format] || {}).label || '')} · reach ${fmt.int(p.reach)}${num(p.saves) ? ` · ${fmt.int(p.saves)} saves` : ''}</div></span>
       <strong style="font-variant-numeric:tabular-nums">${fmt.pct(er * 100)}</strong></li>`;
   };
@@ -3391,7 +3401,7 @@ function viewFunnel() {
     <section class="card c5" aria-label="Growth drivers">
       ${cardH('usersplus', 'Growth Drivers', 'posts that earned the most follows', 'aqua')}
       ${drivers.length ? `<ul class="plainlist">${drivers.map(p => `
-        <li>${thumbTile(d, p, {size: 'md'})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
+        <li class="rowlink" data-action="editpost" data-id="${p.id}" role="button" tabindex="0" title="Click to open this post">${thumbTile(d, p, {size: 'md'})}<span class="li-main" style="margin-left:4px">${esc(p.title || 'Untitled')}
           <div class="li-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)} · reach ${fmt.int(p.reach)} · ${fmtDate(p.date)}</div></span>
         <strong style="white-space:nowrap">+${fmt.int(p.follows)}</strong></li>`).join('')}</ul>
         <p class="hint-edit" style="margin:0;padding:10px 16px">Study what these share — hook, format, pillar — and make more of it.</p>`
@@ -3406,7 +3416,7 @@ function viewFunnel() {
       <div class="card-b flush">
         ${(d.milestones || []).length ? `<ul class="plainlist">${(d.milestones || []).map((mm, i) => `
           <li><span style="min-width:0;flex:1">${edField(`milestones.${i}.date`, {type: 'date', min: 10, label: 'Milestone date'})} ${edField(`milestones.${i}.label`, {min: 18, max: 30, label: 'Milestone label', ph: 'what happened?'})}</span>
-          <button class="rowdel" data-action="delrow" data-list="milestones" data-i="${i}" aria-label="Delete milestone">${icon('x', 13)}</button></li>`).join('')}</ul>` : `<div class="emptystate">Mark launches, viral posts, follower round numbers…</div>`}
+          <button class="rowedit" data-action="editrow" data-list="milestones" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="milestones" data-i="${i}" aria-label="Delete milestone">${icon('x', 13)}</button></li>`).join('')}</ul>` : `<div class="emptystate">Mark launches, viral posts, follower round numbers…</div>`}
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="milestones">${icon('plus', 13)}Add milestone</button>
       </div>
       <div class="card-b" style="border-top:1px solid var(--hairline)">
@@ -3522,7 +3532,7 @@ function viewExperiments() {
             <td>${edField(`tests.${i}.winner`, {min: 8, max: 14, label: 'Winner'})}</td>
             <td>${edField(`tests.${i}.learning`, {min: 20, max: 34, label: 'Learning'})}</td>
             <td>${cycleChip(`tests.${i}.status`, 'test', 'Experiment status')}${ready(t) ? '<div style="margin-top:4px">' + staticChip('warning', 'flask', 'Ready to conclude') + '</div>' : ''}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="tests" data-i="${i}" aria-label="Delete experiment">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="tests" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="tests" data-i="${i}" aria-label="Delete experiment">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div></div>
     </section>
     <section class="card c7" aria-label="Learnings digest">
@@ -3580,7 +3590,7 @@ function viewMoney() {
             <td class="num">${edField(`deals.${i}.fee`, {type: 'num', min: 5, label: 'Deal fee'})}</td>
             <td>${cycleChip(`deals.${i}.status`, 'deal', 'Deal status')}</td>
             <td>${edField(`deals.${i}.notes`, {min: 14, max: 26, label: 'Deal notes'})}</td>
-            <td><button class="rowdel" data-action="delrow" data-list="deals" data-i="${i}" aria-label="Delete deal">${icon('x', 13)}</button></td>
+            <td><button class="rowedit" data-action="editrow" data-list="deals" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="deals" data-i="${i}" aria-label="Delete deal">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div></div>
     </section>
     <section class="card c5" aria-label="Rate-card calculator">
@@ -3738,7 +3748,7 @@ function viewReport() {
         <div class="rep-sec">
           <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Top posts</h2>
           ${topPosts.length ? `<div class="tablewrap"><table class="data"><thead><tr><th></th><th>Post</th><th>Platform</th><th>Format</th><th class="num">Reach</th><th class="num">ER</th><th class="num">Saves</th><th class="num">Follows</th></tr></thead>
-          <tbody>${topPosts.map(p => `<tr><td style="width:56px">${thumbTile(d, p, {size: 'sm'})}</td><td>${esc(p.title)}</td><td>${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}</td><td>${esc((FORMATS[p.format] || {label: p.format}).label)}</td>
+          <tbody>${topPosts.map(p => `<tr class="rowlink noprint-link" data-action="editpost" data-id="${p.id}" title="Click to open this post"><td style="width:56px">${thumbTile(d, p, {size: 'sm'})}</td><td>${esc(p.title)}</td><td>${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}</td><td>${esc((FORMATS[p.format] || {label: p.format}).label)}</td>
             <td class="num">${fmt.int(p.reach)}</td><td class="num">${fmt.pct(div(postInteractions(p), p.reach) * 100)}</td><td class="num">${fmt.int(p.saves)}</td><td class="num">${p.follows === null ? '—' : '+' + fmt.int(p.follows)}</td></tr>`).join('')}</tbody></table></div>`
           : `<p style="color:var(--muted);font-size:12.5px;font-style:italic">No posted posts with metrics this period.</p>`}
         </div>
@@ -3756,7 +3766,7 @@ function viewReport() {
                   <span class="meterbar" style="height:7px;max-width:170px"><i style="width:${p === null ? 0 : Math.min(p * 100, 100)}%"></i></span>
                   <span class="derived" style="font-size:12px">${p === null ? '—' : fmt.pct(p * 100, 0)}</span>
                   ${p !== null && p >= 1 ? staticChip('good', 'checkcircle', 'Hit') : ''}</div></td>
-                <td class="noprint"><button class="rowdel" data-action="delrow" data-list="goals" data-i="${i}" aria-label="Delete goal">${icon('x', 13)}</button></td>
+                <td class="noprint"><button class="rowedit" data-action="editrow" data-list="goals" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="goals" data-i="${i}" aria-label="Delete goal">${icon('x', 13)}</button></td>
               </tr>`; }).join('')}</tbody></table></div>
           <button class="addrow noprint" data-action="addrow" data-list="goals">${icon('plus', 13)}Add goal</button>
         </div>
@@ -3885,17 +3895,19 @@ function render() {
   if (ui.editPost) {
     const d = D();
     const i = (d.posts || []).findIndex(p => p.id === ui.editPost);
-    if (i < 0) ui.editPost = null; // deleted from inside the card — modal closes itself
+    if (i < 0) { ui.editPost = null; ui.postsSnapshot = null; } // deleted from inside the card — modal closes itself
     else modal = `<div class="pmodal" role="dialog" aria-modal="true" aria-label="Edit post">
       <div class="pm-scrim" data-action="editclose"></div>
       <div class="pm-panel">
-        <div class="pm-head">${icon('sliders', 14)}<h3>Edit post</h3><span class="pm-hint">every field autosaves — close when you're done</span>
-          <button class="btn btn-ghost" data-action="editclose" aria-label="Close editor" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+        <div class="pm-head">${icon('sliders', 14)}<h3>Edit post</h3><span class="pm-hint">make your changes, then Save — Cancel discards them</span>
+          <button class="btn btn-ghost" data-action="editclose" aria-label="Cancel editing" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
         ${postCard(d, d.posts[i], i, false)}
+        <div class="af-foot"><button class="btn" data-action="editclose">Cancel</button><button class="btn btn-primary" data-action="editsave">${icon('check', 14)}Save</button></div>
       </div></div>`;
   }
   // storage first: "your work is not being saved" outranks every other notice
   if (!modal && ui.addModal) modal = addModalHTML();
+  if (!modal && ui.dayPeek) modal = dayPeekHTML();
   main.innerHTML = storageBanner() + demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
@@ -3934,8 +3946,28 @@ function scheduleRender() {
 function listRef(name) {
   return name.split('.').reduce((o, k) => o[k], D());
 }
+
+/* Post-editor draft lifecycle. The editor's fields still commit to state live
+   (same machinery as the inline cards), but the WHOLE posts array is snapshotted
+   when the editor opens — cross-post chips push/splice sibling posts, so a
+   one-post snapshot can't roll everything back. Save keeps; Cancel restores. */
+function openPostEditor(id) {
+  ui.postsSnapshot = JSON.stringify(D().posts);
+  ui.editPost = id;
+  ui.dayPeek = null;
+}
+function cancelPostEdit() {   // returns false if the user chose to keep editing
+  if (ui.postsSnapshot !== null && JSON.stringify(D().posts) !== ui.postsSnapshot) {
+    if (!confirm('Discard changes to this post?')) return false;
+    D().posts = JSON.parse(ui.postsSnapshot);
+    save(true);
+  }
+  ui.postsSnapshot = null;
+  ui.editPost = null;
+  return true;
+}
 const NEW_ROW = {
-  posts: () => ({id: uid(), title: 'New post', date: todayISO(), time: '', pid: (activePlatforms(D())[0] || {pid: 'ig'}).pid, format: 'reel',
+  posts: () => ({id: uid(), title: 'New post', date: localISO(new Date()), time: '', pid: (activePlatforms(D())[0] || {pid: 'ig'}).pid, format: 'reel',
     pillar: '', hook: '', cta: '', status: 'idea', approval: 'na',
     reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
     watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''}),
@@ -3945,9 +3977,9 @@ const NEW_ROW = {
   hooks: () => ({id: uid(), text: 'New hook…', format: 'reel', tag: 'testing', notes: ''}),
   ideas: () => ({id: uid(), text: 'New idea…', pillar: '', format: 'reel'}),
   ctas: () => ({id: uid(), text: 'New CTA…', goal: ''}),
-  trends: () => ({id: uid(), name: 'New trend', pid: 'tt', note: '', spotted: todayISO(), expires: isoOffset(14), status: 'watching'}),
+  trends: () => ({id: uid(), name: 'New trend', pid: 'tt', note: '', spotted: localISO(new Date()), expires: isoOffset(14), status: 'watching'}),
   repurpose: () => ({id: uid(), idea: 'New idea', source: 'ig', cuts: '', notes: ''}),
-  milestones: () => ({id: uid(), date: todayISO(), label: 'New milestone'}),
+  milestones: () => ({id: uid(), date: localISO(new Date()), label: 'New milestone'}),
   deals: () => ({id: uid(), brand: 'New brand', deliverable: '', pid: 'ig', due: isoOffset(14), fee: null, status: 'pitched', notes: ''}),
   goals: () => ({id: uid(), name: 'New goal', target: null, actual: null, unit: ''}),
   tests: () => ({id: uid(), name: 'New test', hypothesis: '', variable: 'hook', metric: 'ER by reach', a: '', b: '', aResult: '', bResult: '', endDate: '', winner: '', learning: '', status: 'planned'}),
@@ -4037,10 +4069,43 @@ const ADD_FORMS = {
     {k: 'endDate', label: 'Ends', type: 'date'},
   ]},
 };
+/* Day peek — tap a calendar day to see everything on it and add a post with
+   that day's date pre-filled. On phones this IS the calendar's tap surface:
+   below 700px the event chips are hidden and only dots remain. */
+function dayPeekHTML() {
+  const d = D(), iso = ui.dayPeek;
+  const posts = (d.posts || []).filter(p => p.date === iso);
+  const deals = (d.deals || []).map((dl, di) => ({dl, di})).filter(x => x.dl.due === iso && x.dl.status !== 'paid');
+  const stageMeta = CYCLE_SETS.pipeline.meta;
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="Day view">
+    <div class="pm-scrim" data-action="daypeekclose"></div>
+    <div class="pm-panel pm-form">
+      <div class="pm-head">${icon('calendar', 14)}<h3>${fmtDate(iso, {weekday: 'long', month: 'long', day: 'numeric'})}</h3>
+        <button class="btn btn-ghost" data-action="daypeekclose" aria-label="Close" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+      ${posts.length || deals.length ? `<ul class="plainlist">
+        ${posts.map(p => { const m = stageMeta[p.status] || ['neutral', 'question', p.status]; return `
+          <li class="rowlink" data-action="editpost" data-id="${p.id}" role="button" tabindex="0" title="Click to open this post">${thumbTile(d, p, {size: 'sm'})}
+            <span class="li-main">${esc(p.title || 'Untitled')}<div class="li-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)}${p.time ? ' · ' + esc(p.time) : ''}</div></span>
+            ${staticChip(m[0], m[1], m[2])}</li>`; }).join('')}
+        ${deals.map(({dl, di}) => `
+          <li class="rowlink" data-action="editrow" data-list="deals" data-i="${di}" role="button" tabindex="0" title="Click to edit this deal">
+            <span class="li-main">Due: ${esc(dl.brand || 'deal')}<div class="li-sub">${esc(dl.deliverable || 'brand deal deliverable')}</div></span>
+            ${staticChip('warning', 'clock', 'deal deadline')}</li>`).join('')}
+      </ul>` : `<div class="emptystate">Nothing on this day yet.</div>`}
+      <div class="af-foot"><button class="btn btn-primary" data-action="addrow" data-list="posts" data-date="${iso}">${icon('plus', 14)}Add post for this day</button></div>
+    </div></div>`;
+}
+
 function addModalHTML() {
-  const {list, row} = ui.addModal;
+  // Two modes from one form. Add: ui.addModal = {list, row: NEW_ROW seed} — the row
+  // is pushed only on Save. Edit: ui.addModal = {list, i} — the live row is read
+  // fresh each render, every field pre-fills, and the footer gains Delete.
+  const {list, i} = ui.addModal;
+  const editMode = i !== undefined;
+  const row = editMode ? listRef(list)[i] : ui.addModal.row;
   const spec = ADD_FORMS[list];
-  if (!spec) return '';
+  if (!spec || !row) return '';
+  const title = editMode ? spec.title.replace(/^Add\b/, 'Edit') : spec.title;
   const d = D();
   const fieldHTML = f => {
     const seed = row[f.k];
@@ -4049,8 +4114,8 @@ function addModalHTML() {
       return `<label class="af-row"><span class="af-l">${esc(f.label)}</span>
         <select class="af-in" data-fkey="${f.k}">${opts.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(seed ?? '') ? 'selected' : ''}>${esc(o.t)}</option>`).join('')}</select></label>`;
     }
-    // text starts empty (its seed becomes the placeholder); dates & numbers pre-fill
-    const val = f.type === 'num' ? (num(seed) ?? '') : f.type === 'date' ? (seed || '') : '';
+    // adding: text starts empty (its seed becomes the placeholder); editing: everything pre-fills
+    const val = f.type === 'num' ? (num(seed) ?? '') : f.type === 'date' ? (seed || '') : editMode ? (seed ?? '') : '';
     const attrs = [`class="af-in"`, `data-fkey="${f.k}"`, `data-ftype="${f.type || 'text'}"`,
       `type="${f.type === 'date' ? 'date' : 'text'}"`, `value="${esc(val)}"`, `aria-label="${esc(f.label)}"`];
     if (f.type === 'num') attrs.push('inputmode="decimal"', 'autocomplete="off"');
@@ -4059,13 +4124,13 @@ function addModalHTML() {
     if (f.type === 'num' && ph) attrs.push(`placeholder="${esc(ph)}"`);
     return `<label class="af-row"><span class="af-l">${esc(f.label)}</span><input ${attrs.join(' ')}></label>`;
   };
-  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="${esc(spec.title)}">
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="${esc(title)}">
     <div class="pm-scrim" data-action="addcancel"></div>
     <div class="pm-panel pm-form">
-      <div class="pm-head">${icon('plus', 14)}<h3>${esc(spec.title)}</h3>${spec.hint ? `<span class="pm-hint">${esc(spec.hint)}</span>` : ''}
+      <div class="pm-head">${icon(editMode ? 'sliders' : 'plus', 14)}<h3>${esc(title)}</h3>${spec.hint && !editMode ? `<span class="pm-hint">${esc(spec.hint)}</span>` : ''}
         <button class="btn btn-ghost" data-action="addcancel" aria-label="Cancel" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
       <div class="addform">${spec.fields.map(fieldHTML).join('')}</div>
-      <div class="af-foot"><button class="btn" data-action="addcancel">Cancel</button><button class="btn btn-primary" data-action="addsave">${icon('check', 14)}Save</button></div>
+      <div class="af-foot">${editMode ? `<button class="btn btn-danger" data-action="editdel" style="margin-right:auto">${icon('x', 13)}Delete</button>` : ''}<button class="btn" data-action="addcancel">Cancel</button><button class="btn btn-primary" data-action="addsave">${icon('check', 14)}Save</button></div>
     </div></div>`;
 }
 
@@ -4090,10 +4155,12 @@ document.addEventListener('click', e => {
     return;
   }
   if (act === 'nav' || act === 'goto') {
+    if (ui.editPost && !cancelPostEdit()) return; // unsaved draft — user kept editing
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
     ui.editPost = null;
     ui.addModal = null;
+    ui.dayPeek = null;
     document.body.classList.remove('nav-open');
     try { history.replaceState(null, '', '#' + ui.view); } catch (err) {}
     animPending = true;
@@ -4108,11 +4175,23 @@ document.addEventListener('click', e => {
     render();
   } else if (act === 'editpost') {
     // ignore clicks that were really aimed at a control inside the card
-    if (e.target.closest('select, .chipsel, .rowdel, .th-add, input, a')) return;
-    ui.editPost = btn.dataset.id;
+    if (e.target.closest('select, .chipsel, .rowdel, .rowedit, .th-add, input, a')) return;
+    openPostEditor(btn.dataset.id);
     render();
   } else if (act === 'editclose') {
+    if (!cancelPostEdit()) return; // user chose to keep editing
+    render();
+  } else if (act === 'editsave') {
+    ui.postsSnapshot = null;
     ui.editPost = null;
+    save(true);
+    render();
+    toast('✓ Saved');
+  } else if (act === 'daypeek') {
+    ui.dayPeek = btn.dataset.date;
+    render();
+  } else if (act === 'daypeekclose') {
+    ui.dayPeek = null;
     render();
   } else if (act === 'pillarcolor') {
     const i = parseInt(btn.dataset.i, 10);
@@ -4190,15 +4269,17 @@ document.addEventListener('click', e => {
   else if (act === 'month') {
     const dir = parseInt(btn.dataset.dir, 10);
     ui.monthOffset = dir === 0 ? 0 : ui.monthOffset + dir;
+    ui.dayPeek = null;
     render();
   } else if (act === 'addrow') {
     const list = btn.dataset.list;
     const row = NEW_ROW[list]();
+    if (btn.dataset.date) row.date = btn.dataset.date; // added from a calendar day
     if (list === 'posts') {
       // In the performance log you're logging something already published;
       // in the calendar you're planning. Either way, open the editor right away.
       if (ui.view === 'posts') row.status = 'posted';
-      ui.editPost = row.id;
+      openPostEditor(row.id);      // snapshot BEFORE the push — Cancel removes the new post
       listRef(list).push(row);
       save(true); render();
     } else {
@@ -4212,24 +4293,45 @@ document.addEventListener('click', e => {
   } else if (act === 'addcancel') {
     ui.addModal = null;
     render();
+  } else if (act === 'editrow') {
+    ui.dayPeek = null;
+    ui.addModal = {list: btn.dataset.list, i: parseInt(btn.dataset.i, 10)};
+    render();
+    const first = document.querySelector('.pmodal .af-in');
+    if (first && window.matchMedia('(hover:hover) and (pointer:fine)').matches) first.focus();
+  } else if (act === 'editdel') {
+    const {list, i} = ui.addModal;
+    const arr = listRef(list);
+    const label = arr[i] && (arr[i].title || arr[i].name || arr[i].brand || arr[i].text || arr[i].idea || arr[i].label || arr[i].handle) || 'this row';
+    if (!confirm(`Delete “${String(label).slice(0, 60)}”?`)) return;
+    arr.splice(i, 1);
+    ui.addModal = null;
+    save(true); render();
+    toast('✓ Deleted');
   } else if (act === 'addsave') {
-    const {list, row} = ui.addModal;
+    const {list, i} = ui.addModal;
+    const editMode = i !== undefined;
+    const row = editMode ? listRef(list)[i] : ui.addModal.row;
     document.querySelectorAll('.pmodal [data-fkey]').forEach(inp => {
       const k = inp.dataset.fkey;
       const v = String(inp.value ?? '').trim();
-      if (inp.dataset.ftype === 'num') { if (v !== '') row[k] = num(v); }
-      else if (v !== '') row[k] = v;
+      // adding keeps the seed when a field is left blank; editing lets you clear it
+      if (inp.dataset.ftype === 'num') { if (v !== '') row[k] = num(v); else if (editMode) row[k] = null; }
+      else if (v !== '' || editMode) row[k] = v;
     });
-    listRef(list).push(row);
+    if (!editMode) listRef(list).push(row);
     ui.addModal = null;
     save(true); render();
-    toast('✓ Added — tap any of its fields to edit it later');
+    toast(editMode ? '✓ Saved' : '✓ Added — tap any of its fields to edit it later');
   } else if (act === 'delrow') {
     const list = btn.dataset.list, i = parseInt(btn.dataset.i, 10);
     const arr = listRef(list);
     const label = arr[i] && (arr[i].title || arr[i].name || arr[i].brand || arr[i].text || arr[i].idea || arr[i].label || arr[i].handle) || 'this row';
     if (!confirm(`Delete “${String(label).slice(0, 60)}”?`)) return;
-    arr.splice(i, 1);
+    const gone = arr.splice(i, 1)[0];
+    // deleting the post that's open in the editor is an explicit, confirmed act —
+    // keep the deletion, drop the draft snapshot so Cancel can't resurrect it
+    if (list === 'posts' && gone && gone.id === ui.editPost) { ui.editPost = null; ui.postsSnapshot = null; }
     save(true); render();
   }
 });
@@ -4257,7 +4359,9 @@ document.addEventListener('keydown', e => {
   if (!el.classList || !el.classList.contains('ed')) {
     if (e.key === 'Escape' && document.body.classList.contains('nav-open')) document.body.classList.remove('nav-open');
     else if (e.key === 'Escape' && ui.addModal) { ui.addModal = null; render(); }
-    else if (e.key === 'Escape' && ui.editPost) { ui.editPost = null; render(); }
+    else if (e.key === 'Escape' && ui.editPost) { if (cancelPostEdit()) render(); }
+    else if (e.key === 'Escape' && ui.dayPeek) { ui.dayPeek = null; render(); }
+    else if (e.key === 'Enter' && e.target.dataset && e.target.dataset.action === 'daypeek') { e.preventDefault(); e.target.click(); }
     else if (e.key === 'Enter' && ui.addModal && el.classList && el.classList.contains('af-in') && el.tagName === 'INPUT') {
       const saveBtn = document.querySelector('.pmodal [data-action="addsave"]');
       if (saveBtn) saveBtn.click();
@@ -4319,7 +4423,11 @@ document.addEventListener('change', e => {
 render();
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace('#', '');
-  if (VIEWS.some(v => v.id === h) && h !== ui.view) { ui.view = h; animPending = true; render(); }
+  if (VIEWS.some(v => v.id === h) && h !== ui.view) {
+    if (ui.editPost && !cancelPostEdit()) { try { history.replaceState(null, '', '#' + ui.view); } catch (err) {} return; }
+    ui.dayPeek = null;
+    ui.view = h; animPending = true; render();
+  }
 });
 </script>
 </body>
