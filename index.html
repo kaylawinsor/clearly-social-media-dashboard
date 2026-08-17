@@ -3132,7 +3132,7 @@ function viewCalendar() {
   const d = D();
   const base = new Date(); base.setDate(1); base.setMonth(base.getMonth() + ui.monthOffset);
   const y = base.getFullYear(), mo = base.getMonth();
-  const first = new Date(y, mo, 1), startDow = (first.getDay() + 6) % 7; // Monday start
+  const first = new Date(y, mo, 1), startDow = first.getDay(); // Sunday start, like a wall calendar
   const dim = new Date(y, mo + 1, 0).getDate();
   const byDate = {};
   (d.posts || []).forEach(p => {
@@ -3165,7 +3165,7 @@ function viewCalendar() {
       ${cardH('calendar', 'Monthly Calendar', '', 'coral')}
       <div class="card-b">
         <div class="cal">
-          ${DOWS.map(dw => `<div class="dow">${dw}</div>`).join('')}
+          ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(dw => `<div class="dow">${dw}</div>`).join('')}
           ${cells.map(day => {
             if (day === null) return `<div class="day out" aria-hidden="true"></div>`;
             const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
