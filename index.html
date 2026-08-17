@@ -281,6 +281,8 @@ tr:hover .rowdel,.rowdel:focus-visible,.rowdel:hover,
 tr:hover .rowedit,.rowedit:focus-visible,.rowedit:hover{opacity:1}
 .rowdel:hover{color:var(--critical);background:var(--critical-soft)}
 .rowedit:hover{color:var(--teal-deep);background:var(--teal-soft)}
+/* thumb-sized targets on touch — 20px buttons are fiddly on the phone this ships to */
+@media (hover:none){.rowdel,.rowedit{padding:8px 9px;font-size:14px}}
 /* Rows/cards that open an editor when tapped */
 .rowlink{cursor:pointer}
 .rowlink:hover{background:var(--surface-alt)}
@@ -1319,6 +1321,16 @@ function clearSampleData(d) {
 function sampleActive() {
   return state.meta && state.meta.sample === 'active';
 }
+/* 'Keep it for now' must not strand the buyer: the sample rows are still in the
+   file, so Start Here keeps offering the bulk clear until they're actually gone.
+   Truth comes from the rows themselves, not the meta flag. */
+function sampleRowsPresent() {
+  const d = state.data || {};
+  return SAMPLE_ROW_PATHS.some(pth => {
+    const arr = pth.split('.').reduce((o, k) => o && o[k], d);
+    return Array.isArray(arr) && arr.some(r => r && r.sample);
+  });
+}
 function sampleChip(row) {
   return (row && row.sample) ? '<span class="chip neutral sample-chip">SAMPLE</span>' : '';
 }
@@ -1358,7 +1370,8 @@ function syncStorageBanner() {
   if (cur) cur.replaceWith(el); else main.insertBefore(el, main.firstChild);
 }
 function sampleBanner() {
-  if (ui.view !== 'home' || !sampleActive()) return '';
+  // the locked demo carries its own live-demo banner — two stacked notices read as clutter
+  if (ui.view !== 'home' || !sampleActive() || DEMO_LOCKED) return '';
   return `<div class="nudge" role="region" aria-label="Sample data notice">
     ${icon('bulb', 16)}<span><strong>This is sample data so you can see how everything works.</strong>
     Clear it whenever you're ready — nothing else changes.</span>
@@ -1630,10 +1643,10 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
   });
 
   // Sub-scores — weighted average of whatever has data.
-  // Consistency only starts scoring once the user has EVER logged a post — a brand-new
-  // dashboard should read "no data yet", not "0/100 critical".
-  const hasAnyPosted = (d.posts || []).some(p => p.status === 'posted');
-  r.subConsistency = (r.consistencyPct === null || !hasAnyPosted) ? null : clamp(Math.round(r.consistencyPct), 0, 100);
+  // Consistency only scores when THIS PERIOD has posted posts — keying off
+  // "ever posted" branded any empty month (tap → to next month, or a report
+  // for a pre-data month) as 0/100 Critical instead of "no data yet".
+  r.subConsistency = (r.consistencyPct === null || !r.nPosts) ? null : clamp(Math.round(r.consistencyPct), 0, 100);
   const ratios = [div(r.erReach, b.er), div(r.saveRate, b.saveRate), div(r.shareRate, b.shareRate)].filter(v => v !== null);
   r.subEngage = ratios.length
     ? clamp(Math.round(ratios.reduce((a, v) => a + Math.min(v, 1.3), 0) / ratios.length / 1.3 * 100), 0, 100)
@@ -1660,7 +1673,13 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
     {v: r.subMonetize, w: .15, name: 'Monetization'},
   ].filter(p => p.v !== null);
   const wsum = parts.reduce((a, p) => a + p.w, 0);
-  r.health = wsum > 0 ? clamp(Math.round(parts.reduce((a, p) => a + p.v * p.w, 0) / wsum), 0, 100) : null;
+  // A score is a verdict, so it needs evidence FROM THIS PERIOD: posts, a follower
+  // snapshot, or logged revenue. Without that, growth clamps flat (50) and a goal
+  // makes monetization read 0 — an empty future month scored "31 Critical". Two
+  // signals AND in-period data, or silence.
+  const snapInPeriod = (d.platforms || []).some(pl => pl.history && keys.some(k => pl.history[k] !== undefined && pl.history[k] !== null));
+  const periodHasData = r.nPosts > 0 || snapInPeriod || r.monetizeRev !== null;
+  r.health = periodHasData && parts.length >= 2 && wsum > 0 ? clamp(Math.round(parts.reduce((a, p) => a + p.v * p.w, 0) / wsum), 0, 100) : null;
   r.weakest = parts.length ? parts.slice().sort((a, b2) => a.v - b2.v)[0] : null;
   return r;
 }
@@ -2761,7 +2780,9 @@ function viewHome() {
           <span class="a-txt"><span class="a-sev">${a.sev}</span>${a.text}
           ${a.view ? ` <button class="btn btn-ghost" style="padding:0;font-size:11.5px;color:var(--brand-deep);font-weight:600" data-action="goto" data-view="${a.view}">Open →</button>` : ''}</span></li>`).join('')}
         ${alerts.length > 7 ? `<li class="sev-info"><span class="a-ic">${icon('info', 14)}</span><span class="a-txt">+ ${alerts.length - 7} more — resolved as you work through the views.</span></li>` : ''}</ul>`
-      : `<div class="allclear"><span class="ac-ic">${icon('check', 20)}</span><strong>All clear.</strong><span>Nothing needs your attention — cadence on track, engagement healthy, no deliverables due.</span></div>`}
+      : (d.posts || []).some(p => p.status === 'posted')
+        ? `<div class="allclear"><span class="ac-ic">${icon('check', 20)}</span><strong>All clear.</strong><span>Nothing needs your attention — cadence on track, engagement healthy, no deliverables due.</span></div>`
+        : `<div class="allclear"><span class="ac-ic">${icon('info', 20)}</span><strong>Nothing tracked yet.</strong><span>Log a post or two in Post Performance and your first nudges appear here.</span></div>`}
     </section>
 
     <section class="card c4" aria-label="This week">
@@ -3001,7 +3022,7 @@ function viewPillars() {
             <span class="hb-track"><span class="hb-fill" style="width:${Math.max((pl.er ?? 0) / maxEr * 100, 2).toFixed(1)}%"></span></span>
             <span class="hb-val">${fmt.pct(pl.er)}</span>
           </div>`; }).join('')}</div>
-          <p class="hint-edit" style="margin:10px 0 0">Click a bar to edit its pillar — hover for saves + follows.</p>`
+          <p class="hint-edit" style="margin:10px 0 0">Tap a bar to edit its pillar — tap or hover for saves + follows.</p>`
         : `<div class="emptystate">Once tagged posts have reach + interaction counts, pillars rank themselves here.</div>`}
       </div>
     </section>
@@ -3725,7 +3746,7 @@ function viewReport() {
           ${tile('Follow conversion', fmt.pct(r.followConv, 2), benchBadge(r.followConv, b.followConv))}
           ${tile('Monetization', fmt.money(r.monetizeRev), `deals ${fmt.money(r.dealRevPaid)} · affiliate ${fmt.money(r.affiliateRev)} · shop ${fmt.money(r.shopRev)}${r.adSpend ? ` · net ${fmt.money(r.netMonetize)} after ${fmt.money(r.adSpend)} ads` : ''}`)}
         </div>
-        <div class="rep-sec" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="rep-sec" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
           <div>
             <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Follower growth</h2>
             ${sparkSVG(fs.series, {id: 'repspark', money: false, labels: fs.labels, zeroBase: false, marks: fs.marks, h: 100})}
@@ -3735,7 +3756,7 @@ function viewReport() {
             ${funnelHTML(r)}
           </div>
         </div>
-        <div class="rep-sec" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="rep-sec" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
           <div>
             <h2 style="font-weight:700;letter-spacing:-.01em;font-size:15px;margin:12px 0 8px">Content mix</h2>
             <div class="donutrow" style="gap:18px">
@@ -3820,21 +3841,23 @@ function startData() {
     </div></section>`;
 }
 function startSample() {
-  const active = sampleActive();
+  // key off the rows, not the meta flag — 'Keep it for now' leaves every sample
+  // row in place, and this card is the promised "clear it later" home
+  const present = sampleRowsPresent();
   return `<section class="card c4">
     ${cardH('bulb', 'The example data')}
     <div class="card-b">
-      <p style="margin:0 0 10px">${active
+      <p style="margin:0 0 10px">${present
         ? 'This file opens filled with a realistic example so you can see how every part works before you type anything. Clear it whenever you like — your own entries and settings stay.'
         : 'The example data has been cleared. Anything you add from here is yours.'}</p>
-      ${active ? `<button class="btn btn-primary" data-action="sample-clear">Clear example data &amp; start fresh</button>` : staticChip('good', 'checkcircle', 'Cleared')}
+      ${present ? `<button class="btn btn-primary" data-action="sample-clear">Clear example data &amp; start fresh</button>` : staticChip('good', 'checkcircle', 'Cleared')}
     </div></section>`;
 }
 function viewStart() {
   return `
   ${viewHead('Start Here', 'Three things and this is running. Nothing here takes more than a few minutes.')}
   <div class="grid startgrid">
-    ${startStep(1, 'Name your brand', 'Open Setup and type your brand name, then tick the platforms you actually post on. A couple of minutes.', ['setup', 'Open Setup'])}
+    ${startStep(1, 'Name your brand', 'Open Setup and type your brand name, then open Accounts & Platforms and add each platform you post on (tick Active on it). A couple of minutes.', ['setup', 'Open Setup'])}
     ${startStep(2, 'Log two or three posts', 'Add your last few posts with the numbers off the app — reach, likes, comments, saves. Engagement rate and the rest work themselves out.', ['posts', 'Open Post Performance'])}
     ${startStep(3, 'Look at Home', 'That is enough for the whole planner to come alive — rates, benchmarks, your streak and what needs you today.', ['home', 'Open Home'])}
 
@@ -3859,7 +3882,7 @@ function viewStart() {
     <section class="card c4">
       ${cardH('bulb', 'If you get stuck')}
       <div class="card-b">
-        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you hover.</p>
+        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you tap or hover on them.</p>
         <p style="margin:0">Still stuck? Message me through the shop — I answer my own messages, usually within a few hours.</p>
       </div></section>
   </div>`;
@@ -4243,6 +4266,9 @@ document.addEventListener('click', e => {
         return;
       }
       d.posts.splice(d.posts.indexOf(sib), 1);
+      // last sibling gone → drop the groupId, so add-then-remove is a true no-op
+      // (and the draft dirty-check doesn't prompt over an invisible change)
+      if (!d.posts.some(q => q !== src && q.groupId === src.groupId)) src.groupId = null;
       toast(`${label} copy removed`);
     } else {
       // an independent copy: planning fields + photo travel, numbers start empty
