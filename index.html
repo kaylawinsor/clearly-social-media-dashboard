@@ -3024,7 +3024,10 @@ function viewPillars() {
         <thead><tr><th>Competitor</th><th>Platform</th><th class="num">Followers</th><th class="num">ER %</th><th>vs you</th><th>Checked</th><th></th></tr></thead>
         <tbody>${(d.competitors || []).map((c, i) => {
           const mine = rMine(c.pid);
-          const erDiff = (num(c.er) !== null && mine.erReach !== null) ? mine.erReach - num(c.er) : null;
+          // apples-to-apples: a competitor's ER can only be estimated from public
+          // numbers (likes+comments ÷ FOLLOWERS), so compare our follower-based ER —
+          // reach-based would systematically flatter the user
+          const erDiff = (num(c.er) !== null && mine.erFoll !== null) ? mine.erFoll - num(c.er) : null;
           return `
           <tr>
             <td>${edField(`competitors.${i}.name`, {min: 12, max: 18, label: 'Competitor name'})}</td>
@@ -3036,6 +3039,7 @@ function viewPillars() {
             <td><button class="rowedit" data-action="editrow" data-list="competitors" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="competitors" data-i="${i}" aria-label="Delete competitor">${icon('x', 13)}</button></td>
           </tr>`; }).join('')}</tbody></table></div>
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="competitors">${icon('plus', 13)}Add competitor</button>
+        <p class="hint-edit" style="margin:4px 12px 12px">Estimate a competitor's ER from their public numbers: average likes + comments across their last ~10 posts ÷ their followers × 100 (free engagement calculators do this from a handle). “vs you” compares your follower-based ER on that platform, same math.</p>
       </div>
     </section>
   </div>`;
@@ -4012,7 +4016,7 @@ const ADD_FORMS = {
     {k: 'name', label: 'Name', ph: 'their brand or handle'},
     {k: 'pid', label: 'Platform', options: platOptions},
     {k: 'followers', label: 'Followers', type: 'num'},
-    {k: 'er', label: 'Engagement rate (%)', type: 'num'},
+    {k: 'er', label: 'Engagement rate (%)', type: 'num', ph: 'avg likes+comments ÷ followers × 100'},
     {k: 'lastChecked', label: 'Last checked', type: 'date'},
   ]},
   hooks: {title: 'Add hook', fields: [
