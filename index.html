@@ -114,6 +114,9 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--page);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.5}
+/* No layout may ever widen the page itself — tables scroll inside .tablewrap.
+   iOS in particular lets you pan to fixed/absolute elements past the right edge. */
+html,body{overflow-x:clip}
 img,svg{max-width:100%}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 :focus-visible{outline:2px solid var(--sage);outline-offset:2px;border-radius:4px}
@@ -424,6 +427,9 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .thumb .fmt-badge{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:6px;background:var(--surface);
   border:1px solid var(--hairline);color:var(--ink-2);display:grid;place-items:center}
 .thumb .th-date{position:absolute;bottom:4px;left:5px;font-size:9px;font-weight:700;color:var(--ink-2);background:var(--surface);border-radius:5px;padding:0 5px;line-height:1.6}
+.thumb .th-date-top{bottom:auto;top:5px} /* platform logos own the bottom-left corner */
+.thumb .th-plats{position:absolute;bottom:4px;left:4px;display:flex;gap:3px;max-width:calc(100% - 22px);flex-wrap:wrap}
+.thumb .th-plats .plat-mono{border:1.5px solid var(--surface);flex:0 0 auto}
 .thumb.thumb-sched{border:1.5px dashed var(--muted)}
 .thumb.thumb-sched .th-img{opacity:.6}
 .ptone-0{background:linear-gradient(135deg,var(--coral-soft),var(--surface-alt));color:var(--coral-deep)}
@@ -565,6 +571,16 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .pmodal .postcard .thumb.th-lg .th-add{width:28px;height:28px;bottom:8px;left:8px;border-radius:9px}
 .pmodal .postcard .thumb.th-lg .th-del{left:42px}
 @media (max-width:520px){.pmodal .postcard .thumb.th-lg{width:132px;height:132px}}
+
+/* "Add" form modal — add buttons open this instead of dropping a placeholder row */
+.pm-form{width:min(420px,94vw)}
+.addform{display:grid;gap:12px;padding:16px}
+.af-row{display:grid;gap:5px}
+.af-l{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.addform .af-in{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--hairline);border-radius:9px;padding:8px 10px;width:100%;box-sizing:border-box;min-height:40px}
+.addform .af-in::placeholder{color:var(--muted);opacity:.8}
+.addform .af-in:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+.af-foot{display:flex;justify-content:flex-end;gap:8px;padding:2px 16px 16px}
 
 /* Milestone flags on sparklines */
 .spark line.mark-stem{stroke:var(--golden-deep);stroke-width:1.5}
@@ -1036,6 +1052,16 @@ function sampleData() {
     {id: uid(), title: 'Packing-station makeover', date: isoOffset(9), time: '', pid: 'ig', format: 'reel', pillar: pilBts, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: 'Pair with trend audio if still alive'},
     {id: uid(), title: 'FAQ: shipping + restocks', date: isoOffset(11), time: '', pid: 'tt', format: 'reel', pillar: pilEd, hook: '', cta: '', status: 'idea', approval: 'na', reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null, watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
   );
+
+  /* Cross-post one upcoming post to a second platform, so the feed preview
+     demonstrates the one-tile-with-platform-logos treatment right up front */
+  {
+    const teaser = posts.find(p => p.title === 'Holiday gift guide teaser');
+    if (teaser) {
+      teaser.groupId = uid();
+      posts.push({...teaser, id: uid(), pid: 'tt', time: '19:00'});
+    }
+  }
 
   /* Link one real cross-post group (same content on 2+ platforms) so the demo
      shows the ×N cross-posted chip and the editor's toggle state */
@@ -2159,8 +2185,16 @@ document.addEventListener('pointermove', e => {
     tt.style.left = (pr.left + pr.width / 2) + 'px';
     tt.style.top = pr.top + 'px';
     tt.hidden = false;
+    clampTip(tt);
   }
 });
+/* Keep the tooltip inside the viewport. It is position:fixed + nowrap; on iOS a
+   tap fires pointerover, and a fixed element hanging past the right edge makes
+   the whole page pannable sideways — the "tab isn't responsive" bug. */
+function clampTip(tt) {
+  const half = tt.offsetWidth / 2 + 6; // rendered with translateX(-50%)
+  tt.style.left = clamp(parseFloat(tt.style.left), half, window.innerWidth - half) + 'px';
+}
 function hideTip() {
   const tt = tooltipEl();
   tt.hidden = true;
@@ -2174,13 +2208,20 @@ document.addEventListener('pointerleave', e => {
 /* Generic per-mark hover tooltip for [data-tt] elements (bar chart rows, etc.) */
 document.addEventListener('pointerover', e => {
   const t = e.target.closest && e.target.closest('[data-tt]');
-  if (!t) return;
+  if (!t) {
+    // touch devices get pointerover per tap and often no pointerout —
+    // tapping anywhere else must put the tooltip away
+    const tt = tooltipEl();
+    if (tt && !tt.hidden) hideTip();
+    return;
+  }
   const tt = tooltipEl();
   tt.textContent = t.dataset.tt;
   const r = t.getBoundingClientRect();
   tt.style.left = (r.left + r.width / 2) + 'px';
   tt.style.top = r.top + 'px';
   tt.hidden = false;
+  clampTip(tt);
 });
 document.addEventListener('pointerout', e => {
   if (e.target.closest && e.target.closest('[data-tt]')) hideTip();
@@ -2372,17 +2413,19 @@ function thumbSrc(d, p) {
 /* 1 & 2 · Post thumbnail tile — the user's own photo, or pillar-themed placeholder art.
    size: '' = feed-grid cell · 'lg' 84px (post-card header) · 'md' 64px (list rows) · 'sm' 34px (compact rows)
    editIdx (post-card header only): shows the add/remove-photo controls for d.posts[editIdx]. */
-function thumbTile(d, p, {size = '', editIdx = null, editId = null} = {}) {
+function thumbTile(d, p, {size = '', editIdx = null, editId = null, pids = null} = {}) {
   const f = FORMATS[p.format] || FORMATS.static;
   const sched = p.status !== 'posted';
   const grid = size === '';
   const badge = grid || size === 'lg' || size === 'md';
   const dot = grid || size === 'lg';
-  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}"${editId ? ` data-action="editpost" data-id="${editId}" style="cursor:pointer" title="Click to edit this post"` : ''} data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}${p.img ? '' : ' · placeholder art'}">
+  const platNames = pids && pids.length ? pids.map(x => (PLATFORM_META[x] || {short: x}).short).join(' · ') : '';
+  return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}"${editId ? ` data-action="editpost" data-id="${editId}" style="cursor:pointer" title="Click to edit this post"` : ''} data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}${platNames ? ' · ' + esc(platNames) : ''}${p.img ? '' : ' · placeholder art'}">
     <img class="th-img" src="${thumbSrc(d, p)}" alt="" loading="lazy">
     ${dot ? `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>` : ''}
     ${badge ? `<span class="fmt-badge">${icon(f.icon, 11)}</span>` : ''}
-    ${grid && sched && p.date ? `<span class="th-date">${esc(relDay(p.date))}</span>` : ''}
+    ${pids && pids.length ? `<span class="th-plats" role="img" aria-label="Posted to ${esc(pids.map(x => (PLATFORM_META[x] || {label: x}).label).join(', '))}">${pids.map(x => platMono(x, 16)).join('')}</span>` : ''}
+    ${grid && sched && p.date ? `<span class="th-date${pids && pids.length ? ' th-date-top' : ''}">${esc(relDay(p.date))}</span>` : ''}
     ${editIdx !== null ? `<button class="th-add" data-action="postimg" data-i="${editIdx}" title="${p.img ? 'Replace' : 'Add'} this post’s photo — stored only on this device, never uploaded" aria-label="${p.img ? 'Replace' : 'Add'} this post’s photo">${icon('image', 12)}</button>${p.img ? `<button class="th-add th-del" data-action="postimgdel" data-i="${editIdx}" title="Remove photo (back to placeholder art)" aria-label="Remove this post’s photo">${icon('x', 11)}</button>` : ''}` : ''}
   </span>`;
 }
@@ -2409,13 +2452,28 @@ function attachPostImg(file, idx) {
   reader.onerror = () => toast('Couldn’t read that file');
   reader.readAsDataURL(file);
 }
-/* 1 · Feed-grid preview — upcoming + recent posts as your grid will look */
+/* 1 · Feed-grid preview — upcoming + recent posts as your grid will look.
+   Cross-posted copies share a groupId: one piece of content = ONE tile, with the
+   platforms it runs on marked along the bottom — never the same photo N times. */
 function feedGrid(d, {max = 9} = {}) {
-  const items = (d.posts || []).filter(p => (p.status === 'posted' || p.status === 'scheduled') && p.date)
-    .sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, max);
+  const live = (d.posts || []).filter(p => (p.status === 'posted' || p.status === 'scheduled') && p.date)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  const groups = [], byKey = new Map();
+  live.forEach(p => {
+    const key = p.groupId || p.id;
+    let g = byKey.get(key);
+    if (!g) {
+      // every sibling counts for the logo row, even copies still in draft/idea
+      const sibs = p.groupId ? (d.posts || []).filter(q => q.groupId === p.groupId) : [p];
+      g = {rep: p, pids: [...new Set(sibs.map(q => q.pid))]};
+      byKey.set(key, g); groups.push(g);
+    }
+    if (!g.rep.img && p.img) g.rep = p; // prefer the copy that carries the photo
+  });
+  const items = groups.slice(0, max);
   if (!items.length) return `<div class="emptystate">Schedule or log a few posts and your grid preview appears here.</div>`;
-  return `<div class="feedgrid" aria-label="Feed preview — ${items.length} recent and upcoming posts; click a tile to edit that post">${items.map(p => thumbTile(d, p, {editId: p.id})).join('')}</div>
-  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>click a tile to edit its post — placeholder art (themed by pillar) fills photo gaps</span></div>`;
+  return `<div class="feedgrid" aria-label="Feed preview — ${items.length} recent and upcoming posts; click a tile to edit that post">${items.map(g => thumbTile(d, g.rep, {editId: g.rep.id, pids: g.pids})).join('')}</div>
+  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>logos show every platform a post runs on — click a tile to edit it</span></div>`;
 }
 
 /* 7 · Posting-streak calendar */
@@ -3837,6 +3895,7 @@ function render() {
       </div></div>`;
   }
   // storage first: "your work is not being saved" outranks every other notice
+  if (!modal && ui.addModal) modal = addModalHTML();
   main.innerHTML = storageBanner() + demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
@@ -3848,6 +3907,16 @@ function scheduleRender() {
   clearTimeout(renderTimer);
   renderTimer = setTimeout(() => {
     const ae = document.activeElement;
+    // A render replaces every node in <main>. If the user has already tapped into a
+    // <select>, iOS ties the open picker to that exact element — swapping it out
+    // mid-pick makes the change event fire on a detached node and the choice is
+    // silently lost (tap-twice-to-stick). Hold the render until the select settles.
+    if (ae && ae.tagName === 'SELECT' && ae.closest('#main')) {
+      const resume = () => { ae.removeEventListener('change', resume); ae.removeEventListener('blur', resume); scheduleRender(); };
+      ae.addEventListener('change', resume);
+      ae.addEventListener('blur', resume);
+      return;
+    }
     const path = ae && ae.classList && ae.classList.contains('ed') ? ae.dataset.path : null;
     // the same post card can exist in the grid AND the editor modal — refocus in the
     // container the user was actually typing in
@@ -3884,6 +3953,122 @@ const NEW_ROW = {
   tests: () => ({id: uid(), name: 'New test', hypothesis: '', variable: 'hook', metric: 'ER by reach', a: '', b: '', aResult: '', bResult: '', endDate: '', winner: '', learning: '', status: 'planned'}),
 };
 
+/* ================================================================
+   "Add" modal — every add button opens this small form first, so new
+   rows arrive in the user's own words instead of as "New pillar"
+   placeholder text they then have to hunt down and edit in place.
+   (Posts are the exception: they open the full post editor instead.)
+================================================================ */
+const cycleOptions = set => CYCLE_SETS[set].values.map(v => ({v, t: CYCLE_SETS[set].meta[v][2]}));
+const ADD_FORMS = {
+  platforms: {title: 'Add platform', hint: 'one row per account you post to', fields: [
+    {k: 'pid', label: 'Platform', options: platOptions},
+    {k: 'handle', label: 'Handle', ph: '@yourhandle'},
+    {k: 'type', label: 'Account type', ph: 'creator / business'},
+    {k: 'goal', label: 'Primary goal', ph: 'why this platform?'},
+    {k: 'cadence', label: 'Posts per week', type: 'num', ph: '3'},
+  ]},
+  pillars: {title: 'Add pillar', hint: 'a content theme you promise to post about', fields: [
+    {k: 'name', label: 'Pillar name', ph: 'e.g. Behind the scenes'},
+    {k: 'target', label: 'Target share of posts (%)', type: 'num', ph: '25'},
+    {k: 'notes', label: 'What belongs here?', ph: 'formats, topics, examples'},
+  ]},
+  competitors: {title: 'Add competitor', fields: [
+    {k: 'name', label: 'Name', ph: 'their brand or handle'},
+    {k: 'pid', label: 'Platform', options: platOptions},
+    {k: 'followers', label: 'Followers', type: 'num'},
+    {k: 'er', label: 'Engagement rate (%)', type: 'num'},
+    {k: 'lastChecked', label: 'Last checked', type: 'date'},
+  ]},
+  hooks: {title: 'Add hook', fields: [
+    {k: 'text', label: 'Hook', ph: 'the first line that stops the scroll'},
+    {k: 'format', label: 'Format', options: formatOptions},
+    {k: 'tag', label: 'Stage', options: () => cycleOptions('hooktag')},
+    {k: 'notes', label: 'Notes', ph: 'where it worked'},
+  ]},
+  trends: {title: 'Add trend', fields: [
+    {k: 'name', label: 'Trend or audio', ph: 'what are you riding?'},
+    {k: 'pid', label: 'Platform', options: platOptions},
+    {k: 'note', label: 'How would you use it?'},
+    {k: 'expires', label: 'Expires around', type: 'date'},
+    {k: 'status', label: 'Status', options: () => cycleOptions('trend')},
+  ]},
+  ideas: {title: 'Add idea', fields: [
+    {k: 'text', label: 'Idea', ph: 'the post in one sentence'},
+    {k: 'pillar', label: 'Pillar', options: d => pillarOptions(d)},
+    {k: 'format', label: 'Format', options: formatOptions},
+  ]},
+  ctas: {title: 'Add CTA', fields: [
+    {k: 'text', label: 'Call to action', ph: 'e.g. Comment PLAN and I’ll send it'},
+    {k: 'goal', label: 'Drives what?', ph: 'saves · DMs · link clicks'},
+  ]},
+  repurpose: {title: 'Add asset', fields: [
+    {k: 'idea', label: 'Idea / asset', ph: 'the content worth re-cutting'},
+    {k: 'source', label: 'Source platform', options: platOptions},
+    {k: 'cuts', label: 'Already cut for', ph: 'e.g. IG reel · TT · YT short'},
+    {k: 'notes', label: 'Next cut?'},
+  ]},
+  milestones: {title: 'Add milestone', hint: 'shown as ⚑ on your growth charts', fields: [
+    {k: 'date', label: 'Date', type: 'date'},
+    {k: 'label', label: 'What happened?', ph: 'launch, viral post, 10k…'},
+  ]},
+  deals: {title: 'Add deal', fields: [
+    {k: 'brand', label: 'Brand', ph: 'who’s paying?'},
+    {k: 'deliverable', label: 'Deliverable', ph: 'e.g. 1 reel + 3 stories'},
+    {k: 'pid', label: 'Platform', options: platOptions},
+    {k: 'due', label: 'Due', type: 'date'},
+    {k: 'fee', label: 'Fee ($)', type: 'num'},
+    {k: 'status', label: 'Status', options: () => cycleOptions('deal')},
+    {k: 'notes', label: 'Notes'},
+  ]},
+  goals: {title: 'Add goal', fields: [
+    {k: 'name', label: 'Goal', ph: 'e.g. 5k followers on IG'},
+    {k: 'target', label: 'Target', type: 'num'},
+    {k: 'actual', label: 'Where you are now', type: 'num'},
+    {k: 'unit', label: 'Unit', options: () => [{v: '', t: 'count'}, {v: '$', t: 'dollars'}, {v: '%', t: 'percent'}]},
+  ]},
+  tests: {title: 'Add experiment', fields: [
+    {k: 'name', label: 'Experiment', ph: 'what are you testing?'},
+    {k: 'hypothesis', label: 'Hypothesis', ph: 'I think … because …'},
+    {k: 'variable', label: 'Variable', options: () => [{v: 'hook', t: 'Hook'}, {v: 'format', t: 'Format'}, {v: 'time', t: 'Posting time'}, {v: 'cta', t: 'CTA'}, {v: 'other', t: 'Other'}]},
+    {k: 'metric', label: 'Metric', ph: 'ER by reach'},
+    {k: 'a', label: 'Variant A'},
+    {k: 'b', label: 'Variant B'},
+    {k: 'endDate', label: 'Ends', type: 'date'},
+  ]},
+};
+function addModalHTML() {
+  const {list, row} = ui.addModal;
+  const spec = ADD_FORMS[list];
+  if (!spec) return '';
+  const d = D();
+  const fieldHTML = f => {
+    const seed = row[f.k];
+    if (f.options) {
+      const opts = f.options(d);
+      return `<label class="af-row"><span class="af-l">${esc(f.label)}</span>
+        <select class="af-in" data-fkey="${f.k}">${opts.map(o => `<option value="${esc(o.v)}" ${String(o.v) === String(seed ?? '') ? 'selected' : ''}>${esc(o.t)}</option>`).join('')}</select></label>`;
+    }
+    // text starts empty (its seed becomes the placeholder); dates & numbers pre-fill
+    const val = f.type === 'num' ? (num(seed) ?? '') : f.type === 'date' ? (seed || '') : '';
+    const attrs = [`class="af-in"`, `data-fkey="${f.k}"`, `data-ftype="${f.type || 'text'}"`,
+      `type="${f.type === 'date' ? 'date' : 'text'}"`, `value="${esc(val)}"`, `aria-label="${esc(f.label)}"`];
+    if (f.type === 'num') attrs.push('inputmode="decimal"', 'autocomplete="off"');
+    const ph = f.ph || '';
+    if (!f.type && ph) attrs.push(`placeholder="${esc(ph)}"`);
+    if (f.type === 'num' && ph) attrs.push(`placeholder="${esc(ph)}"`);
+    return `<label class="af-row"><span class="af-l">${esc(f.label)}</span><input ${attrs.join(' ')}></label>`;
+  };
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="${esc(spec.title)}">
+    <div class="pm-scrim" data-action="addcancel"></div>
+    <div class="pm-panel pm-form">
+      <div class="pm-head">${icon('plus', 14)}<h3>${esc(spec.title)}</h3>${spec.hint ? `<span class="pm-hint">${esc(spec.hint)}</span>` : ''}
+        <button class="btn btn-ghost" data-action="addcancel" aria-label="Cancel" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+      <div class="addform">${spec.fields.map(fieldHTML).join('')}</div>
+      <div class="af-foot"><button class="btn" data-action="addcancel">Cancel</button><button class="btn btn-primary" data-action="addsave">${icon('check', 14)}Save</button></div>
+    </div></div>`;
+}
+
 document.addEventListener('click', e => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
@@ -3908,6 +4093,7 @@ document.addEventListener('click', e => {
     ui.view = btn.dataset.view;
     ui.monthOffset = 0;
     ui.editPost = null;
+    ui.addModal = null;
     document.body.classList.remove('nav-open');
     try { history.replaceState(null, '', '#' + ui.view); } catch (err) {}
     animPending = true;
@@ -4013,9 +4199,31 @@ document.addEventListener('click', e => {
       // in the calendar you're planning. Either way, open the editor right away.
       if (ui.view === 'posts') row.status = 'posted';
       ui.editPost = row.id;
+      listRef(list).push(row);
+      save(true); render();
+    } else {
+      // everything else gets the small add-form first — nothing lands in the
+      // dashboard until the user fills it in and hits Save
+      ui.addModal = {list, row};
+      render();
+      const first = document.querySelector('.pmodal .af-in');
+      if (first && window.matchMedia('(hover:hover) and (pointer:fine)').matches) first.focus();
     }
+  } else if (act === 'addcancel') {
+    ui.addModal = null;
+    render();
+  } else if (act === 'addsave') {
+    const {list, row} = ui.addModal;
+    document.querySelectorAll('.pmodal [data-fkey]').forEach(inp => {
+      const k = inp.dataset.fkey;
+      const v = String(inp.value ?? '').trim();
+      if (inp.dataset.ftype === 'num') { if (v !== '') row[k] = num(v); }
+      else if (v !== '') row[k] = v;
+    });
     listRef(list).push(row);
+    ui.addModal = null;
     save(true); render();
+    toast('✓ Added — tap any of its fields to edit it later');
   } else if (act === 'delrow') {
     const list = btn.dataset.list, i = parseInt(btn.dataset.i, 10);
     const arr = listRef(list);
@@ -4048,7 +4256,12 @@ document.addEventListener('keydown', e => {
   const el = e.target;
   if (!el.classList || !el.classList.contains('ed')) {
     if (e.key === 'Escape' && document.body.classList.contains('nav-open')) document.body.classList.remove('nav-open');
+    else if (e.key === 'Escape' && ui.addModal) { ui.addModal = null; render(); }
     else if (e.key === 'Escape' && ui.editPost) { ui.editPost = null; render(); }
+    else if (e.key === 'Enter' && ui.addModal && el.classList && el.classList.contains('af-in') && el.tagName === 'INPUT') {
+      const saveBtn = document.querySelector('.pmodal [data-action="addsave"]');
+      if (saveBtn) saveBtn.click();
+    }
     return;
   }
   if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); el.blur(); }
@@ -4091,9 +4304,14 @@ document.addEventListener('change', e => {
     setPath(path, el.value);
     save(true);
     render();
-    const scope = (wasInModal && document.querySelector('.pmodal')) || document;
-    const again = scope.querySelector(`select.statussel[data-path="${CSS.escape(path)}"]`);
-    if (again) again.focus();
+    // Keyboard users get their focus back after the re-render; on touch devices
+    // refocusing a <select> makes iOS treat the NEXT tap as "dismiss the focused
+    // picker" — every control then needs two taps — so only refocus with a pointer.
+    if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
+      const scope = (wasInModal && document.querySelector('.pmodal')) || document;
+      const again = scope.querySelector(`select.statussel[data-path="${CSS.escape(path)}"]`);
+      if (again) again.focus();
+    }
   }
 });
 
