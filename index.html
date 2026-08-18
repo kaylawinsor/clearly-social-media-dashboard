@@ -1121,8 +1121,8 @@ function sampleData() {
     brand: {name: 'Clearly Studio', niche: 'Handmade home goods', persona: 'Small-space renters, 25–40, care about calm + craft', voice: 'Warm, practical, a little wry — never salesy', goal: 'Turn followers into shop customers without burning out', owner: 'Run by Mia — 6 hrs/week on social'},
     benchmarks: {...BENCH_DEFAULTS},
     platforms: [
-      {id: uid(), pid: 'ig', handle: '@clearly.studio', type: 'business', goal: 'Community + shop traffic', cadence: 4, active: true, history: hist(igH)},
-      {id: uid(), pid: 'tt', handle: '@clearlystudio', type: 'creator', goal: 'Discovery + reach', cadence: 4, active: true, history: hist(ttH)},
+      {id: uid(), pid: 'ig', handle: '@clearly.studio', type: 'business', goal: 'Community + shop traffic', cadence: 3, active: true, history: hist(igH)},
+      {id: uid(), pid: 'tt', handle: '@clearlystudio', type: 'creator', goal: 'Discovery + reach', cadence: 3, active: true, history: hist(ttH)},
       {id: uid(), pid: 'yt', handle: '@ClearlyStudio', type: 'creator', goal: 'Evergreen how-tos', cadence: 1, active: true, history: hist(ytH)},
       {id: uid(), pid: 'fb', handle: 'Clearly Studio', type: 'business', goal: 'Local + marketplace traffic', cadence: 3, active: true, history: hist(fbH)},
       {id: uid(), pid: 'x', handle: '@clearlystudio', type: 'creator', goal: 'Repurposed tips + link clicks', cadence: 2, active: true, history: hist(xH)},
@@ -1187,7 +1187,7 @@ function sampleData() {
       {id: uid(), date: addMonths(monthKey(), -2) + '-22', label: 'TikTok passed 10k'},
     ],
     deals: [
-      {id: uid(), brand: 'Loam & Co. candles', deliverable: '1 IG reel + 3 stories', pid: 'ig', due: isoOffset(4), fee: 650, status: 'signed', notes: 'Draft due 48h before'},
+      {id: uid(), brand: 'Loam & Co. candles', deliverable: '1 IG reel + 3 stories', pid: 'ig', due: isoOffset(11), fee: 650, status: 'signed', notes: 'Draft due 48h before'},
       {id: uid(), brand: 'Fieldbook (planner app)', deliverable: '1 TikTok integration', pid: 'tt', due: isoOffset(12), fee: 500, status: 'negotiating', notes: 'Asked for usage rights — counter +30%'},
       {id: uid(), brand: 'Hearth Home Box', deliverable: 'Unboxing reel + link', pid: 'ig', due: isoOffset(-6), fee: 550, status: 'invoiced', notes: 'Net-30 — invoice sent'},
       {id: uid(), brand: 'Loam & Co. candles', deliverable: 'Spring set — 2 reels', pid: 'ig', due: isoOffset(-34), fee: 850, status: 'paid', notes: 'Renewal candidate ✓'},
@@ -1195,7 +1195,7 @@ function sampleData() {
       {id: uid(), brand: 'Wren & Willow decor', deliverable: 'Story takeover (3 frames)', pid: 'ig', due: monthKey() + '-02', fee: 850, status: 'paid', notes: 'Paid same week — easy renewal'},
       {id: uid(), brand: 'Grove kitchenware', deliverable: 'YT integration (60s)', pid: 'yt', due: null, fee: 900, status: 'pitched', notes: 'Sent rate card + case study'},
     ],
-    money: {incomeGoal: 2200, rcPid: 'ig', rcBase: 12, rcFollowers: null, rcER: null},
+    money: {incomeGoal: 1400, rcPid: 'ig', rcBase: 12, rcFollowers: null, rcER: null},
     goals: [
       {id: uid(), name: 'Instagram followers', target: 15000, actual: 14620, unit: ''},
       {id: uid(), name: 'TikTok followers', target: 12000, actual: 11450, unit: ''},
@@ -1884,7 +1884,7 @@ function buildAlerts(d, r) {
     const mns = minutesSince(p);
     return mns !== null && mns >= 0 && mns <= 60;
   });
-  if (hot.length) A.push({sev: 'warning', text: `${hot.length === 1 ? `“${esc(hot[0].title || 'A post')}” is` : `${hot.length} posts are`} in the golden-hour window — replies in the first hour compound reach. Reply now.`, view: 'community'});
+  if (hot.length) A.push({sev: 'info', text: `${hot.length === 1 ? `“${esc(hot[0].title || 'A post')}” is` : `${hot.length} posts are`} in the golden-hour window — replies in the first hour compound reach. Reply now.`, view: 'community'});
   // 5 · Brand-deal deliverable due / overdue
   (d.deals || []).forEach(dl => {
     if (!dl.due || ['delivered', 'invoiced', 'paid'].includes(dl.status)) return;
