@@ -172,6 +172,11 @@ main:focus{outline:none}
 .grid{display:grid;gap:16px;grid-template-columns:repeat(12,1fr)}
 .card{grid-column:span 12;background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;min-width:0}
 .c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c3{grid-column:span 3}
+/* A post card carries far more than any other c4 card — title, five dropdowns, cross-post
+   chips, hook, CTA, caption, notes and ten stat cells. Three across a laptop window left the
+   title ~75px for ~200px of text. Two across until there is genuinely room for three. */
+.postcard{grid-column:span 6;align-self:start}
+@media (min-width:1680px){.postcard{grid-column:span 4}}
 .card-h{--hacc-deep:var(--teal-deep);--hacc-soft:var(--teal-soft);
   display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--surface-alt);border-bottom:1px solid var(--hairline)}
 .card-h h3{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:var(--ink);font-weight:700}
@@ -674,9 +679,17 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
   .viewhead .vh-aux{display:none}
 }
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-textarea.ed-area{display:block;width:100%;min-height:72px;resize:vertical;border:1px dashed transparent;border-radius:10px;
+/* No min-height: every .ed-area sets its own `rows`, and autosize() grows it to its
+   content. A fixed floor only forced short fields (a trend name, a table cell) to be
+   three times taller than the text they hold. */
+textarea.ed-area{display:block;width:100%;resize:vertical;border:1px dashed transparent;border-radius:10px;
   padding:8px 10px;background:var(--surface-alt);font:inherit;color:var(--ink);line-height:1.55}
 textarea.ed-area:hover{border-color:var(--muted)}
+/* In a table cell the same control is one row of a list, not a notes box — the 72px
+   floor that suits a report note would make every row three times taller than it needs. */
+/* 1px horizontal padding matches .ed above, so a converted field keeps the same left
+   edge as the plain inputs it sits beside in a table. */
+td textarea.ed-area{padding:2px 1px;background:transparent;border-radius:6px}
 textarea.ed-area.ed-empty{background:var(--slate-soft);border-color:var(--muted)}
 textarea.ed-area:focus{outline:none;border:1px solid var(--teal);background:var(--surface)}
 abbr{text-decoration:none;border-bottom:1px dotted var(--muted);cursor:help}
@@ -2004,6 +2017,22 @@ function edField(path, opts = {}) {
   let display;
   if (opts.type === 'num') display = raw === null || raw === undefined || raw === '' ? '' : Number(raw).toLocaleString('en-US', {maximumFractionDigits: opts.dec ?? 2});
   else display = raw ?? '';
+  /* opts.area is for fields that hold a sentence rather than a value. An <input> is one
+     line at a fixed width, so inside a table cell a long persona or hypothesis simply
+     scrolled out of sight — nothing wrapped and nothing said it had been truncated.
+     A textarea wraps, and autosize() grows it to fit on every render. */
+  if (opts.area) {
+    /* opts.w is a floor in ch. A textarea is width:100%, which inside a table means the
+       column may collapse to nothing — the input it replaced held the column open with
+       its own ch width. Without a floor, a 13-column table wraps a hypothesis into a
+       six-line sliver, which is worse than the truncation this was meant to fix. */
+    return `<textarea class="ed ed-area${String(display) === '' ? ' ed-empty' : ''}${opts.cls ? ' ' + opts.cls : ''}"`
+      + ` data-path="${path}" data-etype="text" rows="${opts.rows || 2}"`
+      + (opts.w ? ` style="min-width:${opts.w}ch"` : '')
+      + ` aria-label="${esc(opts.label || path)}"`
+      + (opts.ph ? ` placeholder="${esc(opts.ph)}"` : '')
+      + `>${esc(display)}</textarea>`;
+  }
   const w = Math.max(String(display).length, opts.min || (opts.type === 'num' ? 4 : 6)) + 1;
   const attrs = [
     `class="ed ${opts.type === 'num' ? 'ed-num' : ''} ${String(display) === '' ? 'ed-empty' : ''} ${opts.cls || ''}"`,
@@ -2916,9 +2945,9 @@ function viewSetup() {
       <div class="card-b"><div class="tablewrap"><table class="data" style="min-width:0"><tbody>
         <tr><th scope="row">Brand / client name</th><td>${edField('brand.name', {min: 12, label: 'Brand name'})}</td></tr>
         <tr><th scope="row">Niche</th><td>${edField('brand.niche', {min: 16, max: 30, label: 'Niche', ph: 'e.g. handmade home goods'})}</td></tr>
-        <tr><th scope="row">Target persona</th><td>${edField('brand.persona', {min: 20, max: 38, label: 'Target persona', ph: 'who are you talking to?'})}</td></tr>
+        <tr><th scope="row">Target persona</th><td>${edField('brand.persona', {area: true, label: 'Target persona', ph: 'who are you talking to?'})}</td></tr>
         <tr><th scope="row">Brand voice</th><td>${edField('brand.voice', {min: 20, max: 38, label: 'Brand voice', ph: 'e.g. warm, practical, a little wry'})}</td></tr>
-        <tr><th scope="row">Top-line goal</th><td>${edField('brand.goal', {min: 20, max: 38, label: 'Top-line goal', ph: 'what is social FOR, for you?'})}</td></tr>
+        <tr><th scope="row">Top-line goal</th><td>${edField('brand.goal', {area: true, label: 'Top-line goal', ph: 'what is social FOR, for you?'})}</td></tr>
         <tr><th scope="row">Program note</th><td>${edField('brand.owner', {min: 20, max: 38, label: 'Program note', ph: 'e.g. run by Mia — 6 hrs/week'})}</td></tr>
       </tbody></table></div></div>
     </section>
@@ -3201,7 +3230,7 @@ function viewVault() {
           <div class="trendcard">
             <div class="tr-top">
               ${platMono(t.pid, 20)}
-              ${edField(`trends.${i}.name`, {min: 18, max: 34, label: 'Trend name'})}
+              ${edField(`trends.${i}.name`, {area: true, rows: 1, label: 'Trend name'})}
               ${cycleChip(`trends.${i}.status`, 'trend', 'Trend status')}
               <button class="rowedit" data-action="editrow" data-list="trends" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="trends" data-i="${i}" aria-label="Delete trend">${icon('x', 13)}</button>
             </div>
@@ -3693,12 +3722,12 @@ function viewExperiments() {
   <div class="grid">
     <section class="card">
       ${cardH('flask', 'Experiment Log', `${(d.tests || []).length} test${(d.tests || []).length === 1 ? '' : 's'}`, 'aqua')}
-      <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:1020px">
+      <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:1260px">
         <thead><tr><th>Experiment</th><th>Hypothesis</th><th>Variable</th><th>Metric</th><th>Variant A</th><th>Variant B</th><th class="num">A result</th><th class="num">B result</th><th>Ends</th><th>Winner</th><th>Learning</th><th>Status</th><th></th></tr></thead>
         <tbody>${(d.tests || []).map((t, i) => `
           <tr>
-            <td>${edField(`tests.${i}.name`, {min: 14, max: 20, label: 'Experiment name'})}</td>
-            <td>${edField(`tests.${i}.hypothesis`, {min: 18, max: 30, label: 'Hypothesis'})}</td>
+            <td>${edField(`tests.${i}.name`, {area: true, w: 20, label: 'Experiment name'})}</td>
+            <td>${edField(`tests.${i}.hypothesis`, {area: true, w: 26, label: 'Hypothesis'})}</td>
             <td>${listSel(`tests.${i}.variable`, [{v: 'hook', t: 'Hook'}, {v: 'format', t: 'Format'}, {v: 'time', t: 'Posting time'}, {v: 'cta', t: 'CTA'}, {v: 'other', t: 'Other'}], 'Test variable')}</td>
             <td>${edField(`tests.${i}.metric`, {min: 8, max: 14, label: 'Metric'})}</td>
             <td>${edField(`tests.${i}.a`, {min: 8, max: 14, label: 'Variant A'})}</td>
@@ -3766,7 +3795,7 @@ function viewMoney() {
             <td>${edField(`deals.${i}.due`, {type: 'date', min: 10, label: 'Due date'})}<div class="li-sub">${relDay(dl.due)}</div></td>
             <td class="num">${edField(`deals.${i}.fee`, {type: 'num', min: 5, label: 'Deal fee'})}</td>
             <td>${cycleChip(`deals.${i}.status`, 'deal', 'Deal status')}</td>
-            <td>${edField(`deals.${i}.notes`, {min: 14, max: 26, label: 'Deal notes'})}</td>
+            <td>${edField(`deals.${i}.notes`, {area: true, w: 22, label: 'Deal notes'})}</td>
             <td><button class="rowedit" data-action="editrow" data-list="deals" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="deals" data-i="${i}" aria-label="Delete deal">${icon('x', 13)}</button></td>
           </tr>`).join('')}</tbody></table></div></div>
     </section>
@@ -4105,7 +4134,8 @@ function render() {
 function autosize(root) {
   (root || document).querySelectorAll('textarea.ed-area').forEach(t => {
     t.style.height = 'auto';
-    t.style.height = Math.max(t.scrollHeight, 72) + 'px';
+    // no floor here — CSS min-height sets it, so a table cell can ask for a shorter one
+    t.style.height = t.scrollHeight + 'px';
   });
 }
 let renderTimer = null;
