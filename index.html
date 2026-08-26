@@ -2016,7 +2016,24 @@ function edField(path, opts = {}) {
   if (opts.type === 'num') attrs.push('inputmode="decimal"', 'autocomplete="off"');
   if (opts.type === 'date') attrs.push('placeholder="YYYY-MM-DD"');
   if (opts.ph) attrs.push(`placeholder="${esc(opts.ph)}"`);
+  /* opts.bank turns a free-text field into one that also offers what you already saved
+     in the Content Library. A datalist suggests without constraining — you can still
+     type something new, and that new line is what you later save to the bank. */
+  if (opts.bank) attrs.push(`list="bank-${opts.bank}"`);
   return `<input ${attrs.join(' ')}>`;
+}
+
+/* One datalist per bank, rendered once per view rather than once per row — 40 post
+   cards must not emit 40 copies of the same option list. */
+function bankLists(d) {
+  const banks = {hooks: (d.hooks || []), ctas: (d.ctas || [])};
+  return Object.entries(banks).map(([k, rows]) => {
+    const seen = new Set();
+    const opts = rows.map(r => (r.text || '').trim())
+      .filter(t => t && !seen.has(t) && seen.add(t))
+      .map(t => `<option value="${esc(t)}"></option>`).join('');
+    return opts ? `<datalist id="bank-${k}">${opts}</datalist>` : '';
+  }).join('');
 }
 
 /* Status dropdown chips */
@@ -2687,8 +2704,8 @@ function postCard(d, p, i, topDecile) {
         })()}
       </div>
     </div>
-    <div class="pc-meta">${icon('zap', 12)}${edField(`posts.${i}.hook`, {min: 18, max: 30, label: 'Hook', ph: 'hook / first line'})}</div>
-    <div class="pc-meta">${icon('megaphone', 12)}${edField(`posts.${i}.cta`, {min: 18, max: 30, label: 'Call to action', ph: 'call to action'})}</div>
+    <div class="pc-meta">${icon('zap', 12)}${edField(`posts.${i}.hook`, {min: 18, max: 30, label: 'Hook', ph: 'hook / first line', bank: 'hooks'})}</div>
+    <div class="pc-meta">${icon('megaphone', 12)}${edField(`posts.${i}.cta`, {min: 18, max: 30, label: 'Call to action', ph: 'call to action', bank: 'ctas'})}</div>
     <!-- The caption is a paragraph, so it gets a textarea here too — a one-line input
          showed the first few words of a 285-character caption and hid the rest. -->
     <div class="pc-meta">${icon('quote', 12)}<span class="hint">Caption${(p.caption || '').length ? ` — ${(p.caption || '').length} chars` : ''}</span>
@@ -4075,7 +4092,7 @@ function render() {
   // storage first: "your work is not being saved" outranks every other notice
   if (!modal && ui.addModal) modal = addModalHTML();
   if (!modal && ui.dayPeek) modal = dayPeekHTML();
-  main.innerHTML = storageBanner() + demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal;
+  main.innerHTML = storageBanner() + demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal + bankLists(D());
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
