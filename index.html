@@ -530,11 +530,28 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .mixrow .mx-nums{color:var(--ink-2);font-variant-numeric:tabular-nums;font-size:11.5px;white-space:nowrap}
 
 /* Trend watchlist rows with expiry chips — stacked layout, nothing can overlap */
-.trendcard{display:flex;flex-direction:column;gap:6px;padding:10px 16px;border-bottom:1px solid var(--hairline);font-size:13px;min-width:0}
-.trendcard:last-child{border-bottom:none}
-.trendcard .tr-top{display:flex;gap:8px;align-items:center;min-width:0}
-.trendcard .tr-top .ed{flex:1}
-.trendcard .tr-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-left:28px;color:var(--ink-2);font-size:12px}
+/* ---- Content Library ------------------------------------------------------
+   Every section is a uniform table whose first column is the platform, so the
+   eye has one column to follow and the platform is always in the same place. */
+/* Jump bar: what this tab contains, and a way straight to it. */
+.jumpbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.jump{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:99px;
+  border:1px solid var(--hairline);background:var(--surface);color:var(--ink-2);
+  font-size:12.5px;font-weight:600;text-decoration:none;transition:border-color .12s,color .12s}
+.jump:hover{border-color:var(--sage);color:var(--ink)}
+.jump-n{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;
+  padding:0 5px;border-radius:99px;background:var(--slate-soft);color:var(--ink-2);
+  font-size:11px;font-variant-numeric:tabular-nums}
+/* Clears the sticky topbar so a jump lands with the heading visible, not under it. */
+.grid > .card[id^="lib-"]{scroll-margin-top:84px}
+/* Platform cell: the glyph is the scannable part, the select is how you change it. */
+.platpick{display:inline-flex;align-items:center;gap:6px;min-width:0}
+/* "Any platform" — a muted mark, so it reads as a deliberate choice not missing data. */
+.plat-mono.plat-any{background:var(--slate-soft);color:var(--muted);box-shadow:inset 0 0 0 1px var(--hairline)}
+/* Two lists under one card heading (hooks, then CTAs). */
+.subhead{display:flex;align-items:center;gap:7px;padding:12px 16px 8px;color:var(--ink-2);
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.subhead + .tablewrap{border-top:1px solid var(--hairline)}
 
 /* Golden-hour pulse — the reduced-motion block below disables the animation */
 .golden-dot{width:9px;height:9px;border-radius:50%;background:var(--golden);flex:0 0 auto;animation:pulseDot 1.6s ease-in-out infinite}
@@ -785,7 +802,6 @@ const ICONS = {
   flame:'<path d="M12 21.5c-4 0-6.5-2.6-6.5-6.2 0-2.6 1.6-4.6 3-6.3C9.8 7.4 11 5.7 11 3c3.5 2 7.5 6.5 7.5 12.3 0 3.6-2.5 6.2-6.5 6.2Z"/><path d="M12 21.5c-1.8 0-3-1.3-3-3 0-1.9 1.6-3 3-5 1.4 2 3 3.1 3 5 0 1.7-1.2 3-3 3Z"/>',
   megaphone:'<path d="M3 10.5v3a1.5 1.5 0 0 0 1.5 1.5H6l4.5 5.5v-17L6 9H4.5A1.5 1.5 0 0 0 3 10.5Z"/><path d="M14.5 9a4.5 4.5 0 0 1 0 6M17.5 6.5a8.5 8.5 0 0 1 0 11"/>',
   funnel:'<path d="M3 4.5h18l-7 8.5v6.5l-4 2v-8.5Z"/>',
-  music:'<circle cx="6.5" cy="18" r="2.8"/><circle cx="17.5" cy="16" r="2.8"/><path d="M9.3 18V6.5L20.3 4v12"/>',
   repeat:'<path d="m17.5 2.5 3.5 3.5-3.5 3.5"/><path d="M21 6H7.5A4.5 4.5 0 0 0 3 10.5v1"/><path d="m6.5 21.5-3.5-3.5 3.5-3.5"/><path d="M3 18h13.5a4.5 4.5 0 0 0 4.5-4.5v-1"/>',
   usersplus:'<path d="M15 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8" cy="7" r="4"/><path d="M19 5v6M16 8h6"/>',
   link:'<path d="M10 13.5a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 10.5a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
@@ -949,14 +965,16 @@ function starterData() {
     competitors: [
       {id: uid(), name: '', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''},
     ],
-    hooks: [{id: uid(), text: 'You’ve been doing X wrong — here’s the fix', format: 'reel', tag: 'testing', notes: ''}],
-    ideas: [{id: uid(), text: 'My honest morning routine (no aesthetic edit)', pillar: pilB, format: 'reel', detail: ''}],
-    ctas: [{id: uid(), text: 'Save this for later 📌', goal: 'Saves'}],
-    captions: [{id: uid(), text: '', pillar: pilB, format: 'reel', notes: ''}],
+    /* pid is optional on every library item: a hook like "you've been doing X wrong"
+       works on any platform, and forcing one on it would be a lie. Blank means "any",
+       and blank items stay visible under every platform filter. */
+    hooks: [{id: uid(), text: 'You’ve been doing X wrong — here’s the fix', pid: '', format: 'reel', tag: 'testing', notes: ''}],
+    ideas: [{id: uid(), text: 'My honest morning routine (no aesthetic edit)', pid: '', pillar: pilB, format: 'reel', detail: ''}],
+    ctas: [{id: uid(), text: 'Save this for later 📌', pid: '', goal: 'Saves'}],
+    captions: [{id: uid(), text: '', pid: '', pillar: pilB, format: 'reel', notes: ''}],
     /* Hashtags travel in reusable sets, not one at a time — a set per pillar or
        per platform is how they actually get used. */
     hashtags: [{id: uid(), name: 'Everyday set', pid: 'ig', pillar: pilB, tags: '', notes: ''}],
-    trends: [{id: uid(), name: '', pid: 'tt', note: '', spotted: todayISO(), expires: '', status: 'watching'}],
     repurpose: [{id: uid(), idea: '', source: 'ig', cuts: '', notes: ''}],
     posts: [
       {id: uid(), title: 'My first tracked post', date: todayISO(), time: '', pid: 'ig', format: 'reel',
@@ -1175,21 +1193,23 @@ function sampleData() {
       {id: uid(), name: 'The Tidy Loft', pid: 'tt', followers: 46100, er: 6.8, notes: 'Great hooks; watch their first 2 seconds', lastChecked: isoOffset(-9)},
       {id: uid(), name: 'Maker & Main', pid: 'ig', followers: 9800, er: 4.9, notes: 'Same size — strong pinned grid', lastChecked: isoOffset(-23)},
     ],
+    /* A deliberate mix: some openers belong to one platform, several work anywhere.
+       Blank pid renders as "Any platform" and survives every filter. */
     hooks: [
-      {id: uid(), text: HOOKS[0], format: 'reel', tag: 'proven', notes: 'Best opener 3 months running'},
-      {id: uid(), text: HOOKS[1], format: 'reel', tag: 'proven', notes: 'Works for review-style posts'},
-      {id: uid(), text: HOOKS[2], format: 'carousel', tag: 'promising', notes: 'Strong saves, modest reach'},
-      {id: uid(), text: HOOKS[3], format: 'reel', tag: 'promising', notes: ''},
-      {id: uid(), text: HOOKS[4], format: 'video', tag: 'testing', notes: 'YT intro variant'},
-      {id: uid(), text: HOOKS[5], format: 'reel', tag: 'testing', notes: ''},
-      {id: uid(), text: 'What I’d buy again vs. skip', format: 'carousel', tag: 'proven', notes: 'Steady performer'},
-      {id: uid(), text: 'Rating viral storage hacks as a maker', format: 'reel', tag: 'retired', notes: 'Fatigued — rest it a quarter'},
+      {id: uid(), text: HOOKS[0], pid: 'ig', format: 'reel', tag: 'proven', notes: 'Best opener 3 months running'},
+      {id: uid(), text: HOOKS[1], pid: '', format: 'reel', tag: 'proven', notes: 'Works for review-style posts'},
+      {id: uid(), text: HOOKS[2], pid: 'ig', format: 'carousel', tag: 'promising', notes: 'Strong saves, modest reach'},
+      {id: uid(), text: HOOKS[3], pid: 'tt', format: 'reel', tag: 'promising', notes: ''},
+      {id: uid(), text: HOOKS[4], pid: 'yt', format: 'video', tag: 'testing', notes: 'YT intro variant'},
+      {id: uid(), text: HOOKS[5], pid: '', format: 'reel', tag: 'testing', notes: ''},
+      {id: uid(), text: 'What I’d buy again vs. skip', pid: 'ig', format: 'carousel', tag: 'proven', notes: 'Steady performer'},
+      {id: uid(), text: 'Rating viral storage hacks as a maker', pid: 'tt', format: 'reel', tag: 'retired', notes: 'Fatigued — rest it a quarter'},
     ],
     captions: [
-      {id: uid(), text: CAPTIONS[0], pillar: pilEd, format: 'reel', notes: 'Opens on the mistake, not the fix — best saves'},
-      {id: uid(), text: CAPTIONS[1], pillar: pilBts, format: 'reel', notes: 'Studio days — keep it unpolished'},
-      {id: uid(), text: CAPTIONS[2], pillar: pilEd, format: 'carousel', notes: 'Slide 1 promise, last slide CTA'},
-      {id: uid(), text: CAPTIONS[3], pillar: pilTrend, format: 'reel', notes: 'Only when the audio is still climbing'},
+      {id: uid(), text: CAPTIONS[0], pid: 'ig', pillar: pilEd, format: 'reel', notes: 'Opens on the mistake, not the fix — best saves'},
+      {id: uid(), text: CAPTIONS[1], pid: '', pillar: pilBts, format: 'reel', notes: 'Studio days — keep it unpolished'},
+      {id: uid(), text: CAPTIONS[2], pid: 'ig', pillar: pilEd, format: 'carousel', notes: 'Slide 1 promise, last slide CTA'},
+      {id: uid(), text: CAPTIONS[3], pid: 'tt', pillar: pilTrend, format: 'reel', notes: 'Only when the audio is still climbing'},
     ],
     hashtags: [
       {id: uid(), name: 'Small-space storage', pid: 'ig', pillar: pilEd, tags: '#smallspaceliving #rentalfriendly #storagesolutions #smallkitchen #organisedhome', notes: 'Best reach on carousels'},
@@ -1198,26 +1218,20 @@ function sampleData() {
       {id: uid(), name: 'Linen care', pid: 'yt', pillar: pilEd, tags: '#linencare #laundrytips #homekeeping', notes: 'Long-form descriptions — 3 is plenty'},
     ],
     ideas: [
-      {id: uid(), text: 'Renter-friendly rental kitchen makeover series', pillar: pilEd, format: 'reel', detail: 'Four parts: the brief, the hacks that failed, the two that worked, the reveal. Landlord-safe only — that is the hook.'},
-      {id: uid(), text: 'A week of real studio mornings', pillar: pilBts, format: 'story'},
-      {id: uid(), text: 'Customer homes: before/after with our set', pillar: pilProd, format: 'carousel'},
-      {id: uid(), text: 'Myth-busting "aesthetic" organization', pillar: pilEd, format: 'reel'},
-      {id: uid(), text: 'Holiday bundle reveal countdown', pillar: pilProd, format: 'reel'},
-      {id: uid(), text: 'Duet the worst storage hack we’ve seen', pillar: pilTrend, format: 'reel'},
+      {id: uid(), text: 'Renter-friendly rental kitchen makeover series', pid: '', pillar: pilEd, format: 'reel', detail: 'Four parts: the brief, the hacks that failed, the two that worked, the reveal. Landlord-safe only — that is the hook.'},
+      {id: uid(), text: 'A week of real studio mornings', pid: 'ig', pillar: pilBts, format: 'story', detail: ''},
+      {id: uid(), text: 'Customer homes: before/after with our set', pid: 'ig', pillar: pilProd, format: 'carousel', detail: ''},
+      {id: uid(), text: 'Myth-busting "aesthetic" organization', pid: '', pillar: pilEd, format: 'reel', detail: ''},
+      {id: uid(), text: 'Holiday bundle reveal countdown', pid: 'ig', pillar: pilProd, format: 'reel', detail: ''},
+      {id: uid(), text: 'Duet the worst storage hack we’ve seen', pid: 'tt', pillar: pilTrend, format: 'reel', detail: ''},
     ],
     ctas: [
-      {id: uid(), text: CTAS[0], goal: 'Saves'},
-      {id: uid(), text: CTAS[1], goal: 'Comments + DM list'},
-      {id: uid(), text: CTAS[2], goal: 'Follows'},
-      {id: uid(), text: CTAS[3], goal: 'Link clicks'},
-      {id: uid(), text: CTAS[4], goal: 'Shares'},
-      {id: uid(), text: CTAS[5], goal: 'Comments'},
-    ],
-    trends: [
-      {id: uid(), name: '"Slow zoom + voiceover confession" audio', pid: 'tt', note: 'Fits BTS packing content', spotted: isoOffset(-3), expires: isoOffset(2), status: 'planned'},
-      {id: uid(), name: '5-second transformation cut', pid: 'ig', note: 'Before/after shelf styling', spotted: isoOffset(-6), expires: isoOffset(9), status: 'watching'},
-      {id: uid(), name: 'ASMR restock (no talking)', pid: 'tt', note: 'Evergreen-ish; low effort', spotted: isoOffset(-12), expires: isoOffset(21), status: 'used'},
-      {id: uid(), name: '"POV: it’s Sunday reset" template', pid: 'ig', note: 'Missed the window', spotted: isoOffset(-30), expires: isoOffset(-4), status: 'expired'},
+      {id: uid(), text: CTAS[0], pid: '', goal: 'Saves'},
+      {id: uid(), text: CTAS[1], pid: 'ig', goal: 'Comments + DM list'},
+      {id: uid(), text: CTAS[2], pid: '', goal: 'Follows'},
+      {id: uid(), text: CTAS[3], pid: 'yt', goal: 'Link clicks'},
+      {id: uid(), text: CTAS[4], pid: '', goal: 'Shares'},
+      {id: uid(), text: CTAS[5], pid: 'tt', goal: 'Comments'},
     ],
     repurpose: [
       {id: uid(), idea: 'Linen care guide', source: 'yt', cuts: 'IG reel ×2 · TT reel · carousel', notes: 'Best YT video → 4 short cuts'},
@@ -1326,7 +1340,7 @@ function storeSet(v) {
    carry sample:true; Setup-style scalars revert only if untouched.
 ================================================================ */
 const SAMPLE_ROW_PATHS = ['posts', 'platforms', 'pillars', 'hooks', 'ideas', 'ctas',
-  'captions', 'hashtags', 'trends', 'repurpose', 'competitors', 'milestones', 'deals', 'goals', 'tests'];
+  'captions', 'hashtags', 'repurpose', 'competitors', 'milestones', 'deals', 'goals', 'tests'];
 
 function atPath(o, path) {
   return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
@@ -2076,8 +2090,6 @@ const CYCLE_SETS = {
   deal: {values: ['pitched', 'negotiating', 'signed', 'delivered', 'invoiced', 'paid'],
     meta: {pitched: ['neutral', 'megaphone', 'Pitched'], negotiating: ['warning', 'comment', 'Negotiating'], signed: ['sagey', 'check', 'Signed'],
            delivered: ['sagey', 'checkcircle', 'Delivered'], invoiced: ['warning', 'file', 'Invoiced'], paid: ['good', 'dollar', 'Paid']}},
-  trend: {values: ['watching', 'planned', 'used', 'expired'],
-    meta: {watching: ['sagey', 'eye', 'Watching'], planned: ['warning', 'clock', 'Planned'], used: ['good', 'checkcircle', 'Used'], expired: ['neutral', 'x', 'Expired']}},
   hooktag: {values: ['testing', 'promising', 'proven', 'retired'],
     meta: {testing: ['neutral', 'flask', 'Testing'], promising: ['warning', 'spark', 'Promising'], proven: ['good', 'star', 'Proven'], retired: ['neutral', 'x', 'Retired']}},
   test: {values: ['planned', 'running', 'complete'], meta: {planned: ['neutral', 'bulb', 'Planned'], running: ['warning', 'clock', 'Running'], complete: ['good', 'checkcircle', 'Complete']}},
@@ -2104,6 +2116,8 @@ function listSel(path, options, label) {
   </select>${icon('chevd', 11, 'chev')}</span>`;
 }
 const platOptions = () => Object.entries(PLATFORM_META).map(([v, m]) => ({v, t: m.label}));
+/* Library items may belong to no single platform. Blank first, same shape as pillarOptions. */
+const platOptionsAny = () => [{v: '', t: 'Any platform'}].concat(platOptions());
 const formatOptions = () => Object.entries(FORMATS).map(([v, m]) => ({v, t: m.label}));
 const pillarOptions = d => [{v: '', t: '— pillar'}].concat((d.pillars || []).map(pl => ({v: pl.id, t: pl.name || 'Untitled'})));
 
@@ -2510,6 +2524,24 @@ function platMono(pid, size = 22) {
 }
 function activePlatforms(d) { return (d.platforms || []).filter(p => p.active); }
 
+/* A library item's platform is optional — blank means "works anywhere". platMono would
+   render that as a "?" on teal, which reads like missing data rather than a deliberate
+   choice, so blank gets its own muted mark. */
+function platTag(pid, size = 20) {
+  if (pid) return platMono(pid, size);
+  return `<span class="plat-mono plat-any" style="width:${size}px;height:${size}px" role="img" aria-label="Any platform">${icon('globe', Math.round(size * 0.6))}</span>`;
+}
+/* Adding a row while a filter is on should land in the list you are looking at. */
+function filterPid() { return ui.platform === 'all' ? '' : ui.platform; }
+/* Library filtering: an item with no platform belongs to every one of them.
+   Returns {r, i} so data-i stays the row's TRUE index in the unfiltered array —
+   filtering by position is how you end up deleting the wrong row.
+   `key` because the repurpose list calls its platform `source`, not `pid`. */
+function forPlat(rows, key = 'pid') {
+  const idx = (rows || []).map((r, i) => ({r, i}));
+  return ui.platform === 'all' ? idx : idx.filter(({r}) => !r[key] || r[key] === ui.platform);
+}
+
 /* 6 · Platform switcher pills — filters Home + the Analyze views */
 function platformPills(d) {
   const plats = activePlatforms(d);
@@ -2680,15 +2712,6 @@ function heatmapHTML(cells) {
 }
 
 /* 9 · Trend expiry countdown chip */
-function expiryChip(expires) {
-  const du = daysUntil(expires);
-  if (du === null) return staticChip('neutral', 'clock', 'no expiry');
-  if (du < 0) return staticChip('neutral', 'x', 'Expired');
-  if (du <= 2) return staticChip('serious', 'clock', du === 0 ? 'Last day' : `${du}d left`);
-  if (du <= 7) return staticChip('warning', 'clock', `${du}d left`);
-  return staticChip('good', 'clock', `${du}d left`);
-}
-
 /* 2 · Format-badged post card — the Post Performance unit (cards, not table rows) */
 function postCard(d, p, i, topDecile) {
   const b = d.benchmarks;
@@ -3199,130 +3222,162 @@ function viewPillars() {
 }
 
 /* ================================================================
-   PLAN — Hook & Idea Vault
+   PLAN — Content Library
+   One column, five sections, and every row carries the platform it
+   belongs to. It used to be seven cards in a c7/c5 mosaic with only
+   two of them showing a platform at all, which read as clutter next
+   to competing planners. Sections are uniform tables so the eye has
+   one column to follow and the platform is always in the same place.
 ================================================================ */
 function viewVault() {
   const d = D();
-  const trends = (d.trends || []).map((t, i) => ({t, i}))
-    .sort((a, c) => String(a.t.expires || '9999').localeCompare(String(c.t.expires || '9999')));
+  const platLabel = pid => esc((PLATFORM_META[pid] || {label: pid}).label);
+  /* Filtered-to-nothing is not the same as empty, and saying so stops the tab
+     looking broken when a filter is on. */
+  const empty = (total, msg) => `<div class="emptystate">${total
+    ? `Nothing here for ${platLabel(ui.platform)} yet — items marked “Any platform” always show.`
+    : msg}</div>`;
+  const platCell = (path, pid) =>
+    `<span class="platpick">${platTag(pid, 18)}${listSel(path, platOptionsAny(), 'Platform')}</span>`;
+  const rowBtns = (list, i) =>
+    `<button class="rowedit" data-action="editrow" data-list="${list}" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="${list}" data-i="${i}" aria-label="Delete this row">${icon('x', 13)}</button>`;
+  const addBtn = (list, label) =>
+    `<button class="addrow" style="margin-left:12px" data-action="addrow" data-list="${list}">${icon('plus', 13)}${label}</button>`;
+
+  const hooks = forPlat(d.hooks), ctas = forPlat(d.ctas), captions = forPlat(d.captions),
+        hashtags = forPlat(d.hashtags), ideas = forPlat(d.ideas),
+        /* repurpose calls its platform `source`, not `pid` */
+        repurpose = forPlat(d.repurpose, 'source');
+
+  const SECTIONS = [
+    {id: 'lib-openers',   label: 'Openers & CTAs', n: hooks.length + ctas.length},
+    {id: 'lib-captions',  label: 'Captions',       n: captions.length},
+    {id: 'lib-hashtags',  label: 'Hashtag sets',   n: hashtags.length},
+    {id: 'lib-ideas',     label: 'Ideas',          n: ideas.length},
+    {id: 'lib-repurpose', label: 'Repurposing',    n: repurpose.length},
+  ];
+
   return `
-  ${viewHead('Content Library', 'Never start from a blank page — hooks, captions, hashtag sets and ideas on deck, plus trends before they expire.')}
+  ${viewHead('Content Library', 'Never start from a blank page — the openers, captions, hashtag sets and ideas that already worked, tagged by platform.')}
+  ${platformPills(d)}
+  <nav class="jumpbar noprint" aria-label="Jump to a section">
+    ${SECTIONS.map(s => `<a class="jump" href="#${s.id}">${esc(s.label)}<span class="jump-n">${s.n}</span></a>`).join('')}
+  </nav>
   <div class="grid">
-    <section class="card c7" aria-label="Hook library">
-      ${cardH('zap', 'Hook Library — With Performance Tags', `${(d.hooks || []).length} hooks`, 'coral')}
-      <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:560px">
-        <thead><tr><th>Hook</th><th>Best format</th><th>Status</th><th>Notes</th><th></th></tr></thead>
-        <tbody>${(d.hooks || []).map((h, i) => `
-          <tr>
-            <td>${edField(`hooks.${i}.text`, {min: 26, max: 42, label: 'Hook text'})}</td>
-            <td>${listSel(`hooks.${i}.format`, formatOptions(), 'Hook format')}</td>
-            <td>${cycleChip(`hooks.${i}.tag`, 'hooktag', 'Hook performance tag')}</td>
-            <td>${edField(`hooks.${i}.notes`, {min: 14, max: 26, label: 'Hook notes'})}</td>
-            <td><button class="rowedit" data-action="editrow" data-list="hooks" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="hooks" data-i="${i}" aria-label="Delete hook">${icon('x', 13)}</button></td>
-          </tr>`).join('')}</tbody></table></div>
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="hooks">${icon('plus', 13)}Add hook</button>
+
+    <section class="card" id="lib-openers" aria-label="Openers and CTAs">
+      ${cardH('zap', 'Openers & CTAs', `${hooks.length} hooks · ${ctas.length} CTAs`, 'coral')}
+      <div class="card-b flush">
+        <div class="subhead">${icon('zap', 12)}Hooks — the first line that stops the scroll</div>
+        ${hooks.length ? `<div class="tablewrap"><table class="data" style="min-width:900px">
+          <thead><tr><th>Platform</th><th>Hook</th><th>Best format</th><th>Stage</th><th>Notes</th><th></th></tr></thead>
+          <tbody>${hooks.map(({r: h, i}) => `
+            <tr>
+              <td>${platCell(`hooks.${i}.pid`, h.pid)}</td>
+              <td>${edField(`hooks.${i}.text`, {area: true, w: 26, label: 'Hook text'})}</td>
+              <td>${listSel(`hooks.${i}.format`, formatOptions(), 'Hook format')}</td>
+              <td>${cycleChip(`hooks.${i}.tag`, 'hooktag', 'Hook performance tag')}</td>
+              <td>${edField(`hooks.${i}.notes`, {area: true, w: 18, label: 'Hook notes', ph: 'where it worked'})}</td>
+              <td>${rowBtns('hooks', i)}</td>
+            </tr>`).join('')}</tbody></table></div>`
+          : empty((d.hooks || []).length, 'Save the openers that earned the watch time.')}
+        ${addBtn('hooks', 'Add hook')}
+
+        <div class="subhead">${icon('megaphone', 12)}CTAs — the ask, and what it drives</div>
+        ${ctas.length ? `<div class="tablewrap"><table class="data" style="min-width:720px">
+          <thead><tr><th>Platform</th><th>Call to action</th><th>Drives what?</th><th></th></tr></thead>
+          <tbody>${ctas.map(({r: c, i}) => `
+            <tr>
+              <td>${platCell(`ctas.${i}.pid`, c.pid)}</td>
+              <td>${edField(`ctas.${i}.text`, {area: true, w: 30, label: 'Call to action'})}</td>
+              <td>${edField(`ctas.${i}.goal`, {area: true, w: 18, label: 'CTA goal', ph: 'drives what?'})}</td>
+              <td>${rowBtns('ctas', i)}</td>
+            </tr>`).join('')}</tbody></table></div>`
+          : empty((d.ctas || []).length, 'Save the asks that work.')}
+        ${addBtn('ctas', 'Add CTA')}
       </div>
     </section>
-    <section class="card c5" aria-label="Trend watchlist">
-      ${cardH('music', 'Trend & Audio Watchlist', 'trends decay — expiry first', 'golden')}
+
+    <section class="card" id="lib-captions" aria-label="Caption bank">
+      ${cardH('quote', 'Caption Bank', `${captions.length} saved`, 'coral')}
       <div class="card-b flush">
-        ${trends.length ? trends.map(({t, i}) => `
-          <div class="trendcard">
-            <div class="tr-top">
-              ${platMono(t.pid, 20)}
-              ${edField(`trends.${i}.name`, {area: true, rows: 1, label: 'Trend name'})}
-              ${cycleChip(`trends.${i}.status`, 'trend', 'Trend status')}
-              <button class="rowedit" data-action="editrow" data-list="trends" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="trends" data-i="${i}" aria-label="Delete trend">${icon('x', 13)}</button>
-            </div>
-            <div class="tr-sub">
-              ${edField(`trends.${i}.note`, {min: 16, max: 30, label: 'Trend note', ph: 'how would you use it?'})}
-              <span style="display:inline-flex;align-items:center;gap:5px">${icon('clock', 11)}${edField(`trends.${i}.expires`, {type: 'date', min: 10, label: 'Trend expiry date'})}${t.status === 'expired' ? '' : expiryChip(t.expires)}</span>
-            </div>
-          </div>`).join('') : `<div class="emptystate">Spot a trend or audio worth riding? Park it here with an expiry date.</div>`}
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="trends">${icon('plus', 13)}Add trend</button>
+        ${captions.length ? `<div class="tablewrap"><table class="data" style="min-width:1040px">
+          <thead><tr><th>Platform</th><th>Caption</th><th>Pillar</th><th>Format</th><th class="num">Chars</th><th>Why it works</th><th></th></tr></thead>
+          <tbody>${captions.map(({r: c, i}) => `
+            <tr>
+              <td>${platCell(`captions.${i}.pid`, c.pid)}</td>
+              <td>${edField(`captions.${i}.text`, {area: true, rows: 3, w: 40, label: 'Caption', ph: 'the caption you would actually publish…'})}</td>
+              <td>${listSel(`captions.${i}.pillar`, pillarOptions(d), 'Caption pillar')}</td>
+              <td>${listSel(`captions.${i}.format`, formatOptions(), 'Caption format')}</td>
+              <td class="num">${(c.text || '').length || '<span class="dash">—</span>'}</td>
+              <td>${edField(`captions.${i}.notes`, {area: true, w: 18, label: 'Caption note', ph: 'why it works'})}</td>
+              <td>${rowBtns('captions', i)}</td>
+            </tr>`).join('')}</tbody></table></div>`
+          : empty((d.captions || []).length, 'Save a caption that worked and reuse its shape — the opener is the part worth keeping.')}
+        ${addBtn('captions', 'Add caption')}
       </div>
     </section>
-    <section class="card c7" aria-label="Caption bank">
-      ${cardH('quote', 'Caption Bank', `${(d.captions || []).length} saved`, 'coral')}
+
+    <section class="card" id="lib-hashtags" aria-label="Hashtag sets">
+      ${cardH('hash', 'Hashtag Sets', `${hashtags.length} sets`, 'teal')}
       <div class="card-b flush">
-        ${(d.captions || []).length ? (d.captions || []).map((c, i) => `
-          <div class="trendcard">
-            <div class="tr-top">
-              ${listSel(`captions.${i}.pillar`, pillarOptions(d), 'Caption pillar')}
-              ${listSel(`captions.${i}.format`, formatOptions(), 'Caption format')}
-              <span class="hint">${(c.text || '').length} chars</span>
-              <button class="rowedit" data-action="editrow" data-list="captions" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="captions" data-i="${i}" aria-label="Delete this row">${icon('trash', 13)}</button>
-            </div>
-            <!-- A caption is a paragraph, not a field: the single-line edField clipped it at
-                 the card edge and ate the line breaks. Same textarea idiom as the report notes. -->
-            <div class="tr-sub" style="display:block"><textarea class="ed ed-area${(c.text ?? '') === '' ? ' ed-empty' : ''}" data-path="captions.${i}.text" data-etype="text" rows="3" aria-label="Caption" placeholder="the caption you would actually publish…">${esc(c.text)}</textarea></div>
-            <div class="tr-sub">${edField(`captions.${i}.notes`, {min: 16, max: 52, label: 'Caption note', ph: 'why it works'})}</div>
-          </div>`).join('') : `<div class="emptystate">Save a caption that worked and reuse its shape — the opener is the part worth keeping.</div>`}
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="captions">${icon('plus', 13)}Add caption</button>
-      </div>
-    </section>
-    <section class="card c5" aria-label="Hashtag sets">
-      ${cardH('hash', 'Hashtag Sets', `${(d.hashtags || []).length} sets`, 'teal')}
-      <div class="card-b flush">
-        <!-- Card list, not a table: seven columns forced a horizontal scroll in this
-             half-width slot and the tags themselves — the whole point of the card —
-             were the ones pushed off the edge. Same shape as the caption bank. -->
-        ${(d.hashtags || []).length ? `<div>${(d.hashtags || []).map((h, i) => {
+        ${hashtags.length ? `<div class="tablewrap"><table class="data" style="min-width:1040px">
+          <thead><tr><th>Platform</th><th>Set</th><th>Tags</th><th class="num">#</th><th>Pillar</th><th>Notes</th><th></th></tr></thead>
+          <tbody>${hashtags.map(({r: h, i}) => {
             const n = String(h.tags || '').split(/[\s,]+/).filter(t => t.startsWith('#')).length;
             return `
-            <div class="trendcard">
-              <div class="tr-top">
-                ${platMono(h.pid)}${edField(`hashtags.${i}.name`, {min: 18, max: 30, label: 'Set name'})}
-                <span class="hint">${n || 0} tag${n === 1 ? '' : 's'}</span>
-                <button class="rowedit" data-action="editrow" data-list="hashtags" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="hashtags" data-i="${i}" aria-label="Delete this row">${icon('trash', 13)}</button>
-              </div>
-              <div class="tr-sub" style="display:block"><textarea class="ed ed-area${(h.tags ?? '') === '' ? ' ed-empty' : ''}" data-path="hashtags.${i}.tags" data-etype="text" rows="2" aria-label="Hashtags" placeholder="#one #two #three">${esc(h.tags)}</textarea></div>
-              <!-- selects sit below the name, not beside it: three controls plus the count
-                   on one row squeezed the set name down to a few characters. -->
-              <div class="tr-sub">${listSel(`hashtags.${i}.pid`, platOptions(), 'Set platform')}${listSel(`hashtags.${i}.pillar`, pillarOptions(d), 'Set pillar')}${edField(`hashtags.${i}.notes`, {min: 14, max: 44, label: 'Set note', ph: 'what it does'})}</div>
-            </div>`; }).join('')}</div>
+            <tr>
+              <td>${platCell(`hashtags.${i}.pid`, h.pid)}</td>
+              <td>${edField(`hashtags.${i}.name`, {area: true, w: 16, label: 'Set name'})}</td>
+              <td>${edField(`hashtags.${i}.tags`, {area: true, rows: 2, w: 34, label: 'Hashtags', ph: '#one #two #three'})}</td>
+              <td class="num">${n || '<span class="dash">—</span>'}</td>
+              <td>${listSel(`hashtags.${i}.pillar`, pillarOptions(d), 'Set pillar')}</td>
+              <td>${edField(`hashtags.${i}.notes`, {area: true, w: 16, label: 'Set note', ph: 'what it does'})}</td>
+              <td>${rowBtns('hashtags', i)}</td>
+            </tr>`; }).join('')}</tbody></table></div>
           <p class="hint" style="padding:10px 14px 0">Sets, not single tags — you reuse them as a group. The count is there because every platform has a different sweet spot.</p>`
-          : '<div class="emptystate">Group the hashtags you reuse into named sets — per pillar or per platform.</div>'}
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="hashtags">${icon('plus', 13)}Add set</button>
+          : empty((d.hashtags || []).length, 'Group the hashtags you reuse into named sets — per pillar or per platform.')}
+        ${addBtn('hashtags', 'Add set')}
       </div>
     </section>
-    <section class="card c7" aria-label="Idea backlog">
-      ${cardH('bulb', 'Idea Backlog', `${(d.ideas || []).length}`, 'aqua')}
+
+    <section class="card" id="lib-ideas" aria-label="Idea backlog">
+      ${cardH('bulb', 'Idea Backlog', `${ideas.length} on deck`, 'aqua')}
       <div class="card-b flush">
-        ${(d.ideas || []).length ? `<ul class="plainlist">${(d.ideas || []).map((it, i) => `
-          <li><span class="li-main">${edField(`ideas.${i}.text`, {min: 24, max: 38, label: 'Idea'})}
-            <div class="li-sub" style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap">${listSel(`ideas.${i}.pillar`, pillarOptions(d), 'Idea pillar')}${listSel(`ideas.${i}.format`, formatOptions(), 'Idea format')}</div></span>
-          <button class="rowedit" data-action="editrow" data-list="ideas" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="ideas" data-i="${i}" aria-label="Delete idea">${icon('x', 13)}</button></li>`).join('')}</ul>`
-        : `<div class="emptystate">Capture content ideas the moment they hit.</div>`}
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ideas">${icon('plus', 13)}Add idea</button>
+        ${ideas.length ? `<div class="tablewrap"><table class="data" style="min-width:960px">
+          <thead><tr><th>Platform</th><th>Idea</th><th>The thought</th><th>Pillar</th><th>Format</th><th></th></tr></thead>
+          <tbody>${ideas.map(({r: it, i}) => `
+            <tr>
+              <td>${platCell(`ideas.${i}.pid`, it.pid)}</td>
+              <td>${edField(`ideas.${i}.text`, {area: true, w: 26, label: 'Idea'})}</td>
+              <td>${edField(`ideas.${i}.detail`, {area: true, w: 26, label: 'Idea detail', ph: 'what is the actual angle?'})}</td>
+              <td>${listSel(`ideas.${i}.pillar`, pillarOptions(d), 'Idea pillar')}</td>
+              <td>${listSel(`ideas.${i}.format`, formatOptions(), 'Idea format')}</td>
+              <td>${rowBtns('ideas', i)}</td>
+            </tr>`).join('')}</tbody></table></div>`
+          : empty((d.ideas || []).length, 'Capture content ideas the moment they hit.')}
+        ${addBtn('ideas', 'Add idea')}
       </div>
     </section>
-    <section class="card c5" aria-label="CTA bank">
-      ${cardH('megaphone', 'CTA Bank', `${(d.ctas || []).length}`, 'coral')}
+
+    <section class="card" id="lib-repurpose" aria-label="Repurposing tracker">
+      ${cardH('repeat', 'Repurposing', 'one idea → every platform', 'golden')}
       <div class="card-b flush">
-        ${(d.ctas || []).length ? `<ul class="plainlist">${(d.ctas || []).map((c, i) => `
-          <li><span class="li-main">${edField(`ctas.${i}.text`, {min: 18, max: 28, label: 'Call to action'})}
-            <div class="li-sub">→ ${edField(`ctas.${i}.goal`, {min: 10, max: 18, label: 'CTA goal', ph: 'drives what?'})}</div></span>
-          <button class="rowedit" data-action="editrow" data-list="ctas" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="ctas" data-i="${i}" aria-label="Delete CTA">${icon('x', 13)}</button></li>`).join('')}</ul>`
-        : `<div class="emptystate">Save the asks that work.</div>`}
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="ctas">${icon('plus', 13)}Add CTA</button>
+        ${repurpose.length ? `<div class="tablewrap"><table class="data" style="min-width:900px">
+          <thead><tr><th>Came from</th><th>Idea / asset</th><th>Already cut for</th><th>Notes</th><th></th></tr></thead>
+          <tbody>${repurpose.map(({r: rp, i}) => `
+            <tr>
+              <td><span class="platpick">${platTag(rp.source, 18)}${listSel(`repurpose.${i}.source`, platOptions(), 'Source platform')}</span></td>
+              <td>${edField(`repurpose.${i}.idea`, {area: true, w: 22, label: 'Repurposed idea'})}</td>
+              <td>${edField(`repurpose.${i}.cuts`, {area: true, w: 26, label: 'Platforms and formats already cut', ph: 'e.g. IG reel · TT · YT short'})}</td>
+              <td>${edField(`repurpose.${i}.notes`, {area: true, w: 20, label: 'Repurposing notes', ph: 'next cut?'})}</td>
+              <td>${rowBtns('repurpose', i)}</td>
+            </tr>`).join('')}</tbody></table></div>`
+          : empty((d.repurpose || []).length, 'One good idea is four posts. Track which cuts you have already made.')}
+        ${addBtn('repurpose', 'Add asset')}
       </div>
     </section>
-    <section class="card" aria-label="Repurposing tracker">
-      ${cardH('repeat', 'Repurposing Tracker', 'one idea → every platform', 'golden')}
-      <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:0">
-        <thead><tr><th>Idea / asset</th><th>Notes</th><th>Source</th><th>Cut for</th><th></th></tr></thead>
-        <tbody>${(d.repurpose || []).map((rp, i) => `
-          <tr>
-            <td>${edField(`repurpose.${i}.idea`, {min: 18, max: 30, label: 'Repurposed idea'})}</td>
-            <td>${edField(`repurpose.${i}.notes`, {min: 18, max: 34, label: 'Repurposing notes', ph: 'next cut?'})}</td>
-            <td>${listSel(`repurpose.${i}.source`, platOptions(), 'Source platform')}</td>
-            <td>${edField(`repurpose.${i}.cuts`, {min: 22, max: 40, label: 'Platforms and formats already cut', ph: 'e.g. IG reel · TT · YT short'})}</td>
-            <td><button class="rowedit" data-action="editrow" data-list="repurpose" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="repurpose" data-i="${i}" aria-label="Delete row">${icon('x', 13)}</button></td>
-          </tr>`).join('')}</tbody></table></div>
-        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="repurpose">${icon('plus', 13)}Add asset</button>
-      </div>
-    </section>
+
   </div>`;
 }
 
@@ -4198,12 +4253,11 @@ const NEW_ROW = {
   platforms: () => ({id: uid(), pid: 'ig', handle: '@handle', type: 'creator', goal: '', cadence: 3, active: true, history: {}}),
   pillars: () => ({id: uid(), name: 'New pillar', color: (D().pillars || []).length % 6, target: null, notes: ''}),
   competitors: () => ({id: uid(), name: 'New competitor', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''}),
-  hooks: () => ({id: uid(), text: 'New hook…', format: 'reel', tag: 'testing', notes: ''}),
-  ideas: () => ({id: uid(), text: 'New idea…', pillar: '', format: 'reel', detail: ''}),
-  ctas: () => ({id: uid(), text: 'New CTA…', goal: ''}),
-  captions: () => ({id: uid(), text: 'New caption…', pillar: '', format: 'reel', notes: ''}),
-  hashtags: () => ({id: uid(), name: 'New set', pid: 'ig', pillar: '', tags: '', notes: ''}),
-  trends: () => ({id: uid(), name: 'New trend', pid: 'tt', note: '', spotted: localISO(new Date()), expires: isoOffset(14), status: 'watching'}),
+  hooks: () => ({id: uid(), text: 'New hook…', pid: filterPid(), format: 'reel', tag: 'testing', notes: ''}),
+  ideas: () => ({id: uid(), text: 'New idea…', pid: filterPid(), pillar: '', format: 'reel', detail: ''}),
+  ctas: () => ({id: uid(), text: 'New CTA…', pid: filterPid(), goal: ''}),
+  captions: () => ({id: uid(), text: 'New caption…', pid: filterPid(), pillar: '', format: 'reel', notes: ''}),
+  hashtags: () => ({id: uid(), name: 'New set', pid: filterPid() || 'ig', pillar: '', tags: '', notes: ''}),
   repurpose: () => ({id: uid(), idea: 'New idea', source: 'ig', cuts: '', notes: ''}),
   milestones: () => ({id: uid(), date: localISO(new Date()), label: 'New milestone'}),
   deals: () => ({id: uid(), brand: 'New brand', deliverable: '', pid: 'ig', due: isoOffset(14), fee: null, status: 'pitched', notes: ''}),
@@ -4240,24 +4294,20 @@ const ADD_FORMS = {
   ]},
   hooks: {title: 'Add hook', fields: [
     {k: 'text', label: 'Hook', ph: 'the first line that stops the scroll'},
+    {k: 'pid', label: 'Platform', options: platOptionsAny},
     {k: 'format', label: 'Format', options: formatOptions},
     {k: 'tag', label: 'Stage', options: () => cycleOptions('hooktag')},
     {k: 'notes', label: 'Notes', ph: 'where it worked'},
   ]},
-  trends: {title: 'Add trend', fields: [
-    {k: 'name', label: 'Trend or audio', ph: 'what are you riding?'},
-    {k: 'pid', label: 'Platform', options: platOptions},
-    {k: 'note', label: 'How would you use it?'},
-    {k: 'expires', label: 'Expires around', type: 'date'},
-    {k: 'status', label: 'Status', options: () => cycleOptions('trend')},
-  ]},
   ideas: {title: 'Add idea', fields: [
     {k: 'text', label: 'Idea', ph: 'the post in one sentence'},
+    {k: 'pid', label: 'Platform', options: platOptionsAny},
     {k: 'pillar', label: 'Pillar', options: d => pillarOptions(d)},
     {k: 'format', label: 'Format', options: formatOptions},
   ]},
   ctas: {title: 'Add CTA', fields: [
     {k: 'text', label: 'Call to action', ph: 'e.g. Comment PLAN and I’ll send it'},
+    {k: 'pid', label: 'Platform', options: platOptionsAny},
     {k: 'goal', label: 'Drives what?', ph: 'saves · DMs · link clicks'},
   ]},
   repurpose: {title: 'Add asset', fields: [
