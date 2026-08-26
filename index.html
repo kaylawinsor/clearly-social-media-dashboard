@@ -465,6 +465,10 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 .postcard .pc-title{display:flex;align-items:center;gap:6px;min-width:0;font-weight:600}
 .postcard .pc-title .ed{flex:1}
 .postcard .pc-meta{display:flex;gap:6px;flex-wrap:wrap;padding:9px 14px 0;align-items:center;font-size:12px}
+/* Hook/CTA/notes are ch-width inputs, so a long hook was cut mid-word inside the card.
+   Let them take the row instead of a fixed character count. */
+.postcard .pc-meta > .ed{flex:1;min-width:0}
+.postcard .pc-meta > textarea.ed-area{flex:1 0 100%;min-height:0;margin-top:2px}
 .pc-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:10px 14px}
 .pcs{background:var(--surface-alt);border:1px solid var(--hairline);border-radius:8px;padding:4px 7px;min-width:0}
 .pcs .l{font-size:8.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;white-space:nowrap}
@@ -717,6 +721,8 @@ const DEMO = true;
 const DEMO_LOCKED = true;
 
 const ICONS = {
+  hash:'<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>',
+  quote:'<path d="M9 7H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v2a2 2 0 0 1-2 2H4"/><path d="M20 7h-4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v2a2 2 0 0 1-2 2h-1"/>',
   home:'<path d="M3 9.5 12 3l9 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 20Z"/><path d="M9 21.5v-8h6v8"/>',
   mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
   zap:'<path d="M13 2 3 14h8l-1 8 11-13h-9Z"/>',
@@ -931,13 +937,17 @@ function starterData() {
       {id: uid(), name: '', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''},
     ],
     hooks: [{id: uid(), text: 'You’ve been doing X wrong — here’s the fix', format: 'reel', tag: 'testing', notes: ''}],
-    ideas: [{id: uid(), text: 'My honest morning routine (no aesthetic edit)', pillar: pilB, format: 'reel'}],
+    ideas: [{id: uid(), text: 'My honest morning routine (no aesthetic edit)', pillar: pilB, format: 'reel', detail: ''}],
     ctas: [{id: uid(), text: 'Save this for later 📌', goal: 'Saves'}],
+    captions: [{id: uid(), text: '', pillar: pilB, format: 'reel', notes: ''}],
+    /* Hashtags travel in reusable sets, not one at a time — a set per pillar or
+       per platform is how they actually get used. */
+    hashtags: [{id: uid(), name: 'Everyday set', pid: 'ig', pillar: pilB, tags: '', notes: ''}],
     trends: [{id: uid(), name: '', pid: 'tt', note: '', spotted: todayISO(), expires: '', status: 'watching'}],
     repurpose: [{id: uid(), idea: '', source: 'ig', cuts: '', notes: ''}],
     posts: [
       {id: uid(), title: 'My first tracked post', date: todayISO(), time: '', pid: 'ig', format: 'reel',
-       pillar: pilA, hook: '', cta: '', status: 'idea', approval: 'na',
+       pillar: pilA, hook: '', cta: '', caption: '', status: 'idea', approval: 'na',
        reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
        watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''},
     ],
@@ -974,6 +984,16 @@ function sampleData() {
     'Before you buy another organizer, watch this',
   ];
   const CTAS = ['Save this for later 📌', 'Comment "GUIDE" and I’ll send it', 'Follow for part 2', 'Full breakdown at the link in bio', 'Share this with a friend who needs it', 'Which one are you trying first?'];
+  /* Caption bodies for the sample set. Written the way a real caption reads — a hook
+     line, the substance, then the ask — so the caption field and the caption bank both
+     demo as something you would actually publish, not lorem. */
+  const CAPTIONS = [
+    'Everyone tells you to buy more baskets. Baskets are not the problem.\n\nThe problem is that you are storing things where you put them down, not where you use them. Move the thing to where you reach for it and half the clutter solves itself.\n\nSave this for the next time you reorganise 📌',
+    'A real Tuesday: two loads of linen, forty orders packed, one candle knocked over.\n\nNo aesthetic edit, no b-roll of me holding a mug. Just the bit nobody films.\n\nWhat do you want to see behind the scenes next?',
+    'Five things I would buy again, and three I would skip.\n\nSwipe for the honest list — the skips are at the end because that is the part that actually saves you money.\n\nComment "GUIDE" and I will send the full breakdown.',
+    'Using this sound before it stops working.\n\nOur towels, the 5-second transform, and a shelf that took four attempts. Third one was the keeper.\n\nFollow for part 2 — the shelf gets worse before it gets better.',
+  ];
+
   const TITLES = {
     [pilEd]:    ['Small-space storage myths', 'Care guide: linen 101', 'Declutter in 15 minutes', 'The right way to fold towels', 'Beginner mistakes to skip', 'Organize a junk drawer'],
     [pilBts]:   ['Studio morning reset', 'Packing 40 orders', 'How we photograph product', 'A real Tuesday, unedited', 'Restock day chaos', 'Sample fails & retries'],
@@ -1035,6 +1055,7 @@ function sampleData() {
         posts.push({
           id: uid(), title: TITLES[PILS[pi]][(w + s) % 6], date, time, pid, format,
           pillar: PILS[pi], hook: HOOKS[(w * 2 + s) % HOOKS.length], cta: CTAS[(w + s * 3) % CTAS.length],
+          caption: CAPTIONS[(w + s * 2) % CAPTIONS.length],
           status: 'posted', approval: 'na',
           reach, impressions: Math.round(reach * 1.35), likes, comments, shares, saves,
           watchPct: FORMATS[format].video ? 36 + ((w + s + n) % 4) * 7 : null,
@@ -1151,8 +1172,20 @@ function sampleData() {
       {id: uid(), text: 'What I’d buy again vs. skip', format: 'carousel', tag: 'proven', notes: 'Steady performer'},
       {id: uid(), text: 'Rating viral storage hacks as a maker', format: 'reel', tag: 'retired', notes: 'Fatigued — rest it a quarter'},
     ],
+    captions: [
+      {id: uid(), text: CAPTIONS[0], pillar: pilEd, format: 'reel', notes: 'Opens on the mistake, not the fix — best saves'},
+      {id: uid(), text: CAPTIONS[1], pillar: pilBts, format: 'reel', notes: 'Studio days — keep it unpolished'},
+      {id: uid(), text: CAPTIONS[2], pillar: pilEd, format: 'carousel', notes: 'Slide 1 promise, last slide CTA'},
+      {id: uid(), text: CAPTIONS[3], pillar: pilTrend, format: 'reel', notes: 'Only when the audio is still climbing'},
+    ],
+    hashtags: [
+      {id: uid(), name: 'Small-space storage', pid: 'ig', pillar: pilEd, tags: '#smallspaceliving #rentalfriendly #storagesolutions #smallkitchen #organisedhome', notes: 'Best reach on carousels'},
+      {id: uid(), name: 'Studio + process', pid: 'ig', pillar: pilBts, tags: '#behindthescenes #makerlife #slowmade #studiodiaries #processvideo', notes: 'Lower reach, higher saves'},
+      {id: uid(), name: 'TikTok — broad', pid: 'tt', pillar: pilTrend, tags: '#homehacks #cleantok #organisation #satisfying', notes: 'Broad tags do the work here, not niche ones'},
+      {id: uid(), name: 'Linen care', pid: 'yt', pillar: pilEd, tags: '#linencare #laundrytips #homekeeping', notes: 'Long-form descriptions — 3 is plenty'},
+    ],
     ideas: [
-      {id: uid(), text: 'Renter-friendly rental kitchen makeover series', pillar: pilEd, format: 'reel'},
+      {id: uid(), text: 'Renter-friendly rental kitchen makeover series', pillar: pilEd, format: 'reel', detail: 'Four parts: the brief, the hacks that failed, the two that worked, the reveal. Landlord-safe only — that is the hook.'},
       {id: uid(), text: 'A week of real studio mornings', pillar: pilBts, format: 'story'},
       {id: uid(), text: 'Customer homes: before/after with our set', pillar: pilProd, format: 'carousel'},
       {id: uid(), text: 'Myth-busting "aesthetic" organization', pillar: pilEd, format: 'reel'},
@@ -1280,7 +1313,7 @@ function storeSet(v) {
    carry sample:true; Setup-style scalars revert only if untouched.
 ================================================================ */
 const SAMPLE_ROW_PATHS = ['posts', 'platforms', 'pillars', 'hooks', 'ideas', 'ctas',
-  'trends', 'repurpose', 'competitors', 'milestones', 'deals', 'goals', 'tests'];
+  'captions', 'hashtags', 'trends', 'repurpose', 'competitors', 'milestones', 'deals', 'goals', 'tests'];
 
 function atPath(o, path) {
   return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
@@ -1617,7 +1650,10 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
   r.bioConvRate = pc(r.bioConv, r.bioClicks);
 
   // Brand deals by due month — money is program-level, so the platform filter doesn't apply
-  const deals = d.deals || [];
+  /* Deals carry a pid, so they segment. This used to be program-level "by design",
+     but the field exists and actualPer1k already filters on it — leaving it out meant
+     Instagram's monetization was scored using TikTok's deals. */
+  const deals = (d.deals || []).filter(x => pid === 'all' || x.pid === pid);
   const inKeys = dt => dt && keys.includes(String(dt).slice(0, 7));
   const sumFees = list => list.length ? list.reduce((a, x) => a + (num(x.fee) ?? 0), 0) : null;
   r.dealRevPaid = sumFees(deals.filter(x => x.status === 'paid' && inKeys(x.due)));
@@ -1628,7 +1664,13 @@ function derive(d, keys = periodMonthsKeys(), pid = 'all') {
   // Ads & boosts — spend only, by design: the ads manager keeps the campaign detail,
   // this connects spend to the net number. boostSpend lives on posts, adSpend on months.
   r.boostSpend = S('boostSpend');
-  r.adSpendMonthly = F('adSpend');
+  /* Account-level monthly ad spend has no platform dimension, so it cannot be
+     attributed to one. Including it while `reach` IS filtered made costPer1kReach
+     divide program-wide spend by a single platform's reach — a number that was
+     simply wrong whenever a chip was active. Filtered, spend is boosts only, and
+     `adSpendPartial` lets the UI say so rather than quietly reporting less. */
+  r.adSpendMonthly = pid === 'all' ? F('adSpend') : null;
+  r.adSpendPartial = pid !== 'all' && F('adSpend') !== null;
   const spend = [r.boostSpend, r.adSpendMonthly];
   r.adSpend = spend.every(v => v === null) ? null : spend.reduce((a, v) => a + (v ?? 0), 0);
   r.costPer1kReach = (r.adSpend !== null && r.reach) ? r.adSpend / (r.reach / 1000) : null;
@@ -1919,6 +1961,17 @@ function buildAlerts(d, r) {
     if (past || both) A.push({sev: 'info', text: `A/B test “${esc(t.name)}” looks ready to conclude — log the winner and the learning.`, view: 'experiments'});
   });
   return A.sort((a, b2) => SEV_ORDER[a.sev] - SEV_ORDER[b2.sev]);
+}
+
+/* The engagement bar to grade against. `benchmarks.er` is the user's own global
+   content benchmark; PLATFORM_META.benchEr is what a typical account on THAT platform
+   reaches. Grading TikTok against a 5% bar when its own is 6 — and Pinterest against 5
+   when its own is 1.5 — made the badge wrong in opposite directions on the same screen.
+   Same precedence rateCardCalc already uses for pricing. */
+function erBar(d, pid) {
+  const meta = PLATFORM_META[pid];
+  if (pid && pid !== 'all' && meta && meta.benchEr != null) return meta.benchEr;
+  return num(d.benchmarks && d.benchmarks.er) || 5;
 }
 
 /* Benchmark badge */
@@ -2266,7 +2319,7 @@ const VIEWS = [
   {id: 'setup',       label: 'Setup & Brand Profile',             group: 'Plan',              icon: 'sliders'},
   {id: 'platforms',   label: 'Accounts & Platforms',              group: 'Plan',              icon: 'globe'},
   {id: 'pillars',     label: 'Content Strategy & Pillars',        group: 'Plan',              icon: 'target'},
-  {id: 'vault',       label: 'Hook & Idea Vault',                 group: 'Plan',              icon: 'bulb'},
+  {id: 'vault',       label: 'Content Library',                    group: 'Plan',              icon: 'bulb'},
   {id: 'calendar',    label: 'Content Calendar & Pipeline',       group: 'Create & Publish',  icon: 'calendar'},
   {id: 'posts',       label: 'Post Performance',                  group: 'Analyze',           icon: 'gridfeed'},
   {id: 'insights',    label: 'Analytics & Insights',              group: 'Analyze',           icon: 'spark'},
@@ -2510,7 +2563,8 @@ function feedGrid(d, {max = 9} = {}) {
 
 /* 7 · Posting-streak calendar */
 function streakCal(d, {weeks = 13} = {}) {
-  const st = deriveStreak(d, 'all', weeks);
+  // was hardcoded 'all', so the chip never moved this card
+  const st = deriveStreak(d, ui.platform, weeks);
   const cells = st.grid.map(c => `<span class="sk-cell ${c.future ? 'sk-future' : c.n >= 3 ? 's3' : c.n === 2 ? 's2' : c.n === 1 ? 's1' : ''}${c.today ? ' sk-today' : ''}" data-tt="${fmtDate(c.iso)} · ${c.n} post${c.n === 1 ? '' : 's'}"></span>`).join('');
   return `<div class="streakwrap">
     <div>
@@ -2635,6 +2689,13 @@ function postCard(d, p, i, topDecile) {
     </div>
     <div class="pc-meta">${icon('zap', 12)}${edField(`posts.${i}.hook`, {min: 18, max: 30, label: 'Hook', ph: 'hook / first line'})}</div>
     <div class="pc-meta">${icon('megaphone', 12)}${edField(`posts.${i}.cta`, {min: 18, max: 30, label: 'Call to action', ph: 'call to action'})}</div>
+    <!-- The caption is a paragraph, so it gets a textarea here too — a one-line input
+         showed the first few words of a 285-character caption and hid the rest. -->
+    <div class="pc-meta">${icon('quote', 12)}<span class="hint">Caption${(p.caption || '').length ? ` — ${(p.caption || '').length} chars` : ''}</span>
+      <textarea class="ed ed-area${(p.caption ?? '') === '' ? ' ed-empty' : ''}" data-path="posts.${i}.caption" data-etype="text" rows="2" aria-label="Caption" placeholder="the caption you will publish…">${esc(p.caption)}</textarea></div>
+    <!-- notes was in every post record and in sample data but had no UI anywhere — the
+         user could never read or edit what the file was already storing for them. -->
+    <div class="pc-meta">${icon('file', 12)}${edField(`posts.${i}.notes`, {min: 20, max: 40, label: 'Post notes', ph: 'what happened, what to try next'})}</div>
     <div class="pc-stats">${cells.map(([f, l]) => `<span class="pcs"><span class="l">${l}</span><span class="v">${edField(`posts.${i}.${f}`, {type: 'num', min: 2, max: 7, label: l})}</span></span>`).join('')}</div>
     <div class="metricchips">
       ${er === null ? '<span class="hint-edit">enter reach + likes/comments/shares/saves → rates appear</span>'
@@ -2813,7 +2874,7 @@ function viewHome() {
     <section class="card" aria-label="Key metrics">
       ${cardH('pulse', 'KPIs — Auto-Calculated From Your Post Log', 'log posts in Post Performance', 'coral')}
       <div class="card-b"><div class="tiles">
-        ${tile('Engagement rate', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, b.er) + deltaBadge(r.erReach, rPrev.erReach), false, 'coral', miniSparkSVG(seriesFor('erReach'), {colorVar: '--coral'}))}
+        ${tile('Engagement rate', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, erBar(d, pid)) + deltaBadge(r.erReach, rPrev.erReach), false, 'coral', miniSparkSVG(seriesFor('erReach'), {colorVar: '--coral'}))}
         ${tile('Reach', `<span class="derived">${fmt.int(r.reach)}</span>`, `${fmt.int(r.nPosts)} post${r.nPosts === 1 ? '' : 's'} · ${periodLabel()}`, false, 'teal', miniSparkSVG(seriesFor('reach'), {colorVar: '--teal'}))}
         ${tile('Save rate', `<span class="derived">${fmt.pct(r.saveRate, 2)}</span>`, benchBadge(r.saveRate, b.saveRate) + deltaBadge(r.saveRate, rPrev.saveRate, {dec: 2}), false, 'aqua', miniSparkSVG(seriesFor('saveRate'), {colorVar: '--aqua'}))}
         ${tile('Profile visits', `<span class="derived">${fmt.int(r.visits)}</span>`, benchBadge(r.visitRate, b.visitRate), false, 'golden', miniSparkSVG(seriesFor('visits'), {colorVar: '--golden'}))}
@@ -2929,7 +2990,13 @@ function viewSetup() {
 ================================================================ */
 function viewPlatforms() {
   const d = D();
-  const r = derive(d, periodMonthsKeys(), 'all');
+  const pKeys = periodMonthsKeys();
+  const r = derive(d, pKeys, 'all');
+  /* The comparison the product was missing. derive() already takes a pid and
+     buildAlerts already loops platforms this way, so side-by-side costs one call
+     per active platform and no schema change. Filtering shows one platform at a
+     time; this answers "which one is actually working" in a single glance. */
+  const perPlat = activePlatforms(d).map(p => ({p, m: PLATFORM_META[p.pid] || {label: p.pid}, r: derive(d, pKeys, p.pid)}));
   const k12 = Array.from({length: 12}, (_, i) => addMonths(monthKey(), i - 11));
   const l12 = k12.map(k => refDate(k).toLocaleDateString('en-US', {month: 'short'}));
   const cur = monthKey();
@@ -2937,11 +3004,29 @@ function viewPlatforms() {
   ${viewHead('Accounts & Platforms', 'One row per platform — the cadence you set here powers your consistency score.', `<button class="btn btn-primary" data-action="addrow" data-list="platforms">${icon('plus', 14)}Add platform</button>`)}
   <div class="grid">
     <section class="card">
+      ${cardH('barchart', 'How Each Platform Is Doing', periodLabel(), 'coral')}
+      <div class="card-b flush">${perPlat.length ? `<div class="tablewrap"><table class="data" style="min-width:940px">
+        <thead><tr><th>Platform</th><th class="num">Posts</th><th class="num">Reach</th><th class="num">Engagement</th>
+          <th class="num">Saves</th><th class="num">Follows from posts</th><th class="num">Consistency</th><th class="num">Follower growth</th></tr></thead>
+        <tbody>${perPlat.map(({p, m, r: rp}) => `
+          <tr>
+            <td><span style="display:inline-flex;align-items:center;gap:7px">${platMono(p.pid)}<strong>${esc(m.label)}</strong></span></td>
+            <td class="num">${rp.nPosts || '<span class="dash">—</span>'}</td>
+            <td class="num">${rp.reach === null ? '<span class="dash">—</span>' : fmt.compact(rp.reach)}</td>
+            <td class="num">${rp.erReach === null ? '<span class="dash">—</span>' : `${fmt.pct(rp.erReach)} ${benchBadge(rp.erReach, erBar(d, p.pid))}`}</td>
+            <td class="num">${rp.saves === null ? '<span class="dash">—</span>' : fmt.int(rp.saves)}</td>
+            <td class="num">${rp.follows === null ? '<span class="dash">—</span>' : fmt.int(rp.follows)}</td>
+            <td class="num">${rp.consistencyPct === null ? '<span class="dash">—</span>' : fmt.pct(rp.consistencyPct)}</td>
+            <td class="num">${rp.netFollowers === null ? '<span class="dash">—</span>' : `${rp.netFollowers > 0 ? '+' : ''}${fmt.int(rp.netFollowers)}${rp.growthPct === null ? '' : ` <span class="hint">${fmt.signed(rp.growthPct)}</span>`}`}</td>
+          </tr>`).join('')}</tbody></table></div>
+        <p class="hint" style="padding:10px 14px 0">Engagement is graded against each platform's own benchmark — a 4% Instagram post and a 6% TikTok post are not the same result.</p>`
+        : '<div class="emptystate">Mark a platform active below and log a few posts — this table fills itself in.</div>'}</div>
+    </section>
+    <section class="card">
       ${cardH('globe', 'Your Platforms', `${activePlatforms(d).length} active`, 'aqua')}
       <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:940px">
         <thead><tr><th>Platform</th><th>Handle</th><th>Account type</th><th>Primary goal</th><th class="num">Cadence /wk</th><th class="num">Followers now</th><th>12-month trend</th><th>Last posted</th><th>Active</th><th></th></tr></thead>
         <tbody>${(d.platforms || []).map((p, i) => {
-          const hist12 = k12.map(k => followersAt(d, k, p.pid) !== null && p.history && num(p.history[k]) !== null ? num(p.history[k]) : (p.history && num(p.history[k]) !== null ? num(p.history[k]) : null));
           const last = r.lastPostByPid[p.pid];
           const gap = last ? daysSince(last) : null;
           const cad = num(p.cadence);
@@ -2987,7 +3072,7 @@ function viewPlatforms() {
 function viewPillars() {
   const d = D();
   const keys = periodMonthsKeys();
-  const pp = derivePillars(d, keys, 'all');
+  const pp = derivePillars(d, keys, ui.platform);
   const withPosts = pp.list.filter(pl => pl.n > 0);
   const targetSum = (d.pillars || []).reduce((a, pl) => a + (num(pl.target) ?? 0), 0);
   const maxEr = Math.max(...withPosts.map(pl => pl.er ?? 0), 0.001);
@@ -2995,6 +3080,7 @@ function viewPillars() {
   return `
   ${viewHead('Content Strategy & Pillars', 'What you promised to post about — and whether the mix (and the results) match.', `<button class="btn btn-primary" data-action="addrow" data-list="pillars">${icon('plus', 14)}Add pillar</button>`)}
   ${periodBar()}
+  ${platformPills(d)}
   <div class="grid">
     <section class="card c5" aria-label="Pillar mix — target vs actual">
       ${cardH('target', 'Pillar Mix — Actual vs Target', periodLabel(), 'coral')}
@@ -3074,7 +3160,7 @@ function viewVault() {
   const trends = (d.trends || []).map((t, i) => ({t, i}))
     .sort((a, c) => String(a.t.expires || '9999').localeCompare(String(c.t.expires || '9999')));
   return `
-  ${viewHead('Hook & Idea Vault', 'Never start from a blank page — hooks with receipts, ideas on deck, trends before they expire.')}
+  ${viewHead('Content Library', 'Never start from a blank page — hooks, captions, hashtag sets and ideas on deck, plus trends before they expire.')}
   <div class="grid">
     <section class="card c7" aria-label="Hook library">
       ${cardH('zap', 'Hook Library — With Performance Tags', `${(d.hooks || []).length} hooks`, 'coral')}
@@ -3108,6 +3194,50 @@ function viewVault() {
             </div>
           </div>`).join('') : `<div class="emptystate">Spot a trend or audio worth riding? Park it here with an expiry date.</div>`}
         <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="trends">${icon('plus', 13)}Add trend</button>
+      </div>
+    </section>
+    <section class="card c7" aria-label="Caption bank">
+      ${cardH('quote', 'Caption Bank', `${(d.captions || []).length} saved`, 'coral')}
+      <div class="card-b flush">
+        ${(d.captions || []).length ? (d.captions || []).map((c, i) => `
+          <div class="trendcard">
+            <div class="tr-top">
+              ${listSel(`captions.${i}.pillar`, pillarOptions(d), 'Caption pillar')}
+              ${listSel(`captions.${i}.format`, formatOptions(), 'Caption format')}
+              <span class="hint">${(c.text || '').length} chars</span>
+              <button class="rowedit" data-action="editrow" data-list="captions" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="captions" data-i="${i}" aria-label="Delete this row">${icon('trash', 13)}</button>
+            </div>
+            <!-- A caption is a paragraph, not a field: the single-line edField clipped it at
+                 the card edge and ate the line breaks. Same textarea idiom as the report notes. -->
+            <div class="tr-sub" style="display:block"><textarea class="ed ed-area${(c.text ?? '') === '' ? ' ed-empty' : ''}" data-path="captions.${i}.text" data-etype="text" rows="3" aria-label="Caption" placeholder="the caption you would actually publish…">${esc(c.text)}</textarea></div>
+            <div class="tr-sub">${edField(`captions.${i}.notes`, {min: 16, max: 52, label: 'Caption note', ph: 'why it works'})}</div>
+          </div>`).join('') : `<div class="emptystate">Save a caption that worked and reuse its shape — the opener is the part worth keeping.</div>`}
+        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="captions">${icon('plus', 13)}Add caption</button>
+      </div>
+    </section>
+    <section class="card c5" aria-label="Hashtag sets">
+      ${cardH('hash', 'Hashtag Sets', `${(d.hashtags || []).length} sets`, 'teal')}
+      <div class="card-b flush">
+        <!-- Card list, not a table: seven columns forced a horizontal scroll in this
+             half-width slot and the tags themselves — the whole point of the card —
+             were the ones pushed off the edge. Same shape as the caption bank. -->
+        ${(d.hashtags || []).length ? `<div>${(d.hashtags || []).map((h, i) => {
+            const n = String(h.tags || '').split(/[\s,]+/).filter(t => t.startsWith('#')).length;
+            return `
+            <div class="trendcard">
+              <div class="tr-top">
+                ${platMono(h.pid)}${edField(`hashtags.${i}.name`, {min: 18, max: 30, label: 'Set name'})}
+                <span class="hint">${n || 0} tag${n === 1 ? '' : 's'}</span>
+                <button class="rowedit" data-action="editrow" data-list="hashtags" data-i="${i}" aria-label="Edit this row">${icon('sliders', 13)}</button><button class="rowdel" data-action="delrow" data-list="hashtags" data-i="${i}" aria-label="Delete this row">${icon('trash', 13)}</button>
+              </div>
+              <div class="tr-sub" style="display:block"><textarea class="ed ed-area${(h.tags ?? '') === '' ? ' ed-empty' : ''}" data-path="hashtags.${i}.tags" data-etype="text" rows="2" aria-label="Hashtags" placeholder="#one #two #three">${esc(h.tags)}</textarea></div>
+              <!-- selects sit below the name, not beside it: three controls plus the count
+                   on one row squeezed the set name down to a few characters. -->
+              <div class="tr-sub">${listSel(`hashtags.${i}.pid`, platOptions(), 'Set platform')}${listSel(`hashtags.${i}.pillar`, pillarOptions(d), 'Set pillar')}${edField(`hashtags.${i}.notes`, {min: 14, max: 44, label: 'Set note', ph: 'what it does'})}</div>
+            </div>`; }).join('')}</div>
+          <p class="hint" style="padding:10px 14px 0">Sets, not single tags — you reuse them as a group. The count is there because every platform has a different sweet spot.</p>`
+          : '<div class="emptystate">Group the hashtags you reuse into named sets — per pillar or per platform.</div>'}
+        <button class="addrow" style="margin-left:12px" data-action="addrow" data-list="hashtags">${icon('plus', 13)}Add set</button>
       </div>
     </section>
     <section class="card c7" aria-label="Idea backlog">
@@ -3159,6 +3289,7 @@ function viewCalendar() {
   const y = base.getFullYear(), mo = base.getMonth();
   const first = new Date(y, mo, 1), startDow = first.getDay(); // Sunday start, like a wall calendar
   const dim = new Date(y, mo + 1, 0).getDate();
+  const pid = ui.platform;              // posts carry a pid; this view just never read it
   const byDate = {};
   (d.posts || []).forEach(p => {
     if (!p.date) return;
@@ -3185,6 +3316,7 @@ function viewCalendar() {
     <button class="btn" data-action="month" data-dir="1" aria-label="Next month">→</button>
     ${ui.monthOffset !== 0 ? `<button class="btn" data-action="month" data-dir="0">Today</button>` : ''}
     <button class="btn btn-primary" data-action="addrow" data-list="posts">${icon('plus', 14)}Add post</button>`)}
+  ${platformPills(d)}
   <div class="grid">
     <section class="card c8">
       ${cardH('calendar', 'Monthly Calendar', '', 'coral')}
@@ -3291,7 +3423,7 @@ function viewPosts() {
         ${tile('Posts', `<span class="derived">${fmt.int(r.nPosts)}</span>`, r.cadenceTarget ? `of ~${r.cadenceTarget} planned` : '')}
         ${tile('Total reach', `<span class="derived">${fmt.int(r.reach)}</span>`)}
         ${tile('Interactions', `<span class="derived">${fmt.int(r.interactions)}</span>`, 'likes + comments + shares + saves')}
-        ${tile('Avg engagement', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, b.er), false, 'coral')}
+        ${tile('Avg engagement', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, erBar(d, pid)), false, 'coral')}
         ${tile('Saves', `<span class="derived">${fmt.int(r.saves)}</span>`, benchBadge(r.saveRate, b.saveRate), false, 'aqua')}
         ${tile('Follows from posts', `<span class="derived">${r.follows === null ? '—' : '+' + fmt.int(r.follows)}</span>`, benchBadge(r.followConv, b.followConv), false, 'golden')}
       </div></div>
@@ -3335,7 +3467,7 @@ function viewInsights() {
     <section class="card" aria-label="Engagement rates">
       ${cardH('pulse', 'Rates — Auto-Calculated From Your Post Log', 'every rate vs your benchmark + last period', 'coral')}
       <div class="card-b"><div class="tiles">
-        ${tile('Engagement (reach)', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, b.er) + deltaBadge(r.erReach, rPrev.erReach), false, 'coral', miniSparkSVG(seriesFor('erReach'), {colorVar: '--coral'}))}
+        ${tile('Engagement (reach)', `<span class="derived">${fmt.pct(r.erReach)}</span>`, benchBadge(r.erReach, erBar(d, pid)) + deltaBadge(r.erReach, rPrev.erReach), false, 'coral', miniSparkSVG(seriesFor('erReach'), {colorVar: '--coral'}))}
         ${tile('Engagement (followers)', `<span class="derived">${fmt.pct(r.erFoll)}</span>`, '<span class="hint-edit">per post ÷ followers</span>', false, 'teal', miniSparkSVG(seriesFor('erFoll'), {colorVar: '--teal'}))}
         ${tile('Save rate', `<span class="derived">${fmt.pct(r.saveRate, 2)}</span>`, benchBadge(r.saveRate, b.saveRate) + deltaBadge(r.saveRate, rPrev.saveRate, {dec: 2}), false, 'aqua', miniSparkSVG(seriesFor('saveRate'), {colorVar: '--aqua'}))}
         ${tile('Share rate', `<span class="derived">${fmt.pct(r.shareRate, 2)}</span>`, benchBadge(r.shareRate, b.shareRate) + deltaBadge(r.shareRate, rPrev.shareRate, {dec: 2}), false, 'golden', miniSparkSVG(seriesFor('shareRate'), {colorVar: '--golden'}))}
@@ -3719,28 +3851,33 @@ function draftReportNotes(d, r) {
 function viewReport() {
   const d = D(), b = d.benchmarks;
   const pKeys = periodMonthsKeys();
-  const r = derive(d, pKeys, 'all');
+  /* The report follows the platform filter. It is the client-facing deliverable, and
+     an agency running one platform for a client could not produce a report for just
+     that platform — every figure was hardcoded program-wide. */
+  const pid = ui.platform;
+  const r = derive(d, pKeys, pid);
   const band = healthBand(r.health);
-  const fs = followerSeries(d, 'all', pKeys[pKeys.length - 1]);
-  const pp = derivePillars(d, pKeys, 'all');
+  const fs = followerSeries(d, pid, pKeys[pKeys.length - 1]);
+  const pp = derivePillars(d, pKeys, pid);
   const withPosts = pp.list.filter(pl => pl.n > 0);
-  const fmts = deriveFormats(d, pKeys, 'all').slice(0, 3);
-  const topPosts = (d.posts || []).filter(p => p.status === 'posted' && p.date && pKeys.includes(p.date.slice(0, 7)) && div(postInteractions(p), p.reach) !== null)
+  const fmts = deriveFormats(d, pKeys, pid).slice(0, 3);
+  const topPosts = (d.posts || []).filter(p => p.status === 'posted' && (pid === 'all' || p.pid === pid) && p.date && pKeys.includes(p.date.slice(0, 7)) && div(postInteractions(p), p.reach) !== null)
     .sort((a, c) => div(postInteractions(c), c.reach) - div(postInteractions(a), a.reach)).slice(0, 3);
   return `
   ${viewHead('Goals, Benchmarks & Client Report', 'A clean one-page summary — print it or save as PDF for your client (or future you).', `<button class="btn btn-primary noprint" data-action="print">${icon('printer', 14)}Print / Save PDF</button>`)}
   ${periodBar()}
+  ${platformPills(d)}
   <div class="grid report-page">
     <section class="card">
       <div class="card-b">
         <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--hairline);padding-bottom:12px;margin-bottom:14px">
           <div><div style="font-weight:800;letter-spacing:-.02em;font-size:24px">${esc(d.brand.name)}</div>
-          <div style="color:var(--ink-2);font-size:12.5px">Social media report · ${periodLabel()}${d.brand.niche ? ' · ' + esc(d.brand.niche) : ''}</div></div>
+          <div style="color:var(--ink-2);font-size:12.5px">Social media report · ${periodLabel()}${pid === 'all' ? '' : ' · ' + esc((PLATFORM_META[pid] || {label: pid}).label) + ' only'}${d.brand.niche ? ' · ' + esc(d.brand.niche) : ''}</div></div>
           <div class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : 'alert', 13)}Program health ${r.health ?? '—'}/100 — ${band.label}</div>
         </div>
         <div class="rep-sec rep-kpis">
           ${tile('Followers', fmt.int(r.followersNow), `${r.netFollowers === null ? '—' : (r.netFollowers > 0 ? '+' : '') + fmt.int(r.netFollowers)} this period (${fmt.signed(r.growthPct)})`)}
-          ${tile('Engagement rate', fmt.pct(r.erReach), benchBadge(r.erReach, b.er))}
+          ${tile('Engagement rate', fmt.pct(r.erReach), benchBadge(r.erReach, erBar(d, pid)))}
           ${tile('Reach', fmt.int(r.reach), `${fmt.int(r.nPosts)} posts published`)}
           ${tile('Save rate', fmt.pct(r.saveRate, 2), benchBadge(r.saveRate, b.saveRate))}
           ${tile('Follow conversion', fmt.pct(r.followConv, 2), benchBadge(r.followConv, b.followConv))}
@@ -3943,6 +4080,16 @@ function render() {
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
   animPending = false;
   if (anim) runCountUps(main);
+  autosize(main);
+}
+/* A textarea's `rows` is a guess about how wide the card will be, and the card width
+   changes with the window. Size every one to its own content instead so a long caption
+   or report note never sits behind a scrollbar. */
+function autosize(root) {
+  (root || document).querySelectorAll('textarea.ed-area').forEach(t => {
+    t.style.height = 'auto';
+    t.style.height = Math.max(t.scrollHeight, 72) + 'px';
+  });
 }
 let renderTimer = null;
 function scheduleRender() {
@@ -3998,15 +4145,17 @@ function cancelPostEdit() {   // returns false if the user chose to keep editing
 }
 const NEW_ROW = {
   posts: () => ({id: uid(), title: 'New post', date: localISO(new Date()), time: '', pid: (activePlatforms(D())[0] || {pid: 'ig'}).pid, format: 'reel',
-    pillar: '', hook: '', cta: '', status: 'idea', approval: 'na',
+    pillar: '', hook: '', cta: '', caption: '', status: 'idea', approval: 'na',
     reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
     watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null, img: null, groupId: null, notes: ''}),
   platforms: () => ({id: uid(), pid: 'ig', handle: '@handle', type: 'creator', goal: '', cadence: 3, active: true, history: {}}),
   pillars: () => ({id: uid(), name: 'New pillar', color: (D().pillars || []).length % 6, target: null, notes: ''}),
   competitors: () => ({id: uid(), name: 'New competitor', pid: 'ig', followers: null, er: null, notes: '', lastChecked: ''}),
   hooks: () => ({id: uid(), text: 'New hook…', format: 'reel', tag: 'testing', notes: ''}),
-  ideas: () => ({id: uid(), text: 'New idea…', pillar: '', format: 'reel'}),
+  ideas: () => ({id: uid(), text: 'New idea…', pillar: '', format: 'reel', detail: ''}),
   ctas: () => ({id: uid(), text: 'New CTA…', goal: ''}),
+  captions: () => ({id: uid(), text: 'New caption…', pillar: '', format: 'reel', notes: ''}),
+  hashtags: () => ({id: uid(), name: 'New set', pid: 'ig', pillar: '', tags: '', notes: ''}),
   trends: () => ({id: uid(), name: 'New trend', pid: 'tt', note: '', spotted: localISO(new Date()), expires: isoOffset(14), status: 'watching'}),
   repurpose: () => ({id: uid(), idea: 'New idea', source: 'ig', cuts: '', notes: ''}),
   milestones: () => ({id: uid(), date: localISO(new Date()), label: 'New milestone'}),
@@ -4290,7 +4439,7 @@ document.addEventListener('click', e => {
   }
   else if (act === 'draftnotes') {
     const d = D();
-    const draft = draftReportNotes(d, derive(d, periodMonthsKeys(), 'all'));
+    const draft = draftReportNotes(d, derive(d, periodMonthsKeys(), ui.platform));
     if (!draft) { toast('Not enough data yet — log a few posts first'); return; }
     if ((d.reportNotes || '').trim() && !confirm('Replace the current notes with a fresh draft from this period’s numbers?')) return;
     setPath('reportNotes', draft);
@@ -4408,6 +4557,7 @@ document.addEventListener('input', e => {
   const el = e.target;
   if (el.classList && el.classList.contains('ed')) {
     if (el.tagName === 'INPUT') el.style.width = Math.min(Math.max(el.value.length, 2) + 1, 40) + 'ch';
+    else if (el.tagName === 'TEXTAREA') autosize(el.parentNode); // grow as they type, not on the next render
     el.classList.toggle('ed-empty', el.value.trim() === '');
   }
 });
