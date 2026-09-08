@@ -1492,18 +1492,31 @@ let saveTimer = null, toastTimer = null;
 function save(countEdit) {
   if (countEdit) state.meta.edits = (state.meta.edits || 0) + 1;
   clearTimeout(saveTimer);
+  /* Remembered so the confirmation below can tell whether the caller has since said
+     something more useful than "Saved". */
+  const askedAt = Date.now();
   saveTimer = setTimeout(() => {
-    if (DEMO_LOCKED) { toast('✓ Updated — demo edits reset on refresh'); return; }
+    /* A caller that posts its own message after asking for a save has already told the
+       buyer what happened — and this toast, arriving 300ms later, used to wipe it off
+       the screen, so those actions looked like they did nothing. A failure always still
+       speaks: an unsaved file is the one thing a toast must never keep quiet about. */
+    /* >=, not >: a caller does save(true) then toast(...) in the same tick, so the two
+       timestamps land on the same millisecond. Requiring strictly-greater let the
+       generic confirmation through and wiped the real message anyway. */
+    const spoken = lastToastAt >= askedAt;
+    if (DEMO_LOCKED) { if (!spoken) toast('✓ Updated — demo edits reset on refresh'); return; }
     /* Never lead with "✓ Saved" when nothing was saved — and when the bucket is full, say so.
        Blaming the browser for a payload problem sends the buyer looking in the wrong place. */
     const res = storeSet(JSON.stringify(state));
     syncStorageBanner();   // the toast fades; the banner has to persist
-    toast(res === 'ok' ? '✓ Saved'
-      : res === 'full' ? '⚠ Not saved — this browser is out of storage. Remove a photo, then back up.'
+    if (res === 'ok') { if (!spoken) toast('✓ Saved'); return; }
+    toast(res === 'full' ? '⚠ Not saved — this browser is out of storage. Remove a photo, then back up.'
       : '⚠ Not saved to this device — storage is blocked, so changes last for this session only.');
   }, 300);
 }
+let lastToastAt = 0;
 function toast(msg) {
+  lastToastAt = Date.now();
   const t = $('#toast');
   t.textContent = msg;
   t.classList.add('on');
@@ -2469,7 +2482,6 @@ function renderTopbar() {
     <button id="menuToggle" class="btn btn-ghost" data-action="menu" aria-label="Open navigation" aria-expanded="${document.body.classList.contains('nav-open')}">${icon('menu', 18)}</button>
     <div class="tb-brand">
       <span class="brandname">${edField('brand.name', {label: 'Brand name', min: 6, max: 26, cls: 'ed-big'})}</span>
-      <button class="btn btn-ghost" data-action="brandswitch" aria-label="Brand switcher" title="Switch brand">${icon('chevd', 14)}</button>
     </div>
     <div class="tb-greet"><strong>${greeting()}</strong> — ${new Date().toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'})}</div>
     <div class="tb-actions">
@@ -3042,13 +3054,6 @@ function viewSetup() {
               ${name}${on ? ' ✓' : ''}</button>`;
           }).join('')}
         </div>
-      </div>
-    </section>
-    <section class="card c6">
-      ${cardH('users', 'Multi-Brand / Multi-Client', '', 'golden')}
-      <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
-        <p style="margin:0 0 8px"><strong style="color:var(--ink)">One file per brand.</strong> Duplicate this HTML file and rename it per client (e.g. <code>client-a-social.html</code>) — each copy keeps its own data, palette and report.</p>
-        <p style="margin:0">The <button class="btn btn-ghost" style="padding:0;color:var(--brand-deep);font-weight:600" data-action="goto" data-view="report">Client Report</button> view prints a clean one-pager from whichever file you have open.</p>
       </div>
     </section>
   </div>`;
@@ -4498,7 +4503,6 @@ document.addEventListener('click', e => {
   else if (act === 'restore') { $('#restoreFile').click(); }
   else if (act === 'reset') { doReset(); }
   else if (act === 'nudge-dismiss') { state.meta.nudgeSnoozed = new Date().toISOString(); save(false); render(); }
-  else if (act === 'brandswitch') { toast('Multi-brand tip: keep one copy of this file per client — File → Duplicate, then rename.'); }
   else if (act === 'crosspost') {
     const i = parseInt(btn.dataset.i, 10), pid = btn.dataset.pid;
     const d = D(), src = d.posts[i];
