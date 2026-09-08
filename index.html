@@ -2580,6 +2580,11 @@ function pillarColorIdx(d, pillarId) {
    grid never reshuffles between renders. Purely decorative — no uploads, ever. */
 function thumbSrc(d, p) {
   if (p.img) return p.img; // the user's own photo — attached locally, never uploaded
+  /* Placeholder art stops at Clear. Once meta.sample is 'cleared' the buyer has asked
+     to start fresh, and going on painting pillar-themed photographs over their own
+     posts is the opposite of fresh — the tinted ptone tile is the honest state from
+     then on, and the add-photo control is the thing to show. */
+  if (typeof state !== 'undefined' && state && state.meta && state.meta.sample === 'cleared') return null;
   const seed = [...String(p.id || p.title || '')].reduce((a, c) => a + c.charCodeAt(0), 0);
   const slot = pillarColorIdx(d, p.pillar);
   const group = THUMBS[slot < THUMBS.length ? slot : seed % THUMBS.length];
@@ -2595,8 +2600,9 @@ function thumbTile(d, p, {size = '', editIdx = null, editId = null, pids = null}
   const badge = grid || size === 'lg' || size === 'md';
   const dot = grid || size === 'lg';
   const platNames = pids && pids.length ? pids.map(x => (PLATFORM_META[x] || {short: x}).short).join(' · ') : '';
+  const src = thumbSrc(d, p);   // null on a cleared file with no photo of their own
   return `<span class="thumb ${size ? 'th-' + size : ''} ptone-${pillarColorIdx(d, p.pillar)} ${sched && grid ? 'thumb-sched' : ''}"${editId ? ` data-action="editpost" data-id="${editId}" style="cursor:pointer" title="Click to edit this post"` : ''} data-tt="${esc(p.title || 'Untitled')} · ${esc(f.label)}${sched ? ' · ' + esc(relDay(p.date) || 'unscheduled') : ''}${platNames ? ' · ' + esc(platNames) : ''}${p.img ? '' : ' · placeholder art'}">
-    <img class="th-img" src="${thumbSrc(d, p)}" alt="" loading="lazy">
+    ${src ? `<img class="th-img" src="${src}" alt="" loading="lazy">` : ''}
     ${dot ? `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>` : ''}
     ${badge ? `<span class="fmt-badge">${icon(f.icon, 11)}</span>` : ''}
     ${pids && pids.length ? `<span class="th-plats" role="img" aria-label="Posted to ${esc(pids.map(x => (PLATFORM_META[x] || {label: x}).label).join(', '))}">${pids.map(x => platMono(x, 16)).join('')}</span>` : ''}
