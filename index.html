@@ -354,7 +354,7 @@ main:focus{outline:none}
 .bsm-del svg{color:var(--critical-deep)}
 .bsm-sep{height:1px;background:var(--hairline);margin:5px 4px}
 .bsm-note{font-size:11px;color:var(--muted);line-height:1.45;padding:6px 9px 4px}
-@media (max-width:820px){.bsbtn .bs-name{display:none}.bsbtn{max-width:none}}
+@media (max-width:820px){.bsbtn{max-width:min(48vw,230px)}.bsbtn .bs-name{max-width:34vw}}   /* truncate, never hide: a one-brand pill must still say whose file it is */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:1px solid var(--teal);
   background:var(--surface);color:var(--teal-deep);font-size:12.5px;font-weight:600;transition:border-color .15s,color .15s,background .15s}
 .btn:hover{background:var(--teal-soft)}
