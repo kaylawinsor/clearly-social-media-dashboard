@@ -24,9 +24,9 @@
 /* ============ Design tokens ============ */
 :root{
   /* Clearly · Sunny palette — light (cool crisp canvas, slate-forward; warmth lives only in small accents) */
-  --page:#F2F5F6; --surface:#FFFFFF; --surface-alt:#F7FAFA;
-  --ink:#2C3B42; --ink-2:#51646E; --muted:#7E8F96; --hairline:#E2E8E9;
-  --slate-soft:#E9EEF1;
+  --page:#F7F9FA; --surface:#FFFFFF; --surface-alt:#FCFDFE;
+  --ink:#2C3B42; --ink-2:#51646E; --muted:#7E8F96; --hairline:#E6EBEC;
+  --slate-soft:#EFF3F5;
   --teal:#587987; --teal-deep:#44606C; --teal-soft:#E8EEF1;
   --coral:#E7805B; --coral-deep:#AC4E28; --coral-soft:#FAE4D9;
   --aqua:#71C0BC; --aqua-deep:#1F6E66; --aqua-soft:#DFF1EF;
@@ -50,20 +50,23 @@
   --display:'Plus Jakarta Sans','Inter',system-ui,sans-serif;
   --serif:var(--display);
   --sidebar-w:236px;
+  --plat-blue:#4E86B8;
 }
 /* ---- Palette ordering contract (load-bearing) ----
    Blocks must appear in exactly this order so palette × theme compose:
-     1. :root                                  (Clearly light — baseline)
-     2. :root[data-palette="blush"]            (Blush light — ties with #3 at (0,2,0); being EARLIER, it loses in dark)
-     3. :root[data-theme="dark"]               (Clearly dark)
-     4. :root[data-palette="blush"][data-theme="dark"]  (Blush dark — (0,3,0) wins everything)
-   Moving block 2 after block 3 silently corrupts Blush+dark. */
+     1. :root                                     (Clearly light — baseline)
+     2. :root[data-palette="…"]        ALL of them (palette light — ties with #3 at (0,2,0); being EARLIER, they lose in dark)
+     3. :root[data-theme="dark"]                  (Clearly dark)
+     4. :root[data-palette="…"][data-theme="dark"] ALL of them ((0,3,0) wins everything)
+   Moving any block-2 palette after block 3 silently corrupts that palette in dark mode.
+   Adding a palette means adding BOTH a block-2 and a block-4 entry, plus a row in
+   PALETTES (p3.js). A palette with no block-4 entry falls back to Clearly dark. */
 :root[data-palette="blush"]{
   /* Clearly · Blush palette — light (rosy canvas; lilac interactive, rose warm accent, mint good, apricot golden).
      Chart accents validated (dataviz six checks): #7A55B0 #E7698B #DA9A1F #22997B */
-  --page:#F7F2F5; --surface:#FFFFFF; --surface-alt:#FBF6F9;
-  --ink:#3A2C3C; --ink-2:#655468; --muted:#928095; --hairline:#ECE2EC;
-  --slate-soft:#F0E6F0;
+  --page:#F8F9FA; --surface:#FFFFFF; --surface-alt:#FCFCFD;
+  --ink:#23262B; --ink-2:#51565E; --muted:#858A93; --hairline:#E8EAEC;
+  --slate-soft:#F1F2F5;
   --teal:#7A55B0; --teal-deep:#5E3F8F; --teal-soft:#EFE8F8;
   --coral:#E7698B; --coral-deep:#B03A5E; --coral-soft:#FBE0E8;
   --aqua:#22997B; --aqua-deep:#1A7259; --aqua-soft:#DCF2EA;
@@ -75,6 +78,78 @@
   --tip-bg:#3A2C3C; --tip-ink:#F7ECF2;
   --logo-ink:#7A55B0;
   --accent-btn:#F5A5BC; --accent-btn-hover:#F08FAC; --accent-btn-ink:#3A2C3C;
+  --plat-blue:#6383CC;
+}
+:root[data-palette="paper"]{
+  /* Clearly · Editorial palette — light. The muted white/beige/brown/grey/black pack:
+     warm paper ground, ink-black type, terracotta and brass as the only warmth, and a
+     BLACK primary button rather than a colored one — that button is most of why this
+     reads "editorial" instead of "another dashboard theme".
+     Chart accents validated (dataviz six checks): #5C5346 #A8633F #5E7A6A #B08D4F */
+  --page:#FAF8F4; --surface:#FFFFFF; --surface-alt:#FDFCFA;
+  --ink:#1F1D1A; --ink-2:#4E4A43; --muted:#8A8378; --hairline:#E9E4DC;
+  --slate-soft:#F3F0E9;
+  --teal:#5C5346; --teal-deep:#3A342B; --teal-soft:#ECE8E0;
+  --coral:#A8633F; --coral-deep:#7A4324; --coral-soft:#F2E4D9;
+  --aqua:#5E7A6A; --aqua-deep:#3E5A4B; --aqua-soft:#E4EBE6;
+  --golden:#B08D4F; --golden-soft:#F2E9D6; --golden-deep:#6B5220;
+  --good:#4F7563; --warning:#9A7526; --serious:#A8633F; --critical:#8E3F22;
+  --good-soft:#E4EBE6; --warning-soft:#F2E9D6; --serious-soft:#F2E4D9; --critical-soft:#EFDDD3;
+  --good-deep:#3E5A4B; --warning-deep:#6B5220; --serious-deep:#7A4324; --critical-deep:#6B2C13;
+  --info-soft:#EAE9E6; --info-deep:#4A5560;
+  --tip-bg:#1F1D1A; --tip-ink:#F6F2EA;
+  --logo-ink:#1F1D1A;
+  --accent-btn:#1F1D1A; --accent-btn-hover:#3A362F; --accent-btn-ink:#FFFFFF;
+  --plat-blue:#4C6B86;
+}
+:root[data-palette="pop"]{
+  /* Clearly · Bright palette — light. The fun pack: electric indigo, hot coral, jade
+     and a true yellow, on a cool bright ground. Saturation is the point here — this is
+     the palette for someone whose brand is loud, so it does not get toned down.
+     Chart accents validated (dataviz six checks): #4A55D6 #E8453D #0E9E8F #C98A00 */
+  --page:#F8F9FA; --surface:#FFFFFF; --surface-alt:#FCFCFD;
+  --ink:#23262B; --ink-2:#51565E; --muted:#858A93; --hairline:#E8EAEC;
+  --slate-soft:#F1F2F5;
+  --teal:#4A55D6; --teal-deep:#2E37A8; --teal-soft:#E6E8FC;
+  --coral:#E8453D; --coral-deep:#B32A24; --coral-soft:#FFE2E0;
+  --aqua:#0E9E8F; --aqua-deep:#07796D; --aqua-soft:#D6F6F2;
+  --golden:#F5B800; --golden-soft:#FFF1C9; --golden-deep:#8A6200;
+  --good:#0E9E8F; --warning:#C98A00; --serious:#E8453D; --critical:#C21F18;
+  --good-soft:#D6F6F2; --warning-soft:#FFF1C9; --serious-soft:#FFE2E0; --critical-soft:#FFD8D5;
+  --good-deep:#07796D; --warning-deep:#8A6200; --serious-deep:#B32A24; --critical-deep:#8F120C;
+  --info-soft:#E7ECF8; --info-deep:#515A7D;
+  --tip-bg:#1E2340; --tip-ink:#EEF0FA;
+  --logo-ink:#4A55D6;
+  --accent-btn:#F5B800; --accent-btn-hover:#E0A800; --accent-btn-ink:#1E2340;
+  --plat-blue:#2E6FE0;
+}
+:root[data-palette="pastel"]{
+  /* Clearly · Pastel palette — light. Built from a real pastel reference, and the
+     reference colors go where pastels actually belong: the SOFT/tint slots, which are
+     the largest colored surfaces in this file (card-header icon squares, chips, pillar
+     tiles, chart fills). Six of them are used verbatim:
+       Lavender Mist #E4D4F2 → teal-soft   ·  Bubblegum   #F2D4E8 → coral-soft
+       Mint          #E4F2E0 → aqua-soft   ·  Peach Cream #F2E4D4 → golden-soft
+       Sky Blue      #D4EDF2 → info-soft   ·  Cotton Candy #FBE4E4 → critical-soft
+     The base tokens are mid-tones of those SAME hues, because --teal/--coral/--aqua/
+     --golden are backgrounds that carry white platform glyphs and are the stroke color
+     for every line and donut — a #E4D4F2 chart line on a white card is invisible. So the
+     palette reads pastel across every surface, and stays legible where it has to work. */
+  --page:#F8F9FA; --surface:#FFFFFF; --surface-alt:#FCFCFD;
+  --ink:#23262B; --ink-2:#51565E; --muted:#858A93; --hairline:#E8EAEC;
+  --slate-soft:#F1F2F5;
+  --teal:#9478C4; --teal-deep:#5F4292; --teal-soft:#E4D4F2;
+  --coral:#D46592; --coral-deep:#9C3868; --coral-soft:#F2D4E8;
+  --aqua:#6FAE72; --aqua-deep:#367140; --aqua-soft:#E4F2E0;
+  --golden:#E3A86F; --golden-soft:#F2E4D4; --golden-deep:#8A5222;
+  --good:#4F9C5C; --warning:#B8792E; --serious:#C9628F; --critical:#B03A62;
+  --good-soft:#E4F2E0; --warning-soft:#F2E4D4; --serious-soft:#F2D4E8; --critical-soft:#FBE4E4;
+  --good-deep:#367140; --warning-deep:#8A5222; --serious-deep:#9C3868; --critical-deep:#8A1F46;
+  --info-soft:#D4EDF2; --info-deep:#4A6B73;
+  --tip-bg:#3B2F3E; --tip-ink:#FAF2F7;
+  --logo-ink:#9478C4;
+  --accent-btn:#F0A9C4; --accent-btn-hover:#E892B4; --accent-btn-ink:#3B2F3E;
+  --plat-blue:#5B95C9;
 }
 :root[data-theme="dark"]{
   /* Clearly · Sunny palette — dark (re-stepped, not inverted) */
@@ -91,6 +166,7 @@
   --info-soft:#33444C; --info-deep:#C0CDD1;
   --logo-ink:#F0E6DB;
   --shadow:0 12px 40px -28px rgba(0,0,0,.65);
+  --plat-blue:#86B4DC;
 }
 :root[data-palette="blush"][data-theme="dark"]{
   /* Clearly · Blush palette — dark (re-stepped plum, not inverted).
@@ -110,6 +186,85 @@
   --logo-ink:#F3E9F0;
   --accent-btn:#F5A5BC; --accent-btn-hover:#F08FAC; --accent-btn-ink:#3A2C3C;
   --shadow:0 12px 40px -28px rgba(0,0,0,.65);
+  --plat-blue:#97B6EC;
+}
+:root[data-palette="paper"][data-theme="dark"]{
+  /* Clearly · Editorial palette — dark (re-stepped warm charcoal, not inverted).
+     Chart accents validated (dataviz six checks, surface #211F1C): #BDB3A3 #D19267 #8FAE9B #D0AE6C */
+  --page:#171614; --surface:#211F1C; --surface-alt:#1D1B18;
+  --ink:#F2EFE9; --ink-2:#C3BDB2; --muted:#928B7F; --hairline:#34312C;
+  --slate-soft:#2A2723;
+  --teal:#BDB3A3; --teal-deep:#DAD3C7; --teal-soft:#2F2C27;
+  --coral:#D19267; --coral-deep:#E8B896; --coral-soft:#3C2C22;
+  --aqua:#8FAE9B; --aqua-deep:#B8CFC0; --aqua-soft:#263029;
+  --golden:#D0AE6C; --golden-soft:#383020; --golden-deep:#E7D2A4;
+  --good:#8FAE9B; --warning:#D0AE6C; --serious:#D19267; --critical:#D9705A;
+  --good-soft:#263029; --warning-soft:#383020; --serious-soft:#3C2C22; --critical-soft:#3E271F;
+  --good-deep:#B8CFC0; --warning-deep:#E7D2A4; --serious-deep:#E8B896; --critical-deep:#F0B190;
+  --info-soft:#2A2B2E; --info-deep:#A9B6C2;
+  --tip-bg:#0F0E0D; --tip-ink:#F2EFE9;
+  --logo-ink:#F2EFE9;
+  --accent-btn:#F2EFE9; --accent-btn-hover:#FFFFFF; --accent-btn-ink:#171614;
+  --shadow:0 12px 40px -28px rgba(0,0,0,.65);
+  --plat-blue:#7FA7CE;
+}
+:root[data-palette="pop"][data-theme="dark"]{
+  /* Clearly · Bright palette — dark (re-stepped midnight, not inverted).
+     Chart accents validated (dataviz six checks, surface #1E2340): #8C95F5 #FF7B74 #35D6C3 #FFD255 */
+  --page:#15182B; --surface:#1E2340; --surface-alt:#1A1E36;
+  --ink:#EEF0FA; --ink-2:#BFC5E0; --muted:#9098BC; --hairline:#333A5C;
+  --slate-soft:#292F4F;
+  --teal:#8C95F5; --teal-deep:#BCC1FF; --teal-soft:#2C3260;
+  --coral:#FF7B74; --coral-deep:#FFAFA9; --coral-soft:#462322;
+  --aqua:#35D6C3; --aqua-deep:#86EEE1; --aqua-soft:#16423C;
+  --golden:#FFD255; --golden-soft:#443718; --golden-deep:#FFE9A8;
+  --good:#35D6C3; --warning:#FFD255; --serious:#FF7B74; --critical:#FF5F57;
+  --good-soft:#16423C; --warning-soft:#443718; --serious-soft:#462322; --critical-soft:#4A1F1C;
+  --good-deep:#86EEE1; --warning-deep:#FFE9A8; --serious-deep:#FFAFA9; --critical-deep:#FF9E97;
+  --info-soft:#292F4F; --info-deep:#BFC5E0;
+  --tip-bg:#0E1020; --tip-ink:#EEF0FA;
+  --logo-ink:#EEF0FA;
+  --accent-btn:#FFD255; --accent-btn-hover:#FFDE7C; --accent-btn-ink:#15182B;
+  --shadow:0 12px 40px -28px rgba(0,0,0,.65);
+  --plat-blue:#7CA9FF;
+}
+:root[data-palette="pastel"][data-theme="dark"]{
+  /* Clearly · Pastel palette — dark (re-stepped deep plum, not inverted). Dark mode is
+     where the reference colors can finally sit at full brightness: they become the
+     accent and text tones on a plum ground, and the soft slots become their tints.
+     Chart accents validated (dataviz six checks, surface #2E2436): #BFA3E8 #E9A0C8 #8FCB8E #E8BC8F */
+  --page:#221A28; --surface:#2E2436; --surface-alt:#291F31;
+  --ink:#F5EDF5; --ink-2:#CFC0D4; --muted:#A192A8; --hairline:#423351;
+  --slate-soft:#382B42;
+  --teal:#BFA3E8; --teal-deep:#DCC9F5; --teal-soft:#3A2C4E;
+  --coral:#E9A0C8; --coral-deep:#F5C6E0; --coral-soft:#452B3B;
+  --aqua:#8FCB8E; --aqua-deep:#BCE3BB; --aqua-soft:#263A28;
+  --golden:#E8BC8F; --golden-soft:#43331F; --golden-deep:#F3D8BC;
+  --good:#8FCB8E; --warning:#E8BC8F; --serious:#E9A0C8; --critical:#EF86AE;
+  --good-soft:#263A28; --warning-soft:#43331F; --serious-soft:#452B3B; --critical-soft:#4A2436;
+  --good-deep:#BCE3BB; --warning-deep:#F3D8BC; --serious-deep:#F5C6E0; --critical-deep:#F7A9C6;
+  --info-soft:#31374A; --info-deep:#BFCEDA;
+  --tip-bg:#171120; --tip-ink:#F5EDF5;
+  --logo-ink:#F5EDF5;
+  --accent-btn:#F0A9C4; --accent-btn-hover:#F5BED2; --accent-btn-ink:#221A28;
+  --shadow:0 12px 40px -28px rgba(0,0,0,.65);
+  --plat-blue:#A5CCEC;
+}
+/* ---- Font pairings ----------------------------------------------------------
+   SYSTEM STACKS ONLY. The default pairing (no data-font) uses Inter + Plus Jakarta
+   Sans, which are already embedded in this stylesheet as base64 — the only two faces
+   this file will ever carry. Never add an @font-face or an @import here: a network
+   request breaks the offline claim, and another embedded family adds ~260KB to a file
+   buyers download. Everything below resolves to faces the buyer's OS already has. */
+:root[data-font="system"]{
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --serif:var(--display);
+}
+:root[data-font="editorial"]{
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,"Times New Roman",serif;
+  --serif:var(--display);
 }
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
@@ -154,10 +309,52 @@ main:focus{outline:none}
   border-bottom:1px solid var(--hairline);position:sticky;top:0;z-index:30}
 @supports not (background:color-mix(in srgb,red,blue)){#topbar{background:var(--page)}}
 .tb-brand{display:flex;align-items:center;gap:8px;min-width:0}
-.tb-brand .brandname{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.02em;min-width:40px}
 .tb-greet{color:var(--ink-2);font-size:12.5px;margin-right:auto;padding-left:2px}
 .tb-greet strong{color:var(--ink);font-weight:600}
 .tb-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+/* ---- Brand switcher --------------------------------------------------------
+   Sits beside the brand name because that is what it switches. Quiet by default:
+   on a one-brand file it is a single ghost button, so the first screen gains an
+   affordance without gaining a decision. */
+.bswitch{position:relative;display:inline-flex}
+/* A FILLED pill, not a ghost one. This control is not a setting — it is the answer to
+   "whose numbers am I looking at", and getting that wrong means typing brand A's
+   figures into brand B. It was quiet and it blended into the chrome, which is exactly
+   the failure mode that matters here.
+   --teal-deep on --surface is used deliberately: those two sit at opposite ends of the
+   ramp in BOTH themes (deep goes dark in light mode and pale in dark mode, surface does
+   the reverse), so the pair clears contrast in all five palettes without a per-theme
+   override — and it follows a buyer's own custom main colour for free. */
+.bsbtn{display:inline-flex;align-items:center;gap:7px;padding:7px 12px 7px 14px;border-radius:999px;
+  border:1px solid var(--teal-deep);background:var(--teal-deep);color:var(--surface);
+  font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:-.01em;
+  max-width:260px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.10)}
+.bsbtn:hover{filter:brightness(1.12)}
+.bsbtn[aria-expanded="true"]{filter:brightness(1.12);box-shadow:0 0 0 3px var(--teal-soft)}
+.bsbtn .bs-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bsbtn .bs-count{font-family:var(--sans);font-size:11px;font-weight:700;opacity:.75;
+  padding:1px 6px;border-radius:99px;background:rgba(255,255,255,.18);flex:0 0 auto}
+.bsbtn svg{opacity:.85;flex:0 0 auto}
+.bsmenu{position:absolute;top:calc(100% + 7px);left:0;z-index:60;min-width:268px;max-width:320px;
+  background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius-s);
+  box-shadow:0 22px 60px -26px rgba(0,0,0,.45);padding:7px;display:flex;flex-direction:column;gap:2px}
+.bsm-head{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;
+  color:var(--muted);padding:7px 9px 5px;display:flex;justify-content:space-between;align-items:baseline}
+.bsm-cap{font-variant-numeric:tabular-nums;letter-spacing:0;text-transform:none;font-size:11px;
+  color:var(--ink-2);background:var(--surface-alt);border:1px solid var(--hairline);border-radius:99px;padding:1px 8px}
+.bsm-item{display:flex;align-items:center;gap:9px;width:100%;padding:8px 9px;border-radius:9px;
+  background:transparent;color:var(--ink);font-size:13px;text-align:left;cursor:pointer}
+.bsm-item:hover{background:var(--surface-alt)}
+.bsm-item.on{font-weight:700}
+.bsm-item svg{flex:0 0 auto;color:var(--teal-deep)}
+.bsm-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bsm-gap{width:13px;flex:0 0 auto}
+.bsm-del{color:var(--critical-deep)}
+.bsm-del:hover{background:var(--critical-soft)}
+.bsm-del svg{color:var(--critical-deep)}
+.bsm-sep{height:1px;background:var(--hairline);margin:5px 4px}
+.bsm-note{font-size:11px;color:var(--muted);line-height:1.45;padding:6px 9px 4px}
+@media (max-width:820px){.bsbtn .bs-name{display:none}.bsbtn{max-width:none}}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:1px solid var(--teal);
   background:var(--surface);color:var(--teal-deep);font-size:12.5px;font-weight:600;transition:border-color .15s,color .15s,background .15s}
 .btn:hover{background:var(--teal-soft)}
@@ -183,6 +380,27 @@ main:focus{outline:none}
 .card-h svg{color:var(--hacc-deep);opacity:1;width:25px;height:25px;padding:5px;box-sizing:border-box;
   background:var(--hacc-soft);border-radius:8px;flex:0 0 auto}
 .card-h .h-aux{margin-left:auto;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px}
+/* ---- Card hierarchy: three weights, not one ---------------------------------
+   Nine identical white panels down a page is what makes a dense dashboard read as
+   generated rather than designed — the eye gets no first stop and no permission to
+   skim, and everything shouts at the same volume. So:
+     .lead   one per view, the card that answers the question in the view's subtitle.
+             Real display type instead of the 11px micro-label, and a header tinted
+             in its own accent. This is the type-hierarchy fix, not a color fix.
+     (none)  the default data card, unchanged.
+     .quiet  the explainers. Worth keeping, but they must never compete with a number,
+             so they lose the shadow and the header bar and sit back into the page.
+   Direct-child selectors throughout: a .postcard nested inside a lead card must not
+   inherit the lead header. */
+.card.lead{box-shadow:0 18px 50px -30px rgba(0,0,0,.42)}
+.card.lead > .card-h{padding:13px 16px 12px;background:linear-gradient(180deg,var(--hacc-soft),var(--surface-alt) 78%)}
+.card.lead > .card-h h3{font-family:var(--display);font-size:16px;font-weight:700;
+  text-transform:none;letter-spacing:-.02em;color:var(--ink)}
+.card.lead > .card-h svg{width:30px;height:30px;padding:6px}
+.card.quiet{background:var(--surface-alt);box-shadow:none}
+.card.quiet > .card-h{background:transparent;border-bottom-color:transparent;padding:12px 16px 0}
+.card.quiet > .card-h svg{background:transparent;padding:0;width:17px;height:17px;opacity:.75}
+.card.quiet > .card-h h3{color:var(--ink-2)}
 .card-h.acc-coral{--hacc-deep:var(--coral-deep);--hacc-soft:var(--coral-soft)}
 .card-h.acc-aqua{--hacc-deep:var(--aqua-deep);--hacc-soft:var(--aqua-soft)}
 .card-h.acc-golden{--hacc-deep:var(--golden-deep);--hacc-soft:var(--golden-soft)}
@@ -688,12 +906,184 @@ select.flt{font:inherit;font-size:12.5px;border:1px solid var(--hairline);border
 }
 
 /* ============ Print (Client Report) ============ */
+/* ============ Feed Preview ============
+   The grid tile alone answers "does my feed look right". This buyer also needs
+   "what is going out, in what order, and am I repeating myself" — which is the
+   caption, not the picture. So each tile carries a date + first caption line
+   underneath: the one part that still reads when no photo is attached. */
+.fgcells{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fg-cell{min-width:0;display:flex;flex-direction:column;gap:5px}
+.fg-cell .thumb{width:100%}
+.fg-cap{min-width:0;font-size:11.5px;line-height:1.35}
+.fg-when{display:block;font-weight:700;color:var(--ink-2);font-size:10.5px;letter-spacing:.02em}
+.fg-when .fg-sched{color:var(--teal-deep)}
+/* Two lines, then ellipsis — a tile is a glance, not a read. -webkit-box is the only
+   cross-browser line clamp; every engine this file runs in supports it. */
+.fg-line{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--ink)}
+.fg-line.fg-none{color:var(--muted);font-style:italic}
+
+/* ============ Month in Review ============
+   A single screen that has to read as complete in one static capture at ~1200px.
+   Six blocks, fixed grid, no scrolling chrome inside any of them. */
+.rvtabs{display:inline-flex;border:1px solid var(--teal);border-radius:999px;overflow:hidden;background:var(--surface);margin:0 0 14px}
+.rvtabs button{padding:6px 16px;font-size:12.5px;font-weight:600;color:var(--teal-deep)}
+.rvtabs button[aria-pressed="true"]{background:var(--ink);color:var(--page)}
+.rvtabs button:not([aria-pressed="true"]):hover{background:var(--teal-soft)}
+.monthstep{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.monthstep .ms-label{min-width:150px;text-align:center;font-family:var(--display);font-weight:700;
+  font-size:15px;letter-spacing:-.01em}
+.rvhead{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;
+  border-bottom:1px solid var(--hairline);padding-bottom:13px;margin-bottom:16px}
+.rvhead .rv-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.rvhead .rv-logo{max-height:34px;max-width:120px;width:auto;height:auto;display:block}
+.rvhead .rv-name{font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:23px}
+.rvhead .rv-sub{color:var(--ink-2);font-size:12.5px}
+.rvblocks{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.rvb{grid-column:span 4;background:var(--surface-alt);border:1px solid var(--hairline);
+  border-radius:var(--radius-s);padding:13px 14px;min-width:0;break-inside:avoid}
+.rvb.rv6{grid-column:span 6}.rvb.rv12{grid-column:span 12}
+.rvb h3{margin:0 0 9px;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-2);font-weight:700}
+.rvb-big{font-family:var(--display);font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1.05;color:var(--ink)}
+.rvb-big .rv-of{font-size:15px;font-weight:600;color:var(--muted);letter-spacing:-.01em}
+.rvb-sub{font-size:12px;color:var(--ink-2);margin-top:5px;line-height:1.45}
+.rvb-none{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.5}
+.rvb .meterbar{margin-top:9px}
+/* .meterbar is a <span> sized by `height`, which an inline box ignores — everywhere
+   else in this file it is a flex item, so it gets blockified for free. Here it is a
+   plain child of a block, so it has to blockify itself or the fill renders as a slab. */
+.rvb .meterbar{display:block;width:100%;height:7px;border-radius:4px}
+.rvtop{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.rvtop li{display:flex;align-items:center;gap:9px;min-width:0}
+.rvtop .rvt-main{flex:1;min-width:0}
+.rvtop .rvt-title{display:block;font-weight:600;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rvtop .rvt-sub{display:block;font-size:11px;color:var(--ink-2)}
+.rvtop .rvt-er{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.02em;white-space:nowrap}
+/* The one line the whole screen exists to produce — it gets the only accent panel. */
+.rvrepeat{grid-column:span 12;background:var(--golden-soft);border:1px solid var(--golden);
+  border-radius:var(--radius-s);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;break-inside:avoid}
+.rvrepeat svg{color:var(--golden-deep);flex:0 0 auto;margin-top:1px}
+.rvrepeat .rvr-t{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--golden-deep);display:block;margin-bottom:4px}
+.rvrepeat .rvr-b{font-size:14px;line-height:1.55;color:var(--ink)}
+.rvfoot{font-size:11px;color:var(--muted);border-top:1px solid var(--hairline);padding-top:10px;margin:16px 0 0}
+@media (max-width:980px){.rvb,.rvb.rv6{grid-column:span 6}}
+@media (max-width:620px){.rvb,.rvb.rv6,.rvb.rv12{grid-column:span 12}.fgcells{grid-template-columns:repeat(2,1fr)}}
+
+/* ============ Repurpose outputs ============
+   Four named cuts per idea, each a toggle. Scaffolding and prompts — the buyer
+   still writes the thing; nothing here generates content. */
+.rp-legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:8px 16px;
+  padding:12px 16px;font-size:12px;color:var(--ink-2);line-height:1.45}
+.rp-legend b{color:var(--ink);display:block;font-size:11.5px}
+.rp-outs{display:flex;gap:5px;flex-wrap:wrap}
+.rp-out{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;
+  border:1px dashed var(--muted);background:transparent;color:var(--ink-2);font-size:11.5px;font-weight:600;white-space:nowrap}
+.rp-out:hover{border-color:var(--teal);color:var(--teal-deep)}
+.rp-out[aria-pressed="true"]{border-style:solid;border-color:var(--good);background:var(--good-soft);color:var(--good-deep)}
+.rp-out svg{flex:0 0 auto}
+.rp-prog{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rp-prog.rp-all{color:var(--good-deep);font-weight:700}
+.rp-other{margin-top:6px}
+.rp-other > span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+
+/* ============ Appearance panel ============ */
+.ap-panel{width:min(560px,94vw)}
+.ap-sec{padding:14px 16px;border-bottom:1px solid var(--hairline)}
+.ap-sec:last-child{border-bottom:none}
+.ap-sec > h4{margin:0 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink)}
+.ap-sec > p{margin:0 0 10px;font-size:12px;color:var(--ink-2);line-height:1.5}
+.ap-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ap-pal{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:12px;
+  border:1px solid var(--hairline);background:var(--surface);color:var(--ink-2);font-size:12.5px;font-weight:600}
+.ap-pal:hover{border-color:var(--teal)}
+.ap-pal[aria-pressed="true"]{border-color:var(--teal);border-width:2px;padding:5px 11px;color:var(--ink)}
+.ap-pals{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr))}
+.ap-pals .ap-pal{justify-content:flex-start}
+.ap-pal .app-t{display:flex;flex-direction:column;gap:1px;min-width:0;text-align:left}
+.ap-pal .app-t b{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2}
+.ap-pal .app-t span{font-size:10.5px;color:var(--muted);line-height:1.2}
+.ap-sw{display:inline-flex;gap:3px}
+/* The ring is load-bearing for the Pastel swatches: at ~#E4D4F2 on a white panel the
+   dots are almost invisible without it, and a palette you cannot see is not a choice. */
+.ap-sw i{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.16)}
+.ap-colors{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px}
+.ap-color{display:flex;align-items:center;gap:9px;min-width:0}
+.ap-color input[type="color"]{width:38px;height:38px;padding:2px;border:1px solid var(--hairline);
+  border-radius:10px;background:var(--surface);cursor:pointer;flex:0 0 auto}
+.ap-color .apc-t{min-width:0;font-size:12px;line-height:1.3}
+.ap-color .apc-t b{display:block;font-size:12.5px;color:var(--ink)}
+.ap-color .apc-t span{color:var(--muted);font-size:11px}
+.ap-logo{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ap-logo .apl-prev{width:92px;height:46px;border:1px dashed var(--hairline);border-radius:10px;
+  display:grid;place-items:center;background:var(--surface-alt);flex:0 0 auto;padding:5px}
+.ap-logo .apl-prev img{max-width:100%;max-height:100%;width:auto;height:auto;display:block}
+.ap-logo .apl-prev span{font-size:10.5px;color:var(--muted);text-align:center;line-height:1.3}
+.ap-font{display:inline-flex;flex-direction:column;gap:2px;align-items:flex-start;padding:7px 13px;
+  border-radius:12px;border:1px solid var(--hairline);background:var(--surface);color:var(--ink-2);min-width:0}
+.ap-font:hover{border-color:var(--teal)}
+.ap-font[aria-pressed="true"]{border-color:var(--teal);border-width:2px;padding:6px 12px;color:var(--ink)}
+.ap-font b{font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.ap-font span{font-size:11px;color:var(--muted)}
+.ap-font.apf-default b{font-family:'Plus Jakarta Sans','Inter',system-ui,sans-serif}
+.ap-font.apf-system b{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.ap-font.apf-editorial b{font-family:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif}
+.ap-note{font-size:11.5px;color:var(--muted);line-height:1.5;margin:12px 0 0;
+  padding-top:10px;border-top:1px solid var(--hairline)}
+
+/* Custom logo in the sidebar wordmark — replaces the mark, never the word */
+.wordmark .wm-logo{max-height:30px;max-width:150px;width:auto;height:auto;display:block}
+
+/* ============ Start Here — three steps, then a footnote ============ */
+.startsteps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 16px}
+@media (max-width:860px){.startsteps{grid-template-columns:1fr}}
+.stepcard{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:18px 18px 16px;display:flex;flex-direction:column;min-width:0}
+.stepcard .st-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--display);font-weight:800;font-size:15px;background:var(--teal);color:var(--surface);margin-bottom:11px}
+.stepcard h3{margin:0 0 7px;font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:-.02em}
+.stepcard p{margin:0 0 14px;font-size:13px;color:var(--ink-2);line-height:1.55;flex:1}
+.stepcard .btn{align-self:flex-start}
+.startclear{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);
+  border:1px solid var(--hairline);border-radius:var(--radius);padding:13px 16px;margin:0 0 12px}
+.startclear .sc-t{flex:1;min-width:220px;font-size:12.5px;color:var(--ink-2);line-height:1.5}
+.startclear .sc-t strong{color:var(--ink)}
+.startmore{border:1px solid var(--hairline);border-radius:var(--radius);background:var(--surface);overflow:hidden}
+.startmore > button{display:flex;align-items:center;gap:8px;width:100%;padding:12px 16px;
+  font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface);text-align:left}
+.startmore > button:hover{color:var(--ink);background:var(--surface-alt)}
+.startmore > button svg{transition:transform .18s}
+.startmore > button[aria-expanded="true"] svg{transform:rotate(180deg)}
+/* Multi-column, not grid: the four blocks are wildly different heights, and grid rows
+   equalise to the tallest — which left two columns half-empty and pushed the fourth
+   block into a row of its own. Columns just pack. */
+.startmore .sm-body{padding:14px 16px 16px;border-top:1px solid var(--hairline);
+  columns:270px;column-gap:26px}
+.startmore .sm-body > div{break-inside:avoid;margin:0 0 18px}
+.startmore .sm-body h4{margin:0 0 7px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.startmore .sm-body p{margin:0 0 8px;font-size:12.5px;color:var(--ink-2);line-height:1.55}
+@media (prefers-reduced-motion:reduce){.startmore > button svg{transition:none}}
+
 @media print{
   body{background:#fff}
   #sidebar,#topbar,#toast,.nudge,.noprint,#scrim,.rowdel,.rowedit,.pmodal{display:none!important}
   main{padding:0;max-width:none}
   .card{box-shadow:none;break-inside:avoid}
   .viewhead .vh-aux{display:none}
+  /* Month in Review prints as the one-pager it is: tinted blocks keep their edges,
+     and the accent panel must not lose its meaning to a printer set to greyscale. */
+  /* Both reports are documents someone hands to a client, and they carry their own
+     branded header inside the page. The on-screen view title above it is instruction
+     to the buyer ("Print it or save it as a PDF") — printing that on the client's copy
+     is the one thing this page must not do. Scoped with :has() so every OTHER view
+     keeps its heading when printed; browsers without :has() just behave as before. */
+  main:has(.report-page) .viewhead{display:none}
+  .rvb{background:#fff;border-color:#D8DCDE}
+  .rvrepeat{background:#fff;border-width:2px}
+  .rvblocks{gap:11px}
+  /* On paper the blocks reflow two-across, which is narrower than any screen column —
+     .mx-name ellipsises there and a client receives a pillar called "Behind…". Nothing
+     is interactive on a printed page, so let the label wrap and take the extra line. */
+  .rvb .mixrow{align-items:flex-start}
+  .rvb .mx-name{overflow:visible;text-overflow:clip;white-space:normal}
 }
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 /* No min-height: every .ed-area sets its own `rows`, and autosize() grows it to its
@@ -737,6 +1127,7 @@ code{background:var(--surface-alt);border:1px solid var(--hairline);border-radiu
 <div id="tooltip" class="tooltip" hidden></div>
 <input type="file" id="restoreFile" accept=".json,application/json" hidden aria-hidden="true">
 <input type="file" id="postImgFile" accept="image/*" hidden aria-hidden="true">
+<input type="file" id="logoFile" accept="image/*" hidden aria-hidden="true">
 <script>
 'use strict';
 /* ================================================================
@@ -912,6 +1303,14 @@ function isoDow(dow, weeksBack) {
    used to price a YouTube integration at $21-33 while this file's own sample
    data carries a pitched YouTube deal at $900 — the rates and the engagement
    norms are simply not comparable across platforms. Editable in Setup. */
+/* Every platform's `acc` must be a DIFFERENT token. Two badges in the same color is
+   the one thing that makes this row unreadable — it was Facebook and X both on --aqua
+   (two greens, no blue anywhere), and TikTok and LinkedIn both on --teal. The tokens
+   are palette-aware, so the badges re-color with the theme instead of being hardcoded
+   brand hexes; --plat-blue exists purely so this row always contains a blue.
+   Note that "a different token" is not enough on its own: --serious ALIASES to --coral
+   in several palettes by design, which is how Pinterest and Instagram ended up the same
+   color. The build test compares resolved values, not token names. */
 const PLATFORM_META = {
   ig : {label: 'Instagram', short: 'IG', acc: '--coral', vb: 24, base: 12, benchEr: 4,
     glyph: 'M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077'},
@@ -919,25 +1318,31 @@ const PLATFORM_META = {
     glyph: 'M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z'},
   yt : {label: 'YouTube', short: 'YT', acc: '--golden', vb: 24, base: 35, benchEr: 3,
     glyph: 'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z'},
-  fb : {label: 'Facebook', short: 'FB', acc: '--aqua', vb: 24, base: 8, benchEr: 2,
+  fb : {label: 'Facebook', short: 'FB', acc: '--plat-blue', vb: 24, base: 8, benchEr: 2,
     glyph: 'M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z'},
-  th : {label: 'Threads', short: 'TH', acc: '--teal-deep', vb: 24, base: 9, benchEr: 4,
+  th : {label: 'Threads', short: 'TH', acc: '--aqua-deep', vb: 24, base: 9, benchEr: 4,
     glyph: 'M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z'},
-  pin: {label: 'Pinterest', short: 'PN', acc: '--serious', vb: 24, base: 7, benchEr: 1.5,
+  pin: {label: 'Pinterest', short: 'PN', acc: '--critical', vb: 24, base: 7, benchEr: 1.5,
     glyph: 'M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.099.12.112.225.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.401.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.354-.629-2.758-1.379l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.607 0 11.985-5.365 11.985-11.987C23.97 5.39 18.592.026 11.985.026L12.017 0z'},
-  li : {label: 'LinkedIn', short: 'LI', acc: '--teal', vb: 16, base: 20, benchEr: 3,
+  li : {label: 'LinkedIn', short: 'LI', acc: '--info-deep', vb: 16, base: 20, benchEr: 3,
     glyph: 'M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z'},
   x  : {label: 'X (Twitter)', short: 'X', acc: '--aqua', vb: 24, base: 8, benchEr: 1.5,
     glyph: 'M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z'},
 };
+/* `plural` is not decoration: the insight lines read "<format>s earn 1.3x your
+   average", and appending an s to the label gives "Reel / Shorts" and "Storys".
+   Every line that pluralises a format must use this field, never label + 's'. */
 const FORMATS = {
-  reel:     {label: 'Reel / Short', icon: 'reel',     video: true},
-  carousel: {label: 'Carousel',     icon: 'carousel', video: false},
-  static:   {label: 'Static post',  icon: 'image',    video: false},
-  story:    {label: 'Story',        icon: 'story',    video: false},
-  video:    {label: 'Long video',   icon: 'video',    video: true},
-  live:     {label: 'Live',         icon: 'live',     video: true},
+  reel:     {label: 'Reel / Short', plural: 'reels and shorts', icon: 'reel',     video: true},
+  carousel: {label: 'Carousel',     plural: 'carousels',        icon: 'carousel', video: false},
+  static:   {label: 'Static post',  plural: 'static posts',     icon: 'image',    video: false},
+  story:    {label: 'Story',        plural: 'stories',          icon: 'story',    video: false},
+  video:    {label: 'Long video',   plural: 'long videos',      icon: 'video',    video: true},
+  live:     {label: 'Live',         plural: 'lives',            icon: 'live',     video: true},
 };
+/* Safe for a format key that is not in FORMATS at all — restored backups have been
+   seen carrying one. */
+const fmtPlural = f => (FORMATS[f] || {}).plural || String(f) + 's';
 
 /* ================================================================
    Datasets
@@ -975,7 +1380,7 @@ function starterData() {
     /* Hashtags travel in reusable sets, not one at a time — a set per pillar or
        per platform is how they actually get used. */
     hashtags: [{id: uid(), name: 'Everyday set', pid: 'ig', pillar: pilB, tags: '', notes: ''}],
-    repurpose: [{id: uid(), idea: '', source: 'ig', cuts: '', notes: ''}],
+    repurpose: [{id: uid(), idea: '', source: 'ig', cuts: '', notes: '', outs: {}}],
     posts: [
       {id: uid(), title: 'My first tracked post', date: todayISO(), time: '', pid: 'ig', format: 'reel',
        pillar: pilA, hook: '', cta: '', caption: '', status: 'idea', approval: 'na',
@@ -1023,6 +1428,14 @@ function sampleData() {
     'A real Tuesday: two loads of linen, forty orders packed, one candle knocked over.\n\nNo aesthetic edit, no b-roll of me holding a mug. Just the bit nobody films.\n\nWhat do you want to see behind the scenes next?',
     'Five things I would buy again, and three I would skip.\n\nSwipe for the honest list — the skips are at the end because that is the part that actually saves you money.\n\nComment "GUIDE" and I will send the full breakdown.',
     'Using this sound before it stops working.\n\nOur towels, the 5-second transform, and a shelf that took four attempts. Third one was the keeper.\n\nFollow for part 2 — the shelf gets worse before it gets better.',
+    /* Captions 5–8 exist because the Feed Preview now prints the first line of each one
+       under its tile. Four captions across ninety posts meant the sample grid showed the
+       same opening line four tiles running — which is exactly the "am I repeating
+       myself?" signal this preview is for, so the sample must not fake it by accident. */
+    'The $12 fix everyone overlooks.\n\nIt is not a basket, a bin or a label maker. It is a hook at the height you actually reach for.\n\nSave this before your next tidy-up.',
+    'Before you buy another organizer, watch this.\n\nWe tried the viral one, the cheap one and the one our customers kept asking about. Only one is still in the studio.\n\nFull comparison in the comments.',
+    'Three things I wish I knew before opening the shop.\n\nNumber two cost us about four months. Number three is the one nobody warns you about.\n\nAsk me anything — I answer all of these.',
+    'POV: your workspace finally works for you.\n\nSame room, same furniture, nothing bought. Just everything moved to where the work actually happens.\n\nBefore and after on the last slide.',
   ];
 
   const TITLES = {
@@ -1086,7 +1499,10 @@ function sampleData() {
         posts.push({
           id: uid(), title: TITLES[PILS[pi]][(w + s) % 6], date, time, pid, format,
           pillar: PILS[pi], hook: HOOKS[(w * 2 + s) % HOOKS.length], cta: CTAS[(w + s * 3) % CTAS.length],
-          caption: CAPTIONS[(w + s * 2) % CAPTIONS.length],
+          /* Stride 3 against 8 captions is co-prime, so the bank cycles through all
+             eight before repeating — `(w + s * 2)` kept landing adjacent posts on the
+             same one. */
+          caption: CAPTIONS[(n * 3) % CAPTIONS.length],
           status: 'posted', approval: 'na',
           reach, impressions: Math.round(reach * 1.35), likes, comments, shares, saves,
           watchPct: FORMATS[format].video ? 36 + ((w + s + n) % 4) * 7 : null,
@@ -1097,6 +1513,14 @@ function sampleData() {
       });
     }
   });
+  /* Captions are dealt out in DATE order, not generation order. The Feed Preview sorts
+     by date and shows a month at a time, so a caption index keyed to the generation
+     counter put the same opening line on three consecutive tiles — "The $12 fix
+     everyone overlooks." three times down one grid. Round-robin over the sorted list
+     guarantees the bank cycles fully before any line can appear beside itself. */
+  posts.slice().sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .forEach((p, i) => { p.caption = CAPTIONS[i % CAPTIONS.length]; });
+
   /* One post published ~40 minutes ago → the golden-hour widget and its alert
      are live in every demo session (the locked demo re-seeds on refresh). */
   const gh = new Date(Date.now() - 40 * 60000);
@@ -1233,10 +1657,16 @@ function sampleData() {
       {id: uid(), text: CTAS[4], pid: '', goal: 'Shares'},
       {id: uid(), text: CTAS[5], pid: 'tt', goal: 'Comments'},
     ],
+    /* Three rows at 3/4, 2/4 and 0/4 cuts — the sample has to SHOW the checklist doing
+       its job, including the row that still owes everything. `cuts` stays empty here:
+       it is the legacy free-text field, kept for files written before the four cuts
+       existed, and a sample that filled it in would teach the wrong habit. */
     repurpose: [
-      {id: uid(), idea: 'Linen care guide', source: 'yt', cuts: 'IG reel ×2 · TT reel · carousel', notes: 'Best YT video → 4 short cuts'},
-      {id: uid(), idea: 'Breakout: trend audio towels', source: 'tt', cuts: 'IG reel (reposted)', notes: 'Still needs a YT Short cut'},
-      {id: uid(), idea: 'Junk-drawer organize', source: 'ig', cuts: '—', notes: 'Queue for TikTok next week'},
+      {id: uid(), idea: 'Linen care guide', source: 'yt', cuts: '', notes: 'Best YT video → 4 short cuts',
+       outs: {feed: true, carousel: true, short: true}},
+      {id: uid(), idea: 'Breakout: trend audio towels', source: 'tt', cuts: '', notes: 'Still needs a YT Short cut',
+       outs: {feed: true, caption: true}},
+      {id: uid(), idea: 'Junk-drawer organize', source: 'ig', cuts: '', notes: 'Queue for TikTok next week', outs: {}},
     ],
     posts,
     months,
@@ -1359,6 +1789,10 @@ function clearSampleData(d) {
     if (!Array.isArray(arr)) return;
     const parent = p.includes('.') ? atPath(d, p.slice(0, p.lastIndexOf('.'))) : d;
     const key = p.slice(p.lastIndexOf('.') + 1);
+    /* A sample post can carry a photo the buyer attached before clearing. The row goes,
+       so its photo goes with it — otherwise it sits in storage forever with nothing left
+       in the file to show it or remove it. */
+    if (key === 'posts') arr.forEach(r => { if (r && r.sample) assetDel(postImgId(r)); });
     parent[key] = arr.filter(r => !(r && r.sample));
   });
   ['brand', 'benchmarks', 'money', 'community'].forEach(grp => {
@@ -1379,13 +1813,14 @@ function clearSampleData(d) {
   return d;
 }
 function sampleActive() {
-  return state.meta && state.meta.sample === 'active';
+  const b = activeBrand();
+  return !!(b && b.sample === 'active');
 }
 /* 'Keep it for now' must not strand the buyer: the sample rows are still in the
    file, so Start Here keeps offering the bulk clear until they're actually gone.
    Truth comes from the rows themselves, not the meta flag. */
 function sampleRowsPresent() {
-  const d = state.data || {};
+  const d = D() || {};
   return SAMPLE_ROW_PATHS.some(pth => {
     const arr = pth.split('.').reduce((o, k) => o && o[k], d);
     return Array.isArray(arr) && arr.some(r => r && r.sample);
@@ -1440,21 +1875,87 @@ function sampleBanner() {
       <button class="btn" data-action="sample-keep">Keep it for now</button>
     </span></div>`;
 }
+/* ================================================================
+   BRANDS (workspaces)
+   ----------------------------------------------------------------
+   One file, up to MAX_BRANDS completely separate dashboards. This exists because
+   copying the HTML file does NOT give you a second dashboard: in Chrome and Edge
+   every file:// document shares one origin, so two copies read and write the same
+   localStorage and the second one opens showing the first one's numbers. A buyer
+   who trusted that would print brand A's figures inside brand B's report.
+
+   Shape: {version: 2, brands: [{id, name, sample, data}], activeBrand, meta}
+   `meta` stays global on purpose — appearance, backup bookkeeping and the nudge are
+   properties of the FILE, not of a brand. `sample` is per-brand, because clearing the
+   example data in brand one must not silence the Start Here card in brand two.
+
+   The cap is 3. Storage is not the binding constraint (three brands of heavy data is
+   ~0.5MB against a 5MB budget, now that photos live in IndexedDB) — it is there to
+   keep the switcher legible and to bound the worst case for a long-lived file. */
+const MAX_BRANDS = 3;
+
+function newBrand(name, data, sample) {
+  return {id: uid(), name: name || 'My brand', sample: sample || 'cleared', data};
+}
 function freshState() {
   return {
-    version: 1,
-    data: flagSampleRows(sampleData()),
-    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO(), sample: 'active'},
+    version: 2,
+    brands: [newBrand('My brand', flagSampleRows(sampleData()), 'active')],
+    activeBrand: null,          // null = the first one; set on every switch
+    meta: {edits: 0, lastBackup: null, nudgeSnoozed: null, firstRun: todayISO(), imgSplit: true},
   };
 }
-/* Accepts a current-shape state (a Clearly Social backup) — anything else is rejected */
+function brandList() { return (state && state.brands) || []; }
+/* ONE name, not two. The switcher label IS the brand-profile name the buyer typed in
+   Setup — carrying a separate label would drift the moment they edited one and not the
+   other, and the whole point of the pill is telling them which brand they are in. */
+function brandLabel(b) {
+  return String((b && b.data && b.data.brand && b.data.brand.name) || (b && b.name) || 'Untitled brand');
+}
+function activeIdx() {
+  const i = brandList().findIndex(b => b.id === state.activeBrand);
+  return i < 0 ? 0 : i;
+}
+function activeBrand() { return brandList()[activeIdx()] || null; }
+
+/* Shape check only — no side effects, so a restore can ask "are you sure?" before
+   anything at all has been written. Accepts BOTH shapes: v1 backups (a single `data`)
+   are what every file written before this feature looks like, and there are buyers
+   holding them. */
+function looksLikeData(d) {
+  return !!(d && typeof d === 'object' && Array.isArray(d.posts) && Array.isArray(d.platforms));
+}
+function looksLikeState(s) {
+  if (!s || typeof s !== 'object' || !s.meta) return false;
+  if (looksLikeData(s.data)) return true;                                  // v1
+  return Array.isArray(s.brands) && s.brands.length > 0 && s.brands.every(b => b && looksLikeData(b.data));
+}
+/* Accepts a v1 OR v2 state and always returns v2. A v1 file becomes brand one, named
+   from the brand profile the buyer already filled in, so the switcher opens saying
+   something they recognise rather than "My brand". */
 function normalizeState(s) {
-  if (!s || typeof s !== 'object' || !s.meta) return null;
-  if (s.data && Array.isArray(s.data.posts) && Array.isArray(s.data.platforms))
-    return {version: 1, data: s.data, meta: s.meta};
-  return null;
+  if (!looksLikeState(s)) return null;
+  if (Array.isArray(s.brands)) {
+    const brands = s.brands.slice(0, MAX_BRANDS).map(b => ({
+      id: b.id || uid(),
+      name: String(b.name || 'My brand').slice(0, 40),
+      sample: b.sample || 'cleared',
+      data: b.data,
+    }));
+    const active = brands.some(b => b.id === s.activeBrand) ? s.activeBrand : brands[0].id;
+    return {version: 2, brands, activeBrand: active, meta: s.meta};
+  }
+  const meta = Object.assign({}, s.meta);
+  const named = (s.data.brand && s.data.brand.name) || 'My brand';
+  const b = newBrand(named, s.data, meta.sample || 'cleared');
+  delete meta.sample;                       // moved onto the brand
+  return {version: 2, brands: [b], activeBrand: b.id, meta};
 }
 let state;
+/* True only when this device had nothing saved for this file — i.e. the buyer is
+   looking at it for the very first time. The router uses it to open on Start Here
+   instead of Home exactly once; every later open lands on Home as before. */
+let firstOpen = false;
 (function loadState() {
   const raw = storeGet();
   if (raw) {
@@ -1463,10 +1964,14 @@ let state;
       if (norm) { state = norm; return; }
     } catch (e) { /* corrupt — fall through to fresh */ }
   }
+  firstOpen = true;
   state = freshState();
 })();
 
-const D = () => state.data;
+/* The single data accessor — every view, every setPath, every derive goes through it.
+   Pointing it at the active brand is what makes workspaces cheap: the 30-odd call
+   sites downstream never learn that brands exist. */
+const D = () => (activeBrand() || {data: {}}).data;
 
 /* ---------------- Theme (light / dark, re-stepped tokens) ---------------- */
 const mqDark = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
@@ -1475,17 +1980,349 @@ function applyTheme() {
   document.documentElement.dataset.theme = eff;
 }
 applyTheme();
-if (mqDark && mqDark.addEventListener) mqDark.addEventListener('change', () => { if (!state.meta.theme) applyTheme(); });
-window.addEventListener('beforeprint', () => { document.documentElement.dataset.theme = 'light'; });
-window.addEventListener('afterprint', applyTheme);
+if (mqDark && mqDark.addEventListener) mqDark.addEventListener('change', () => { if (!state.meta.theme) { applyTheme(); applyAppearance(); } });
+/* Printing forces light — and the custom-color ramps are derived per theme, so the
+   ramp has to be recomputed for light or a dark-mode brand color prints as itself
+   on white paper. */
+window.addEventListener('beforeprint', () => { document.documentElement.dataset.theme = 'light'; applyAppearance(); });
+window.addEventListener('afterprint', () => { applyTheme(); applyAppearance(); });
 
-/* Palette (Clearly default / Blush pastel) — attribute absent = Clearly, so pre-JS paint is the baseline */
-function applyPalette() {
-  const p = state.meta.palette;
-  if (p && p !== 'clearly') document.documentElement.dataset.palette = p;
-  else delete document.documentElement.dataset.palette;
+/* ================================================================
+   APPEARANCE LAYER — portable
+   ----------------------------------------------------------------
+   Self-contained on purpose: it touches nothing but state.meta, the
+   asset store below, and CSS custom properties on :root. Nothing in
+   here knows what this dashboard is about, so the whole block —
+   plus the palette/font CSS blocks and viewAppearance()'s panel —
+   lifts into the Email, Pinterest and SEO products unchanged.
+   Contract with the CSS:
+     meta.palette      → :root[data-palette="…"]   (absent = the baseline :root)
+     meta.font         → :root[data-font="…"]      (absent = the embedded pairing)
+     meta.brandColors  → inline custom properties on :root (beat every selector)
+     meta.logo         → an asset id, resolved through assetGet()
+================================================================ */
+/* Five packs, chosen to be visibly DIFFERENT from each other rather than five hues of
+   the same idea: the brand default, a true pastel, the original plum/rose Blush, a muted
+   editorial neutral and a loud one.
+   `blush` keeps its id, its name AND its exact colors. It shipped, someone bought it,
+   and it is a saturated plum/rose — NOT a pastel. Relabelling it would have been a lie
+   to every buyer who opens the panel expecting the swatches to match the name, so Pastel
+   is its own palette built from real pastel values. Never rename or retune a shipped
+   palette: meta.palette is persisted in buyer files, so the id is a promise. */
+const PALETTES = [
+  {id: 'clearly', name: 'Clearly',   sub: 'the original',       sw: ['#587987', '#E7805B', '#71C0BC', '#F3BE3F']},
+  {id: 'pastel',  name: 'Pastel',    sub: 'lavender and mint',  sw: ['#E4D4F2', '#F2D4E8', '#E4F2E0', '#F2E4D4']},
+  {id: 'blush',   name: 'Blush',     sub: 'plum and rose',      sw: ['#7A55B0', '#E7698B', '#22997B', '#F5A5BC']},
+  {id: 'paper',   name: 'Editorial', sub: 'paper, ink, brass',  sw: ['#1F1D1A', '#A8633F', '#5E7A6A', '#B08D4F']},
+  {id: 'pop',     name: 'Bright',    sub: 'loud on purpose',    sw: ['#4A55D6', '#E8453D', '#0E9E8F', '#F5B800']},
+];
+const FONT_SETS = [
+  {id: 'default',   name: 'Clearly',   sub: 'Jakarta + Inter'},
+  {id: 'system',    name: 'System',    sub: 'your device’s own'},
+  {id: 'editorial', name: 'Editorial', sub: 'serif headings'},
+];
+/* Three inputs, three token families. Status colors (good/warning/serious/critical)
+   are deliberately NOT brandable — a buyer whose brand color is red should not end
+   up with "critical" and "on brand" as the same swatch. */
+const COLOR_SLOTS = [
+  {id: 'main',      label: 'Main',      hint: 'buttons, links, chrome', vars: ['--teal', '--teal-deep', '--teal-soft', '--logo-ink']},
+  {id: 'accent',    label: 'Accent',    hint: 'highlights and charts',  vars: ['--coral', '--coral-deep', '--coral-soft']},
+  {id: 'highlight', label: 'Highlight', hint: 'the primary button',     vars: ['--golden', '--golden-deep', '--golden-soft', '--accent-btn', '--accent-btn-hover', '--accent-btn-ink']},
+];
+function normHex(v) {
+  if (typeof v !== 'string') return null;
+  const m = v.trim().match(/^#?([0-9a-f]{6})$/i);
+  return m ? '#' + m[1].toLowerCase() : null;
 }
-applyPalette();
+function hexToHsl(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  const l = (mx + mn) / 2;
+  if (!d) return [0, 0, l * 100];
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = mx === r ? ((g - b) / d + (g < b ? 6 : 0)) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s * 100, l * 100];
+}
+function hslToHex(h, s, l) {
+  h = ((h % 360) + 360) % 360; s = clamp(s, 0, 100) / 100; l = clamp(l, 0, 100) / 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+  const seg = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][Math.floor(h / 60) % 6];
+  return '#' + seg.map(v => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
+}
+/* WCAG relative luminance — decides whether a button's label is white or near-black */
+function luminance(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map(v => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+}
+/* One picked color → the base/deep/soft triple every token family is built from,
+   re-stepped per theme exactly the way the shipped palettes are: in light the base
+   stays dark enough to carry white glyphs and `deep` is text-on-soft; in dark both
+   go pale and `soft` becomes a dark tint. */
+function rampFrom(hex, dark) {
+  const [h, s] = hexToHsl(hex), l = hexToHsl(hex)[2];
+  return dark
+    ? {base: hslToHex(h, s, clamp(l, 58, 78)), deep: hslToHex(h, Math.min(s * 0.8, 70), 82), soft: hslToHex(h, Math.min(s * 0.55, 40), 22)}
+    : {base: hslToHex(h, s, clamp(l, 30, 58)), deep: hslToHex(h, Math.min(s * 1.05, 95), 30), soft: hslToHex(h, Math.min(s * 0.55, 65), 93)};
+}
+function applyAppearance() {
+  const m = state.meta || {}, root = document.documentElement;
+  const p = m.palette;
+  if (p && p !== 'clearly' && PALETTES.some(x => x.id === p)) root.dataset.palette = p;
+  else delete root.dataset.palette;
+  const f = m.font;
+  if (f && f !== 'default' && FONT_SETS.some(x => x.id === f)) root.dataset.font = f;
+  else delete root.dataset.font;
+  /* Clear every slot first: unsetting one color has to hand that family back to the
+     palette, not leave the last custom value stuck on :root. */
+  COLOR_SLOTS.forEach(slot => slot.vars.forEach(v => root.style.removeProperty(v)));
+  const bc = m.brandColors || {};
+  const dark = root.dataset.theme === 'dark';
+  COLOR_SLOTS.forEach(slot => {
+    const hex = normHex(bc[slot.id]);
+    if (!hex) return;
+    const r = rampFrom(hex, dark);
+    if (slot.id === 'main') {
+      root.style.setProperty('--teal', r.base);
+      root.style.setProperty('--teal-deep', r.deep);
+      root.style.setProperty('--teal-soft', r.soft);
+      root.style.setProperty('--logo-ink', r.deep);
+    } else if (slot.id === 'accent') {
+      root.style.setProperty('--coral', r.base);
+      root.style.setProperty('--coral-deep', r.deep);
+      root.style.setProperty('--coral-soft', r.soft);
+    } else {
+      root.style.setProperty('--golden', r.base);
+      root.style.setProperty('--golden-deep', r.deep);
+      root.style.setProperty('--golden-soft', r.soft);
+      root.style.setProperty('--accent-btn', r.base);
+      const [h, s, l] = hexToHsl(r.base);
+      root.style.setProperty('--accent-btn-hover', hslToHex(h, s, dark ? l + 8 : l - 8));
+      root.style.setProperty('--accent-btn-ink', luminance(r.base) > 0.42 ? '#1A1D20' : '#FFFFFF');
+    }
+  });
+}
+applyAppearance();
+
+/* ---------------- Asset store (the brand logo, and every post photo) ---------
+   Deliberately NOT part of the state blob. Images are the one thing in this file
+   that can be megabytes, and a state blob that carries them fails to save as a
+   WHOLE — the buyer loses a month of typed posts because they picked a 4MB logo.
+   Keeping them out means a too-big image fails on its own and says so.
+   state.meta.logo holds an id; a post holds `hasImg` and its own id; bytes live here.
+
+   Measured on file:// in Chrome: localStorage holds 9.75MB, shared with every other
+   Clearly planner a buyer owns, and one 240px post photo costs ~24KB of it — so the
+   old single-blob store died at roughly 325 photos, which a buyer posting four times
+   a week reaches inside year one. IndexedDB on the same origin holds 10,241MB. That
+   is the whole reason for the tiering below, chosen once at boot:
+     'idb'  IndexedDB — the real answer, effectively unlimited
+     'ls'   one localStorage key per image — at least a too-big image fails alone
+     'mem'  this session only (storage switched off, or the locked demo)
+
+   `assetGet` is SYNCHRONOUS in every tier, because render paints dozens of thumbnails
+   and cannot await; everything is held in `assetStore`, hydrated before the first
+   paint. Only writes are async, and `assetSet` therefore returns a PROMISE for its
+   'ok' | 'full' | 'blocked' verdict — the same vocabulary storeSet speaks. */
+const ASSET_KEY = KEY + '.assets';
+let assetStore = {};      // id -> dataURL — the synchronous source of truth
+let assetTier = 'mem';
+let assetDB = null;
+
+function assetsAll() { return assetStore; }
+function assetGet(id) { return (id && assetStore[id]) || null; }
+function assetsSize() {
+  let n = 0;
+  for (const k in assetStore) n += (assetStore[k] || '').length;
+  return n;
+}
+/* A post's photo is filed under its own id, namespaced so it can never collide
+   with 'logo' or with anything a later feature files here. */
+function postImgId(p) { return (p && p.id) ? 'post:' + p.id : null; }
+
+function lsAssetKey(id) { return ASSET_KEY + '.' + id; }
+function lsAssetAll() {
+  const out = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(ASSET_KEY + '.') === 0) out[k.slice(ASSET_KEY.length + 1)] = localStorage.getItem(k) || '';
+    }
+  } catch (e) { /* blocked — nothing enumerable */ }
+  return out;
+}
+
+/* A browser that never answers is a browser without usable IndexedDB: Safari and
+   Firefox on file:// are the known unknowns, and a planner that hangs on a promise
+   that never settles is worse than one that quietly uses localStorage. */
+function idbOpen() {
+  return new Promise(res => {
+    let done = false;
+    const finish = v => { if (!done) { done = true; res(v); } };
+    setTimeout(() => finish(null), 1500);
+    try {
+      if (typeof indexedDB === 'undefined' || !indexedDB) return finish(null);
+      const q = indexedDB.open(ASSET_KEY, 1);
+      q.onupgradeneeded = () => { try { q.result.createObjectStore('assets'); } catch (e) { /* already there */ } };
+      q.onsuccess = () => finish(q.result);
+      q.onerror = () => finish(null);
+      q.onblocked = () => finish(null);
+    } catch (e) { finish(null); }   // private-mode Firefox throws synchronously here
+  });
+}
+function idbAll(db) {
+  return new Promise(res => {
+    const out = {};
+    try {
+      const tx = db.transaction('assets', 'readonly');
+      const cur = tx.objectStore('assets').openCursor();
+      cur.onsuccess = e => {
+        const c = e.target.result;
+        if (!c) return res(out);
+        if (typeof c.value === 'string') out[c.key] = c.value;
+        c.continue();
+      };
+      cur.onerror = () => res(out);
+      tx.onerror = () => res(out);
+    } catch (e) { res(out); }
+  });
+}
+function idbPut(db, id, v) {
+  return new Promise(res => {
+    try {
+      const tx = db.transaction('assets', 'readwrite');
+      tx.objectStore('assets').put(v, id);
+      tx.oncomplete = () => res('ok');
+      tx.onerror = () => res(quotaError(tx.error) ? 'full' : 'blocked');
+      tx.onabort = () => res(quotaError(tx.error) ? 'full' : 'blocked');
+    } catch (e) { res('blocked'); }
+  });
+}
+
+/* Returns a promise for 'ok' | 'full' | 'blocked'. The in-memory map is updated FIRST
+   and synchronously, so the image paints immediately whatever the backend goes on to
+   say. Deliberately does NOT touch storageOK / storageWhy: an image that won't fit is
+   not a broken planner, and the undismissable banner stays reserved for the planner
+   itself failing to save. */
+function assetSet(id, dataURL) {
+  if (!id || !dataURL) return Promise.resolve('blocked');
+  assetStore[id] = dataURL;
+  if (DEMO_LOCKED) return Promise.resolve('ok');     // demo edits are in-memory by design
+  if (assetTier === 'idb') return idbPut(assetDB, id, dataURL);
+  if (assetTier === 'mem') return Promise.resolve('blocked');
+  try { localStorage.setItem(lsAssetKey(id), dataURL); return Promise.resolve('ok'); }
+  catch (e) { return Promise.resolve(quotaError(e) ? 'full' : 'blocked'); }
+}
+function assetDel(id) {
+  if (!id) return;
+  delete assetStore[id];
+  if (DEMO_LOCKED) return;
+  if (assetTier === 'idb') {
+    try { assetDB.transaction('assets', 'readwrite').objectStore('assets').delete(id); } catch (e) { /* nothing to lose */ }
+    return;
+  }
+  try { localStorage.removeItem(lsAssetKey(id)); } catch (e) { /* nothing to lose */ }
+}
+function assetClearAll() {
+  const ids = Object.keys(assetStore);
+  assetStore = {};
+  if (DEMO_LOCKED) return;
+  if (assetTier === 'idb') {
+    try { assetDB.transaction('assets', 'readwrite').objectStore('assets').clear(); } catch (e) { /* nothing to lose */ }
+    return;
+  }
+  ids.forEach(id => { try { localStorage.removeItem(lsAssetKey(id)); } catch (e) { /* nothing to lose */ } });
+}
+
+/* Pick the tier and fill the map, once, before the first paint. Two older shapes are
+   folded in and retired on the way: the single `ASSET_KEY` JSON blob that held the
+   logo, and per-image `ASSET_KEY.<id>` keys from a file that ran on the 'ls' tier.
+   Nobody loses a logo or a photo by upgrading, or by changing browser version. */
+async function hydrateAssets() {
+  if (DEMO_LOCKED) { assetTier = 'mem'; return; }
+  let legacyBlob = {};
+  try {
+    const raw = localStorage.getItem(ASSET_KEY);
+    if (raw) { const o = JSON.parse(raw); if (o && typeof o === 'object' && !Array.isArray(o)) legacyBlob = o; }
+  } catch (e) { /* blocked or corrupt — an empty store is the honest fallback */ }
+
+  const db = await idbOpen();
+  if (db) {
+    assetDB = db;
+    assetTier = 'idb';
+    assetStore = await idbAll(db);
+    const older = Object.assign({}, lsAssetAll(), legacyBlob);
+    let blobMoved = !Object.keys(legacyBlob).length;
+    for (const id of Object.keys(older)) {
+      if (assetStore[id]) { try { localStorage.removeItem(lsAssetKey(id)); } catch (e) {} continue; }
+      const r = await idbPut(db, id, older[id]);
+      assetStore[id] = older[id];
+      if (r === 'ok') { try { localStorage.removeItem(lsAssetKey(id)); } catch (e) {} }
+      else if (legacyBlob[id]) blobMoved = false;
+    }
+    // only drop the old blob once every asset inside it is safely somewhere else
+    if (blobMoved) { try { localStorage.removeItem(ASSET_KEY); } catch (e) {} }
+    return;
+  }
+  /* No usable IndexedDB. Per-key localStorage is the fallback: far tighter, but a
+     too-big image still fails on its own instead of taking the planner's save with it. */
+  try { localStorage.getItem(KEY); assetTier = 'ls'; } catch (e) { assetTier = 'mem'; }
+  assetStore = Object.assign({}, legacyBlob, assetTier === 'ls' ? lsAssetAll() : {});
+  if (assetTier === 'ls' && Object.keys(legacyBlob).length) {
+    let all = true;
+    for (const id of Object.keys(legacyBlob)) {
+      try { localStorage.setItem(lsAssetKey(id), legacyBlob[id]); } catch (e) { all = false; }
+    }
+    if (all) { try { localStorage.removeItem(ASSET_KEY); } catch (e) {} }
+  }
+}
+
+/* One-time move of post photos out of the state blob, for files and backups written
+   before the split. A photo that cannot be written stays exactly where it is and is
+   retried next load — a migration must never be the thing that loses a buyer's photo —
+   so the done-flag is set only once every photo has actually moved. */
+async function migrateInlineImages() {
+  if (DEMO_LOCKED || state.meta.imgSplit) return;
+  let moved = 0, stuck = 0;
+  // every brand's posts, not just the open one: a photo hiding in a brand the buyer
+  // has not switched to yet is still a photo sitting in the state blob
+  const allPosts = brandList().reduce((a, b) => a.concat((b.data && b.data.posts) || []), []);
+  for (const p of allPosts) {
+    if (!p || typeof p.img !== 'string' || p.img.slice(0, 5) !== 'data:') continue;
+    if (!p.id) p.id = uid();
+    if (await assetSet(postImgId(p), p.img) !== 'ok') { stuck++; continue; }
+    p.hasImg = true;
+    delete p.img;
+    moved++;
+  }
+  if (!stuck) state.meta.imgSplit = true;
+  // straight to storage, not the debounced save(): a "✓ Saved" toast at a moment the
+  // buyer did nothing reads like a glitch, and there is no #main to patch a banner into yet
+  if (moved || !stuck) storeSet(JSON.stringify(state));
+}
+
+/* Every file:// page shares ONE localStorage bucket, so the only honest reading is the
+   whole bucket — a buyer with three Clearly planners in Downloads fills one jar with all
+   three. UTF-16, so two bytes per character. On the IndexedDB tier there is no ceiling
+   worth warning about, so the warning simply never fires — which is the entire point. */
+const LS_BUDGET = 5 * 1024 * 1024;   // Chrome measured 9.75MB on file://; Safari is commonly 5MB. Warn on the floor.
+function storageUsedBytes() {
+  let n = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k == null) continue;
+      n += (k.length + (localStorage.getItem(k) || '').length) * 2;
+    }
+  } catch (e) { return 0; }   // blocked: nothing to measure, and the banner already says so
+  return n;
+}
+function storageTight() {
+  if (assetTier === 'idb') return false;
+  return storageUsedBytes() >= LS_BUDGET * 0.8;
+}
 
 /* Save (debounced) + toast */
 let saveTimer = null, toastTimer = null;
@@ -1538,10 +2375,74 @@ function setPath(path, value) {
   o[keys[keys.length - 1]] = value;
 }
 
+/* ---------------- Brand switching, adding, renaming, removing ----------------
+   A new brand starts from starterData(), never from the sample: the sample exists to
+   make the FIRST open legible, and a buyer adding their second brand has already
+   learned the product. Switching only moves a pointer — no data is copied or touched,
+   which is what keeps two brands genuinely independent. */
+/* Structural changes write STRAIGHT to storage rather than riding the 300ms debounce
+   in save(). Losing a keystroke to a fast tab-close is a nuisance; losing a whole
+   brand — or switching, closing, and reopening on the wrong one — is not. */
+function saveBrandsNow() {
+  clearTimeout(saveTimer);
+  const res = storeSet(JSON.stringify(state));
+  if (typeof syncStorageBanner === 'function') syncStorageBanner();
+  return res;
+}
+function switchBrand(id) {
+  if (!brandList().some(b => b.id === id)) return false;
+  state.activeBrand = id;
+  saveBrandsNow();
+  return true;
+}
+function addBrand(name) {
+  if (brandList().length >= MAX_BRANDS) return null;
+  const nm = String(name || '').trim() || 'New brand';
+  const b = newBrand(nm, starterData(), 'cleared');
+  if (b.data && b.data.brand) b.data.brand.name = nm;   // the profile IS the label
+  state.brands.push(b);
+  state.activeBrand = b.id;
+  saveBrandsNow();
+  return b;
+}
+function renameBrand(id, name) {
+  const b = brandList().find(x => x.id === id);
+  if (!b) return false;
+  const n = String(name || '').trim().slice(0, 40);
+  if (!n) return false;
+  b.name = n;
+  if (b.data && b.data.brand) b.data.brand.name = n;    // keep the profile in step
+  saveBrandsNow();
+  return true;
+}
+/* Deleting a brand destroys a whole dashboard, so the caller confirms first and this
+   takes the photos with it — orphaned post images would sit in IndexedDB forever. */
+function removeBrand(id) {
+  const list = brandList();
+  if (list.length <= 1) return false;            // never leave the file with no brand
+  const i = list.findIndex(b => b.id === id);
+  if (i < 0) return false;
+  ((list[i].data && list[i].data.posts) || []).forEach(p => assetDel(postImgId(p)));
+  list.splice(i, 1);
+  if (state.activeBrand === id) state.activeBrand = list[Math.min(i, list.length - 1)].id;
+  saveBrandsNow();
+  return true;
+}
+
 /* Backup / Restore / Reset */
+/* Rough size of the file doBackup() is about to hand over, in MB. Post photos are the
+   whole story — the rest of a planner is a few dozen KB of text. */
+function backupSizeMB() {
+  return (JSON.stringify(state).length + assetsSize()) / (1024 * 1024);
+}
 function doBackup() {
   if (DEMO_LOCKED) { toast('Backup is part of the full version'); return; }
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type: 'application/json'});
+  /* Assets live outside the state blob, so a plain JSON.stringify(state) would hand the
+     buyer a backup that silently drops their logo AND every post photo. Sidecar them —
+     a backup has to stay portable to another machine. Restores of older backups just
+     find no `assets` key and carry on. */
+  const payload = Object.assign({}, state, {assets: assetsAll()});
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `clearly-social-media-dashboard-backup-${todayISO()}.json`;
@@ -1557,14 +2458,49 @@ function doRestore(file) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const norm = normalizeState(JSON.parse(reader.result));
+      const parsed = JSON.parse(reader.result);
+      // shape first, confirm second, write third — a cancelled restore must change
+      // nothing, and unpacking a backup's images into the store is already a write
+      if (!looksLikeState(parsed)) throw new Error('shape');
+      /* Scope has to be explicit now that a file holds several brands. "Replace
+         everything in this dashboard" was exact in v1 and dangerous in v2: a buyer
+         sitting in brand two reads "this dashboard" as "this brand", and restore
+         replaces ALL of them. Name both counts — what is destroyed, what arrives. */
+      const have = brandList().length;
+      const incoming = Array.isArray(parsed.brands) ? parsed.brands.length : 1;
+      if (!confirm(
+        (have > 1
+          ? 'Replace ALL ' + have + ' brands in this file with the backup "' + file.name + '"?'
+          : 'Replace everything in this file with the backup "' + file.name + '"?')
+        + '\n\nEverything here now — ' + (have > 1 ? 'every brand, ' : '') + 'every post, every photo — is overwritten by the '
+        + (incoming === 1 ? 'one brand' : incoming + ' brands') + ' in that file. This cannot be undone.')) return;
+      assetClearAll();   // the logo and photos of the file being replaced go with it
+      const norm = normalizeState(parsed);
       if (!norm) throw new Error('shape');
-      if (!confirm('Replace everything in this dashboard with the backup "' + file.name + '"? Your current data will be overwritten.')) return;
       state = norm;
+      /* Sidecar assets, if this backup carries any — the logo and every post photo.
+         Written one at a time so a single oversized asset cannot cost the others. A
+         backup taken before the split has no `assets` key and carries its photos
+         inline instead; migrateInlineImages() below picks those up. */
+      if (parsed.assets && typeof parsed.assets === 'object' && !Array.isArray(parsed.assets)) {
+        Object.keys(parsed.assets).forEach(id => {
+          const url = parsed.assets[id];
+          if (typeof url !== 'string' || url.slice(0, 5) !== 'data:') return;
+          assetSet(id, url);
+          if (id.slice(0, 5) !== 'post:') return;
+          const p = brandList().reduce((a, b) => a.concat((b.data && b.data.posts) || []), [])
+            .find(q => q && q.id === id.slice(5));
+          if (p) { p.hasImg = true; delete p.img; }
+        });
+      }
+      state.meta.imgSplit = false;
+      migrateInlineImages();   // folds in any post still carrying its photo inline
       save(false);
-      applyTheme(); applyPalette();
+      applyTheme(); applyAppearance();
       render();
-      toast('✓ Backup restored');
+      toast(brandList().length > 1
+        ? '✓ Restored ' + brandList().length + ' brands from backup'
+        : '✓ Backup restored');
     } catch (e) {
       alert("That file doesn't look like a Clearly backup. Nothing was changed.\n\nExpected a .json file downloaded with the Backup button.");
     }
@@ -1573,15 +2509,22 @@ function doRestore(file) {
   reader.readAsText(file);
 }
 function doReset() {
-  if (DEMO_LOCKED) { state = freshState(); applyTheme(); applyPalette(); render(); toast('Demo reset to sample data'); return; }
+  if (DEMO_LOCKED) { state = freshState(); applyTheme(); applyAppearance(); render(); toast('Demo reset to sample data'); return; }
+  /* Same scope problem as restore, and harder: reset has no file behind it, so a
+     buyer who reads "this dashboard" as "this brand" loses the other two with nothing
+     to restore from. */
+  const n = brandList().length;
   if (!confirm(DEMO
     ? 'Reset the demo back to its original sample data?'
-    : 'Reset the entire dashboard to a clean starter state? This erases everything you have entered. Consider downloading a Backup first.')) return;
+    : (n > 1 ? 'Reset this file and erase ALL ' + n + ' brands?' : 'Reset this file to a clean starter state?')
+      + '\n\nThis erases ' + (n > 1 ? 'every brand — ' : '') + 'every post, platform, deal and photo you have entered, and cannot be undone. '
+      + 'Download a Backup first if you might want any of it back.')) return;
   state = freshState();
+  assetClearAll();   // "erases everything" means the logo AND every post photo, none of which live inside KEY
   save(false);
-  applyTheme(); applyPalette();
+  applyTheme(); applyAppearance();
   render();
-  toast('Dashboard reset');
+  toast('✓ Reset — one clean brand, nothing else');
 }
 
 /* Backup nudge */
@@ -1782,6 +2725,27 @@ function deriveHeat(d, keys = periodMonthsKeys(), pid = 'all') {
   });
   cells.forEach(row => row.forEach(c => { c.er = c.cnt ? c.sum / c.cnt : null; }));
   return cells;
+}
+
+/* Best posting day: avg ER by weekday. Coarser than deriveHeat on purpose — the heat
+   map needs a logged TIME on every post, which most buyers never fill in, so it goes
+   empty exactly when a month summary needs to say something. The date is always there.
+   `best` stays null under 2 posts on a day: one good Tuesday is not a pattern. */
+function deriveBestDay(d, keys = periodMonthsKeys(), pid = 'all') {
+  const days = Array.from({length: 7}, () => ({n: 0, sum: 0, cnt: 0, er: null}));
+  (d.posts || []).forEach(p => {
+    if (p.status !== 'posted' || !p.date || !keys.includes(p.date.slice(0, 7))) return;
+    if (pid !== 'all' && p.pid !== pid) return;
+    const dw = dowIdx(p.date);
+    if (dw === null) return;
+    days[dw].n++;
+    const e = div(postInteractions(p), p.reach);
+    if (e !== null) { days[dw].sum += e * 100; days[dw].cnt++; }
+  });
+  days.forEach(x => { x.er = x.cnt ? x.sum / x.cnt : null; });
+  let best = null;
+  days.forEach((x, i) => { if (x.er !== null && x.cnt >= 2 && (!best || x.er > best.er)) best = {dow: i, er: x.er, n: x.n}; });
+  return {days, best};
 }
 
 /* Posting-streak grid: per-day post counts for the last N weeks (columns = weeks,
@@ -2400,12 +3364,25 @@ const VIEWS = [
   {id: 'community',   label: 'Community & Engagement Ops',        group: 'Engage & Grow',     icon: 'heart'},
   {id: 'experiments', label: 'Experiments & A/B Log',             group: 'Engage & Grow',     icon: 'flask'},
   {id: 'money',       label: 'Monetization & Brand Deals',        group: 'Monetize',          icon: 'dollar'},
-  {id: 'report',      label: 'Goals, Benchmarks & Client Report', group: 'Report',            icon: 'file'},
+  {id: 'report',      label: 'Month in Review & Client Report',   group: 'Report',            icon: 'file'},
 ];
-const ui = {view: 'home', monthOffset: 0, period: {mode: 'month', ref: monthKey()}, platform: 'all', filterPosts: 'all', postSort: 'date',
-  editPost: null, postsSnapshot: null, addModal: null, dayPeek: null};
+/* DEMO always opens on Home: the listing demo IS the Home screenshot, and a demo that
+   opened on a setup checklist would sell nothing. A real buyer's very first open lands
+   on Start Here instead — the one screen that tells them what to do. */
+const ui = {view: (firstOpen && !DEMO) ? 'start' : 'home', monthOffset: 0, period: {mode: 'month', ref: monthKey()}, platform: 'all', filterPosts: 'all', postSort: 'date',
+  editPost: null, postsSnapshot: null, addModal: null, dayPeek: null,
+  reportTab: 'review', reviewMonth: monthKey(), appearance: false, startMore: false, brandMenu: false};
 const PTONE_VARS = ['--coral', '--aqua', '--golden', '--teal', '--serious', '--info-deep'];
 const DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+/* The four cuts every filmed or written idea owes you. Scaffolding and prompts only —
+   there is no generator here and there will not be one: the buyer writes the post,
+   this just stops them forgetting that three of the four were never made. */
+const REPURPOSE_OUTS = [
+  {id: 'feed',     label: 'Feed post',   icon: 'image',    prompt: 'the single strongest frame or line, as one image'},
+  {id: 'carousel', label: 'Carousel',    icon: 'carousel', prompt: 'break it into 5–7 steps, one per slide'},
+  {id: 'short',    label: 'Short video', icon: 'reel',     prompt: 'the 15 seconds that earned the watch time'},
+  {id: 'caption',  label: 'Caption cut', icon: 'quote',    prompt: 'the same idea told a second way, new hook'},
+];
 
 /* ---------------- Reporting period ---------------- */
 function periodMonthsKeys() {
@@ -2457,16 +3434,23 @@ function renderNav() {
       <li><button class="navbtn" data-action="nav" data-view="${v.id}" ${ui.view === v.id ? 'aria-current="page"' : ''}>
         ${icon(v.icon, 16)}<span>${esc(v.label)}</span></button></li>`).join('')}
   </ul>`;
+  /* A buyer's own logo replaces the Clearly mark in the sidebar, never the wordmark —
+     this is their dashboard, but it is still Clearly's file and the guide, the shop
+     message link and every support answer depend on them knowing what they are in. */
+  const logo = assetGet(state.meta.logo);
   $('#sidebar').innerHTML = `
     <div class="wordmark">
-      <span class="wm-row">
+      ${logo
+        ? `<span class="wm-row"><img class="wm-logo" src="${logo}" alt="${esc((D().brand || {}).name || 'Your brand')}"></span>
+           <span class="wm-sub">Clearly · Social Media Dashboard</span>`
+        : `<span class="wm-row">
         <svg width="24" height="24" viewBox="8 8 48 48" fill="none" aria-hidden="true">
           <rect x="13" y="13" width="38" height="38" rx="10" stroke="var(--logo-ink)" stroke-width="4"/>
           <rect x="21" y="22" width="22" height="5" rx="2.5" fill="var(--aqua)"/>
           <rect x="21" y="30" width="22" height="5" rx="2.5" fill="var(--logo-ink)"/>
           <rect x="21" y="38" width="14" height="5" rx="2.5" fill="var(--coral)"/>
         </svg>Clearly</span>
-      <span class="wm-sub">Social Media Dashboard</span>
+      <span class="wm-sub">Social Media Dashboard</span>`}
     </div>
     ${groups.map(g => g === ''
       ? `<div class="navgroup" style="margin-top:6px">${navList(g)}</div>`
@@ -2480,19 +3464,44 @@ function greeting() {
 function renderTopbar() {
   $('#topbar').innerHTML = `
     <button id="menuToggle" class="btn btn-ghost" data-action="menu" aria-label="Open navigation" aria-expanded="${document.body.classList.contains('nav-open')}">${icon('menu', 18)}</button>
-    <div class="tb-brand">
-      <span class="brandname">${edField('brand.name', {label: 'Brand name', min: 6, max: 26, cls: 'ed-big'})}</span>
-    </div>
+    <div class="tb-brand">${brandSwitcher()}</div>
     <div class="tb-greet"><strong>${greeting()}</strong> — ${new Date().toLocaleDateString('en-US', {weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'})}</div>
     <div class="tb-actions">
       ${DEMO ? `<span class="chip sagey" role="status">${icon('bulb', 13)}Live demo</span>` : ''}
       <button class="btn btn-ghost" data-action="theme" aria-label="Switch to ${document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'} mode" title="Light / dark mode">${icon(document.documentElement.dataset.theme === 'dark' ? 'sun' : 'moon', 16)}</button>
-      <button class="btn btn-ghost" data-action="palette" aria-label="Switch color palette (current: ${document.documentElement.dataset.palette === 'blush' ? 'Blush' : 'Clearly'})" title="Color palette — Clearly / Blush">${icon('swatch', 16)}</button>
+      <button class="btn btn-ghost" data-action="apopen" aria-label="Appearance — palettes, brand colors, logo and type" title="Appearance">${icon('swatch', 16)}</button>
       ${DEMO_LOCKED ? `<button class="btn" data-action="reset">${icon('reset', 14)}<span class="bl">Reset demo</span></button>` : `
       <button class="btn" data-action="backup">${icon('download', 14)}<span class="bl">Backup</span></button>
       <button class="btn" data-action="restore">${icon('upload', 14)}<span class="bl">Restore</span></button>
       <button class="btn btn-danger" data-action="reset">${icon('reset', 14)}<span class="bl">Reset</span></button>`}
     </div>`;
+}
+
+/* The brand switcher. Only appears once there is more than one brand OR room to add
+   one — on a single-brand file it is a single quiet "+ Add a brand" affordance, so the
+   default first screen gains a control but not a decision. */
+function brandSwitcher() {
+  const list = brandList(), cur = activeBrand();
+  if (!cur) return '';
+  const open = ui.brandMenu, multi = list.length > 1;
+  return `<span class="bswitch noprint">
+    <button class="bsbtn" data-action="brandmenu" aria-expanded="${!!open}" aria-haspopup="true"
+      aria-label="${esc(brandLabel(cur))} — ${multi ? `brand ${activeIdx() + 1} of ${list.length}, ` : ''}click to switch or add a brand"
+      title="${multi ? 'You are editing “' + esc(brandLabel(cur)) + '” — click to switch brand' : 'Click to add a second brand to this file'}">
+      <span class="bs-name">${esc(brandLabel(cur))}</span>${multi ? `<span class="bs-count">${activeIdx() + 1}/${list.length}</span>` : ''}${icon('chevd', 14)}</button>
+    ${open ? `<span class="bsmenu" role="menu">
+      <span class="bsm-head">Brands in this file <span class="bsm-cap">${list.length} of ${MAX_BRANDS}</span></span>
+      ${list.map(b => `<button class="bsm-item${b.id === cur.id ? ' on' : ''}" role="menuitem" data-action="brandgo" data-id="${b.id}">
+        ${b.id === cur.id ? icon('check', 13) : '<i class="bsm-gap"></i>'}<span>${esc(brandLabel(b))}</span></button>`).join('')}
+      <span class="bsm-sep"></span>
+      ${list.length < MAX_BRANDS
+        ? `<button class="bsm-item" role="menuitem" data-action="brandadd">${icon('plus', 13)}<span>Add a brand</span></button>`
+        : `<span class="bsm-note">${MAX_BRANDS} brands is the limit — it keeps this menu readable and your file quick to back up.</span>`}
+      <button class="bsm-item" role="menuitem" data-action="brandrename">${icon('sliders', 13)}<span>Rename “${esc(brandLabel(cur))}”</span></button>
+      ${list.length > 1 ? `<button class="bsm-item bsm-del" role="menuitem" data-action="branddel">${icon('x', 13)}<span>Delete “${esc(brandLabel(cur))}”</span></button>` : ''}
+      <span class="bsm-note">Each brand keeps its own posts, platforms and reports. One Backup covers them all.</span>
+    </span>` : ''}
+  </span>`;
 }
 
 function nudgeHTML() {
@@ -2578,13 +3587,20 @@ function pillarColorIdx(d, pillarId) {
 /* Placeholder post photo — professional home-goods photography embedded in the file
    (THUMBS bank in p2b.js). Themed by content pillar, deterministic per post so the
    grid never reshuffles between renders. Purely decorative — no uploads, ever. */
+/* Does this post have a photo of the buyer's own, right now? Truth comes from the
+   bytes, not the flag: a file whose storage was cleared underneath it still carries
+   hasImg, and a pre-split file still carries its photo inline. */
+function hasPhoto(p) { return !!(p && (p.img || (p.hasImg && assetGet(postImgId(p))))); }
 function thumbSrc(d, p) {
-  if (p.img) return p.img; // the user's own photo — attached locally, never uploaded
-  /* Placeholder art stops at Clear. Once meta.sample is 'cleared' the buyer has asked
-     to start fresh, and going on painting pillar-themed photographs over their own
+  if (p.img) return p.img;             // legacy inline photo — a pre-split file or backup
+  const own = assetGet(postImgId(p));
+  if (own) return own;                 // the user's own photo — attached locally, never uploaded
+  /* Placeholder art stops at Clear. Once this brand's sample is 'cleared' the buyer has
+     asked to start fresh, and going on painting pillar-themed photographs over their own
      posts is the opposite of fresh — the tinted ptone tile is the honest state from
-     then on, and the add-photo control is the thing to show. */
-  if (typeof state !== 'undefined' && state && state.meta && state.meta.sample === 'cleared') return null;
+     then on, and the add-photo control is the thing to show. Per BRAND, so a second
+     brand (which starts cleared) never shows stock art. */
+  if (typeof activeBrand === 'function') { const b = activeBrand(); if (b && b.sample === 'cleared') return null; }
   const seed = [...String(p.id || p.title || '')].reduce((a, c) => a + c.charCodeAt(0), 0);
   const slot = pillarColorIdx(d, p.pillar);
   const group = THUMBS[slot < THUMBS.length ? slot : seed % THUMBS.length];
@@ -2592,8 +3608,10 @@ function thumbSrc(d, p) {
 }
 /* 1 & 2 · Post thumbnail tile — the user's own photo, or pillar-themed placeholder art.
    size: '' = feed-grid cell · 'lg' 84px (post-card header) · 'md' 64px (list rows) · 'sm' 34px (compact rows)
-   editIdx (post-card header only): shows the add/remove-photo controls for d.posts[editIdx]. */
-function thumbTile(d, p, {size = '', editIdx = null, editId = null, pids = null} = {}) {
+   editIdx (post-card header only): shows the add/remove-photo controls for d.posts[editIdx].
+   hideDate: the Feed Preview prints the date under the tile, so the on-tile badge would
+   say the same thing twice over the photo. */
+function thumbTile(d, p, {size = '', editIdx = null, editId = null, pids = null, hideDate = false} = {}) {
   const f = FORMATS[p.format] || FORMATS.static;
   const sched = p.status !== 'posted';
   const grid = size === '';
@@ -2606,8 +3624,8 @@ function thumbTile(d, p, {size = '', editIdx = null, editId = null, pids = null}
     ${dot ? `<span class="th-pill" style="background:var(${PTONE_VARS[pillarColorIdx(d, p.pillar)]})" aria-hidden="true"></span>` : ''}
     ${badge ? `<span class="fmt-badge">${icon(f.icon, 11)}</span>` : ''}
     ${pids && pids.length ? `<span class="th-plats" role="img" aria-label="Posted to ${esc(pids.map(x => (PLATFORM_META[x] || {label: x}).label).join(', '))}">${pids.map(x => platMono(x, 16)).join('')}</span>` : ''}
-    ${grid && sched && p.date ? `<span class="th-date${pids && pids.length ? ' th-date-top' : ''}">${esc(relDay(p.date))}</span>` : ''}
-    ${editIdx !== null ? `<button class="th-add" data-action="postimg" data-i="${editIdx}" title="${p.img ? 'Replace' : 'Add'} this post’s photo — stored only on this device, never uploaded" aria-label="${p.img ? 'Replace' : 'Add'} this post’s photo">${icon('image', 12)}</button>${p.img ? `<button class="th-add th-del" data-action="postimgdel" data-i="${editIdx}" title="Remove photo (back to placeholder art)" aria-label="Remove this post’s photo">${icon('x', 11)}</button>` : ''}` : ''}
+    ${grid && sched && p.date && !hideDate ? `<span class="th-date${pids && pids.length ? ' th-date-top' : ''}">${esc(relDay(p.date))}</span>` : ''}
+    ${editIdx !== null ? (() => { const own = hasPhoto(p); return `<button class="th-add" data-action="postimg" data-i="${editIdx}" title="${own ? 'Replace' : 'Add'} this post’s photo — stored only on this device, never uploaded" aria-label="${own ? 'Replace' : 'Add'} this post’s photo">${icon('image', 12)}</button>${own ? `<button class="th-add th-del" data-action="postimgdel" data-i="${editIdx}" title="Remove photo (back to placeholder art)" aria-label="Remove this post’s photo">${icon('x', 11)}</button>` : ''}`; })() : ''}
   </span>`;
 }
 /* Read a user-picked image locally, cover-crop to a small square thumbnail, store with the post.
@@ -2622,10 +3640,23 @@ function attachPostImg(file, idx) {
       c.width = S; c.height = S;
       const side = Math.min(im.width, im.height);
       c.getContext('2d').drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, S, S);
-      setPath(`posts.${idx}.img`, c.toDataURL('image/jpeg', 0.72));
-      save(true);
-      render();
-      toast('✓ Photo added — stored only on this device');
+      const post = D().posts[idx];
+      if (!post) return;
+      if (!post.id) post.id = uid();
+      /* Read the bucket BEFORE adding to it, so any warning describes the situation the
+         buyer is walking into. One toast carries the result either way — two in a row
+         would overwrite each other before the first could be read. */
+      const tight = storageTight();
+      assetSet(postImgId(post), c.toDataURL('image/jpeg', 0.72)).then(res => {
+        post.hasImg = true;
+        delete post.img;           // a replaced legacy photo doesn't belong in the blob
+        save(true);
+        render();
+        if (res === 'full') toast('⚠ That photo didn’t fit — this browser is out of room. Your posts are still saving fine.');
+        else if (res === 'blocked') toast('⚠ Photo added for this session — this browser is blocking storage, so it won’t be here after a refresh');
+        else if (tight) toast('✓ Photo added — photos are what fill this browser up, and you’re near its limit. Back up soon.');
+        else toast('✓ Photo added — stored only on this device');
+      });
     };
     im.onerror = () => toast('Couldn’t read that image — try a JPG or PNG');
     im.src = reader.result;
@@ -2633,11 +3664,35 @@ function attachPostImg(file, idx) {
   reader.onerror = () => toast('Couldn’t read that file');
   reader.readAsDataURL(file);
 }
-/* 1 · Feed-grid preview — upcoming + recent posts as your grid will look.
+/* The first line of what the buyer actually wrote. Caption first — that's the post.
+   Hook is the fallback (it IS the first line when the caption isn't drafted yet), then
+   the working title. Returns null when there is genuinely nothing, so the caller can
+   say so rather than printing "Untitled". */
+function firstCaptionLine(p) {
+  for (const v of [p.caption, p.hook, p.title]) {
+    const line = String(v || '').split('\n').map(s => s.trim()).find(Boolean);
+    if (line) return line;
+  }
+  return null;
+}
+/* 1 · Feed Preview — upcoming + recent posts as your grid will look, in order.
+   Two things the aesthetic-grid version left out, and this buyer needs more than color
+   flow: the first line of each caption (what is actually going out, and whether they
+   are repeating themselves), and one queue per account rather than a merged pile.
    Cross-posted copies share a groupId: one piece of content = ONE tile, with the
    platforms it runs on marked along the bottom — never the same photo N times. */
-function feedGrid(d, {max = 9} = {}) {
-  const live = (d.posts || []).filter(p => (p.status === 'posted' || p.status === 'scheduled') && p.date)
+/* `month` is the month the CALENDAR beside this panel is showing. Without it the
+   preview ignored the month arrows entirely: paging the calendar back to July left
+   this grid sitting on September, so two panels side by side disagreed about which
+   month you were looking at. */
+function feedGrid(d, {max = 9, month = null} = {}) {
+  /* Follows the platform chips above it rather than carrying its own tab row. The two
+     sat one under the other doing the same job, and only the lower one worked — so the
+     chip bar read as broken on this view. One control, and the calendar, the pipeline
+     and this grid now all answer to it. */
+  const pid = ui.platform;
+  const live = (d.posts || []).filter(p => (p.status === 'posted' || p.status === 'scheduled') && p.date
+      && (!month || p.date.slice(0, 7) === month) && (pid === 'all' || p.pid === pid))
     .sort((a, b) => String(b.date).localeCompare(String(a.date)));
   const groups = [], byKey = new Map();
   live.forEach(p => {
@@ -2649,12 +3704,28 @@ function feedGrid(d, {max = 9} = {}) {
       g = {rep: p, pids: [...new Set(sibs.map(q => q.pid))]};
       byKey.set(key, g); groups.push(g);
     }
-    if (!g.rep.img && p.img) g.rep = p; // prefer the copy that carries the photo
+    if (!hasPhoto(g.rep) && hasPhoto(p)) g.rep = p; // prefer the copy that carries the photo
   });
   const items = groups.slice(0, max);
-  if (!items.length) return `<div class="emptystate">Schedule or log a few posts and your grid preview appears here.</div>`;
-  return `<div class="feedgrid" aria-label="Feed preview — ${items.length} recent and upcoming posts; click a tile to edit that post">${items.map(g => thumbTile(d, g.rep, {editId: g.rep.id, pids: g.pids})).join('')}</div>
-  <div class="callegend" style="margin-top:8px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>logos show every platform a post runs on — click a tile to edit it</span></div>`;
+  const where = month ? ' in ' + esc(monthLabel(month, {month: 'long'})) : '';
+  if (!items.length) return `<div class="emptystate">${pid === 'all'
+    ? (month ? `Nothing posted or scheduled${where}. Use the month arrows above to look at another month.`
+             : 'Schedule or log a few posts and your feed preview appears here.')
+    : `Nothing queued for ${esc((PLATFORM_META[pid] || {label: pid}).label)}${where}.`}</div>`;
+  return `<div class="fgcells" aria-label="Feed Preview — ${items.length} recent and upcoming posts, newest first; click a tile to edit that post">
+    ${items.map(g => {
+      const p = g.rep, sched = p.status !== 'posted', line = firstCaptionLine(p);
+      return `<div class="fg-cell">
+        ${thumbTile(d, p, {editId: p.id, pids: g.pids, hideDate: true})}
+        <span class="fg-cap">
+          <span class="fg-when">${sched ? `<span class="fg-sched">${esc(relDay(p.date) || 'unscheduled')}</span> · ` : ''}${esc(fmtDate(p.date))}</span>
+          <span class="fg-line${line ? '' : ' fg-none'}">${line ? esc(line) : 'no caption yet'}</span>
+        </span>
+      </div>`; }).join('')}
+  </div>
+  <div class="callegend" style="margin-top:10px"><span><span class="sw" style="border:1.5px dashed var(--muted)"></span>Scheduled</span><span>${groups.length > items.length
+    ? `newest ${items.length} of ${groups.length}${where} — click a tile to edit the post`
+    : 'the line under each tile is the first line of its caption — click a tile to edit the post'}</span></div>`;
 }
 
 /* 7 · Posting-streak calendar */
@@ -2840,11 +3911,11 @@ function insightCallouts(d, keys, pid) {
   const fmts = deriveFormats(d, keys, pid).filter(f => f.n >= 3 && f.er !== null);
   if (fmts.length >= 2 && fmts[0].index >= 115) {
     const meta = FORMATS[fmts[0].format];
-    out.push(`<strong>${esc(meta.label)}s</strong> earn ${fmt.num(fmts[0].index / 100, 1)}× your average engagement but are ${fmt.num(fmts[0].share, 0)}% of your output — shift the mix toward them.`);
+    out.push(`<strong>${esc(meta.plural || meta.label)}</strong> earn ${fmt.num(fmts[0].index / 100, 1)}× your average engagement but are ${fmt.num(fmts[0].share, 0)}% of your output — shift the mix toward them.`);
   }
   if (fmts.length >= 2) {
     const worst = fmts[fmts.length - 1];
-    if (worst.index !== null && worst.index <= 80 && worst.share >= 20) out.push(`<strong>${esc(FORMATS[worst.format].label)}s</strong> underperform (${fmt.num(worst.index, 0)} index) yet take ${fmt.num(worst.share, 0)}% of your effort — repurpose that time.`);
+    if (worst.index !== null && worst.index <= 80 && worst.share >= 20) out.push(`<strong>${esc(fmtPlural(worst.format))}</strong> underperform (${fmt.num(worst.index, 0)} index) yet take ${fmt.num(worst.share, 0)}% of your effort — repurpose that time.`);
   }
   const cells = deriveHeat(d, keys, pid);
   let best = null;
@@ -2905,7 +3976,7 @@ function viewHome() {
       </div>
     </section>
 
-    <section class="card c4" aria-label="Program health score">
+    <section class="card lead c4" aria-label="Program health score">
       ${cardH('gauge', 'Program Health', `<span class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : band.cls === 'neutral' ? 'question' : band.cls === 'critical' ? 'octagon' : 'alert', 13)}${band.label}</span>`)}
       <div class="gaugewrap hero-grad">
         ${gaugeSVG(rAll.health, band)}
@@ -3045,21 +4116,15 @@ function viewSetup() {
           <button class="btn" data-action="restore">${icon('upload', 14)}Restore from file</button>
           <button class="btn btn-danger" data-action="reset">${icon('reset', 14)}Reset dashboard</button>
         </div>
-        <p style="margin:12px 0 0;font-size:12px">Last backup: <strong>${state.meta.lastBackup ? new Date(state.meta.lastBackup).toLocaleString() : 'never'}</strong> · edits since: ${state.meta.edits || 0}</p>
+        <p style="margin:10px 0 0;font-size:12px">Your backup file is about <strong>${backupSizeMB() < 0.1 ? 'under 0.1' : backupSizeMB().toFixed(1)} MB</strong> — your post photos travel inside it, so a large file is normal and a slow download isn't a failure.</p>
+        <p style="margin:8px 0 0;font-size:12px">Last backup: <strong>${state.meta.lastBackup ? new Date(state.meta.lastBackup).toLocaleString() : 'never'}</strong> · edits since: ${state.meta.edits || 0}</p>
       </div>`}
     </section>
     <section class="card c6">
-      ${cardH('swatch', 'Appearance', 'also in the top bar', 'coral')}
+      ${cardH('swatch', 'Appearance', 'also the swatch in the top bar', 'coral')}
       <div class="card-b">
-        <p style="margin:0 0 10px;font-size:13px;color:var(--ink-2)">Two color palettes, each with a light and dark mode. Your choice ${DEMO_LOCKED ? 'lasts until refresh in this demo' : 'is saved automatically'}.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          ${[['clearly', 'Clearly', '#587987,#E7805B,#71C0BC,#F3BE3F'], ['blush', 'Blush', '#7A55B0,#E7698B,#22997B,#F5A5BC']].map(([id, name, sw]) => {
-            const on = (state.meta.palette || 'clearly') === id;
-            return `<button class="btn" data-action="palette" data-palette="${id}" aria-pressed="${on}" style="${on ? 'border-width:2px;font-weight:700;' : ''}display:inline-flex;gap:8px">
-              <span style="display:inline-flex;gap:3px" aria-hidden="true">${sw.split(',').map(c => `<span style="width:11px;height:11px;border-radius:50%;background:${c};display:inline-block"></span>`).join('')}</span>
-              ${name}${on ? ' ✓' : ''}</button>`;
-          }).join('')}
-        </div>
+        <p style="margin:0 0 12px;font-size:13px;color:var(--ink-2)">Five color palettes, your own brand colors, your logo and three type pairings — all in one panel. Your choices ${DEMO_LOCKED ? 'last until refresh in this demo' : 'are saved automatically and survive a reload'}.</p>
+        <button class="btn btn-primary" data-action="apopen">${icon('swatch', 14)}Open Appearance</button>
       </div>
     </section>
   </div>`;
@@ -3083,7 +4148,7 @@ function viewPlatforms() {
   return `
   ${viewHead('Accounts & Platforms', 'One row per platform — the cadence you set here powers your consistency score.', `<button class="btn btn-primary" data-action="addrow" data-list="platforms">${icon('plus', 14)}Add platform</button>`)}
   <div class="grid">
-    <section class="card">
+    <section class="card lead">
       ${cardH('barchart', 'How Each Platform Is Doing', periodLabel(), 'coral')}
       <div class="card-b flush">${perPlat.length ? `<div class="tablewrap"><table class="data" style="min-width:940px">
         <thead><tr><th>Platform</th><th class="num">Posts</th><th class="num">Reach</th><th class="num">Engagement</th>
@@ -3136,7 +4201,7 @@ function viewPlatforms() {
           ${sparkSVG(k12.map(k => p.history ? num(p.history[k]) : null), {id: 'ph' + i, money: false, labels: l12, zeroBase: false, editPaths: k12.map(k => `platforms.${i}.history.${k}`)})}
         </div>
       </section>`; }).join('')}
-    <section class="card c6">
+    <section class="card quiet c6">
       ${cardH('info', 'Why Cadence Matters', '', 'golden')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">Consistency is the one lever you fully control.</strong> The cadence you set per platform feeds your consistency sub-score, the posting-streak calendar, and the "under cadence" alert.</p>
@@ -3162,7 +4227,7 @@ function viewPillars() {
   ${periodBar()}
   ${platformPills(d)}
   <div class="grid">
-    <section class="card c5" aria-label="Pillar mix — target vs actual">
+    <section class="card lead c5" aria-label="Pillar mix — target vs actual">
       ${cardH('target', 'Pillar Mix — Actual vs Target', periodLabel(), 'coral')}
       <div class="card-b">
         <div class="donutrow">
@@ -3372,19 +4437,34 @@ function viewVault() {
     </section>
 
     <section class="card" id="lib-repurpose" aria-label="Repurposing tracker">
-      ${cardH('repeat', 'Repurposing', 'one idea → every platform', 'golden')}
+      ${cardH('repeat', 'Repurposing', 'one idea → four posts', 'golden')}
       <div class="card-b flush">
-        ${repurpose.length ? `<div class="tablewrap"><table class="data" style="min-width:900px">
-          <thead><tr><th>Came from</th><th>Idea / asset</th><th>Already cut for</th><th>Notes</th><th></th></tr></thead>
-          <tbody>${repurpose.map(({r: rp, i}) => `
+        <div class="rp-legend">
+          ${REPURPOSE_OUTS.map(o => `<div>${icon(o.icon, 13)} <b>${esc(o.label)}</b>${esc(o.prompt)}</div>`).join('')}
+        </div>
+        ${repurpose.length ? `<div class="tablewrap"><table class="data" style="min-width:940px">
+          <thead><tr><th>Came from</th><th>Idea / asset</th><th style="width:34%">The four cuts</th><th>Notes</th><th></th></tr></thead>
+          <tbody>${repurpose.map(({r: rp, i}) => {
+            const done = REPURPOSE_OUTS.filter(o => (rp.outs || {})[o.id]).length;
+            return `
             <tr>
               <td><span class="platpick">${platTag(rp.source, 18)}${listSel(`repurpose.${i}.source`, platOptions(), 'Source platform')}</span></td>
               <td>${edField(`repurpose.${i}.idea`, {area: true, w: 22, label: 'Repurposed idea'})}</td>
-              <td>${edField(`repurpose.${i}.cuts`, {area: true, w: 26, label: 'Platforms and formats already cut', ph: 'e.g. IG reel · TT · YT short'})}</td>
-              <td>${edField(`repurpose.${i}.notes`, {area: true, w: 20, label: 'Repurposing notes', ph: 'next cut?'})}</td>
+              <td>
+                <div class="rp-outs">
+                  ${REPURPOSE_OUTS.map(o => {
+                    const on = !!(rp.outs || {})[o.id];
+                    return `<button class="rp-out" data-action="rpout" data-i="${i}" data-out="${o.id}" aria-pressed="${on}" title="${esc(o.prompt)}" aria-label="${esc(o.label)} — ${on ? 'cut' : 'not cut yet'}. ${esc(o.prompt)}">${icon(on ? 'check' : o.icon, 12)}${esc(o.label)}</button>`;
+                  }).join('')}
+                </div>
+                <div style="margin-top:6px"><span class="rp-prog${done === 4 ? ' rp-all' : ''}">${done} of 4 cut${done === 4 ? ' ✓' : ''}</span></div>
+                ${(rp.cuts || '').trim() ? `<div class="rp-other"><span>Other cuts</span>${edField(`repurpose.${i}.cuts`, {area: true, rows: 1, w: 20, label: 'Other platforms and formats already cut'})}</div>` : ''}
+              </td>
+              <td>${edField(`repurpose.${i}.notes`, {area: true, w: 18, label: 'Repurposing notes', ph: 'next cut?'})}</td>
               <td>${rowBtns('repurpose', i)}</td>
-            </tr>`).join('')}</tbody></table></div>`
-          : empty((d.repurpose || []).length, 'One good idea is four posts. Track which cuts you have already made.')}
+            </tr>`; }).join('')}</tbody></table></div>
+          <p class="hint" style="padding:10px 14px 0">Tick a cut once you have actually made it. This is a checklist, not a generator — Clearly never writes the post for you, it just stops you forgetting that one filmed idea is still owed three more.</p>`
+          : empty((d.repurpose || []).length, 'One good idea is four posts. Add the idea once, then tick each cut as you make it.')}
         ${addBtn('repurpose', 'Add asset')}
       </div>
     </section>
@@ -3401,15 +4481,20 @@ function viewCalendar() {
   const y = base.getFullYear(), mo = base.getMonth();
   const first = new Date(y, mo, 1), startDow = first.getDay(); // Sunday start, like a wall calendar
   const dim = new Date(y, mo + 1, 0).getDate();
-  const pid = ui.platform;              // posts carry a pid; this view just never read it
+  /* The platform chips filter Home and every Analyze view. This one used to declare
+     `pid` and never read it, so selecting Instagram filtered half the app and left the
+     calendar, its pipeline and the feed beside it showing everything — the chip looked
+     broken on the one view where a buyer plans per platform. Deals carry a pid too. */
+  const pid = ui.platform;
+  const onPid = x => pid === 'all' || x.pid === pid;
   const byDate = {};
   (d.posts || []).forEach(p => {
-    if (!p.date) return;
+    if (!p.date || !onPid(p)) return;
     const kind = p.status === 'posted' ? 'posted' : p.status === 'scheduled' ? 'sched' : 'pipe';
     (byDate[p.date] = byDate[p.date] || []).push({title: p.title || 'Untitled', kind, pid: p.pid, id: p.id});
   });
   (d.deals || []).forEach((dl, di) => {
-    if (dl.due && !['paid'].includes(dl.status)) (byDate[dl.due] = byDate[dl.due] || []).push({title: `Due: ${dl.brand || 'deal'}`, kind: 'deal', list: 'deals', i: di});
+    if (dl.due && !['paid'].includes(dl.status) && onPid(dl)) (byDate[dl.due] = byDate[dl.due] || []).push({title: `Due: ${dl.brand || 'deal'}`, kind: 'deal', list: 'deals', i: di});
   });
   const cells = [];
   for (let i = 0; i < startDow; i++) cells.push(null);
@@ -3419,7 +4504,7 @@ function viewCalendar() {
   const evStyle = {posted: '', sched: 'style="background:var(--teal-soft);color:var(--teal-deep)"', pipe: 'style="background:var(--golden-soft);color:var(--golden-deep)"', deal: 'style="background:var(--info-soft);color:var(--info-deep)"'};
   const stages = CYCLE_SETS.pipeline.values;
   const stageMeta = CYCLE_SETS.pipeline.meta;
-  const pipeItems = stage => (d.posts || []).map((p, i) => ({p, i})).filter(x => x.p.status === stage)
+  const pipeItems = stage => (d.posts || []).map((p, i) => ({p, i})).filter(x => x.p.status === stage && onPid(x.p))
     .sort((a, c) => String(a.p.date || '9999').localeCompare(String(c.p.date || '9999')));
   return `
   ${viewHead('Content Calendar & Pipeline', 'Plan the month, then walk every post from idea to posted — client approvals included.', `
@@ -3430,7 +4515,7 @@ function viewCalendar() {
     <button class="btn btn-primary" data-action="addrow" data-list="posts">${icon('plus', 14)}Add post</button>`)}
   ${platformPills(d)}
   <div class="grid">
-    <section class="card c8">
+    <section class="card lead c8">
       ${cardH('calendar', 'Monthly Calendar', '', 'coral')}
       <div class="card-b">
         <div class="cal">
@@ -3456,9 +4541,12 @@ function viewCalendar() {
         </div>
       </div>
     </section>
-    <section class="card c4" aria-label="Feed preview">
-      ${cardH('gridfeed', 'Feed-Grid Preview', 'how your grid will look', 'aqua')}
-      <div class="card-b">${feedGrid(d, {max: 9})}</div>
+    <!-- align-self: the calendar beside it is far taller, and a grid row stretches its
+         children to match. Filtering to one platform can leave this card holding two
+         tiles in a box sized for nine, which reads as "broken" rather than "filtered". -->
+    <section class="card c4" style="align-self:start" aria-label="Feed Preview">
+      ${cardH('gridfeed', 'Feed Preview', 'what is going out, in order', 'aqua')}
+      <div class="card-b">${feedGrid(d, {max: 9, month: `${y}-${String(mo + 1).padStart(2, '0')}`})}</div>
     </section>
     <section class="card" aria-label="Production pipeline">
       ${cardH('video', 'Production Pipeline', 'move a post by changing its status chip — approvals for client work', 'golden')}
@@ -3485,11 +4573,11 @@ function viewCalendar() {
       ${cardH('flame', 'Posting Streak', 'cadence vs goal, last 13 weeks', 'coral')}
       <div class="card-b">${streakCal(d)}</div>
     </section>
-    <section class="card c6">
+    <section class="card quiet c6">
       ${cardH('info', 'How the Pipeline Works')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">One row, whole lifecycle.</strong> A post starts as an idea, moves through script → film → edit → scheduled, and once you flip it to <em>Posted</em> its card in Post Performance opens up for the numbers. <strong style="color:var(--ink)">Click any pipeline card or calendar pill to edit the post</strong> — title, platform, pillar, date, hook, photo.</p>
-        <p style="margin:0">Give scheduled posts a date and time — they appear on this calendar, in the feed preview, and in the golden-hour reminder after they go live.</p>
+        <p style="margin:0">Give scheduled posts a date and time — they appear on this calendar, in the <strong style="color:var(--ink)">Feed Preview</strong>, and in the golden-hour reminder after they go live.</p>
       </div>
     </section>
   </div>`;
@@ -3615,7 +4703,7 @@ function viewInsights() {
       ${cardH('info', 'Learn From the Bottom', 'same period — what didn’t land?')}
       ${bottom3.length ? `<ul class="plainlist">${bottom3.map(perfRow).join('')}</ul>` : `<div class="emptystate">Not enough posts yet to show a bottom tier.</div>`}
     </section>
-    <section class="card" aria-label="Insight callouts">
+    <section class="card lead" aria-label="Insight callouts">
       ${cardH('bulb', 'What Your Numbers Are Telling You', 'auto-generated from your tags', 'golden')}
       ${callouts.length ? `<ul class="plainlist">${callouts.map(c => `<li><span class="a-ic" style="width:26px;height:26px;border-radius:8px;background:var(--golden-soft);color:var(--golden-deep);display:grid;place-items:center;flex:0 0 auto">${icon('bulb', 14)}</span><span class="li-main" style="line-height:1.55">${c}</span></li>`).join('')}</ul>`
       : `<div class="emptystate">Tag posts with format, pillar and time — insights appear once there's enough signal (3+ posts per bucket).</div>`}
@@ -3648,7 +4736,7 @@ function viewFunnel() {
     if (worst === null) return '';
     const fixes = [
       'reach → visits leaks: your content works but doesn’t make people curious about <em>you</em> — strengthen hooks that reference your story and pin your best converter.',
-      'visits → follows leaks: people check the profile and bounce — tighten the bio promise, pinned posts and grid cohesion (see the feed preview).',
+      'visits → follows leaks: people check the profile and bounce — tighten the bio promise, pinned posts and grid cohesion (see the Feed Preview).',
       'follows → clicks leaks: followers aren’t taking the next step — make the link-in-bio offer match what they followed for, and actually ask (CTA bank).',
     ];
     return `<p class="risknote" style="text-align:left;padding:0"><strong>Biggest leak: ${f[worst].label.toLowerCase()} → ${f[worst + 1].label.toLowerCase()}.</strong> ${fixes[worst]}</p>`;
@@ -3658,7 +4746,7 @@ function viewFunnel() {
   ${periodBar()}
   ${platformPills(d)}
   <div class="grid">
-    <section class="card c7" aria-label="Engagement funnel">
+    <section class="card lead c7" aria-label="Engagement funnel">
       ${cardH('funnel', 'Reach → Visits → Follows → Clicks', periodLabel(), 'coral')}
       <div class="card-b">
         ${funnelHTML(r)}
@@ -3718,7 +4806,7 @@ function viewCommunity() {
   ${viewHead('Community & Engagement Ops', 'The two-way half nobody tracks — replies, DMs, and the golden hour after you post.')}
   ${periodBar()}
   <div class="grid">
-    <section class="card c5" aria-label="Reply rate">
+    <section class="card lead c5" aria-label="Reply rate">
       ${cardH('comment', 'Reply Rate', periodLabel(), 'aqua')}
       <div class="card-b">
         <div class="donutrow">
@@ -3766,7 +4854,7 @@ function viewCommunity() {
         <textarea class="ed ed-area${(d.community.cadenceNote ?? '') === '' ? ' ed-empty' : ''}" data-path="community.cadenceNote" data-etype="text" rows="2" aria-label="Engagement cadence note" placeholder="e.g. reply to every comment within the hour; batch DMs 9am + 5pm">${esc(d.community.cadenceNote)}</textarea>
       </div>
     </section>
-    <section class="card c5">
+    <section class="card quiet c5">
       ${cardH('info', 'Community Playbook')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">Reply rate is a growth metric.</strong> Accounts that answer comments train their audience to comment more — and comments are the heaviest signal most feeds weigh.</p>
@@ -3786,7 +4874,7 @@ function viewExperiments() {
   return `
   ${viewHead('Experiments & A/B Log', 'Stop guessing — every test feeds a learning back into your hooks, formats and timing.', `<button class="btn btn-primary" data-action="addrow" data-list="tests">${icon('plus', 14)}Add experiment</button>`)}
   <div class="grid">
-    <section class="card">
+    <section class="card lead">
       ${cardH('flask', 'Experiment Log', `${(d.tests || []).length} test${(d.tests || []).length === 1 ? '' : 's'}`, 'aqua')}
       <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:1260px">
         <thead><tr><th>Experiment</th><th>Hypothesis</th><th>Variable</th><th>Metric</th><th>Variant A</th><th>Variant B</th><th class="num">A result</th><th class="num">B result</th><th>Ends</th><th>Winner</th><th>Learning</th><th>Status</th><th></th></tr></thead>
@@ -3814,7 +4902,7 @@ function viewExperiments() {
         <span class="li-main">${esc(t.learning)}<div class="li-sub">${esc(t.name)}${t.winner ? ' · winner: ' + esc(t.winner) : ''}</div></span></li>`).join('')}</ul>`
       : `<div class="emptystate">Complete a test and write down the learning — this digest becomes your personal playbook.</div>`}
     </section>
-    <section class="card c5">
+    <section class="card quiet c5">
       ${cardH('info', 'How to Run a Clean Test')}
       <div class="card-b" style="font-size:13px;color:var(--ink-2);line-height:1.7">
         <p style="margin:0 0 8px"><strong style="color:var(--ink)">One variable at a time.</strong> Same pillar, similar posts, different hook (or format, or time). 3–5 posts per variant beats 1 vs 1.</p>
@@ -3849,7 +4937,7 @@ function viewMoney() {
       ${tile('Affiliate', flowVal('affiliateRev', 'Affiliate revenue', {min: 5, money: true, prefix: '<span class="unit">$</span>'}), '', false, 'coral')}
       ${tile('Shop / storefront', flowVal('shopRev', 'Shop revenue', {min: 5, money: true, prefix: '<span class="unit">$</span>'}), '', false, 'golden')}
     </div></div></section>
-    <section class="card">
+    <section class="card lead">
       ${cardH('briefcase', 'Brand Deals & Sponsorships', `${deals.length} tracked`, 'coral')}
       <div class="card-b flush"><div class="tablewrap"><table class="data" style="min-width:860px">
         <thead><tr><th>Brand</th><th>Deliverable</th><th>Platform</th><th>Due</th><th class="num">Fee</th><th>Status</th><th>Notes</th><th></th></tr></thead>
@@ -3960,8 +5048,181 @@ function draftReportNotes(d, r) {
   return S.join(' ');
 }
 
+/* ---------------- MONTH IN REVIEW ----------------
+   Every competing planner in this category is an input tool: the buyer fills it in
+   and gets nothing back. This is the screen that gives something back. Six blocks,
+   all of it derived from data already in state — no field here asks for anything new.
+   It has to hold together as one static 1200px capture, and it has to be honest when
+   the month is thin: a report that invents numbers is worse than one that says "not
+   enough posts yet". */
+
+/* The single plain-language line this whole screen exists to produce. Up to two
+   clauses, strongest signal first, and null when the month genuinely cannot support
+   a recommendation — in which case the panel says what to log instead of guessing. */
+function repeatNextMonth(d, keys, pid, r) {
+  const clauses = [];
+  const fmts = deriveFormats(d, keys, pid).filter(f => f.n >= 3 && f.er !== null);
+  const bestFmt = fmts.length >= 2 && fmts[0].index !== null && fmts[0].index >= 112 ? fmts[0] : null;
+  if (bestFmt) clauses.push(`keep leaning on <strong>${esc(fmtPlural(bestFmt.format))}</strong> — they earned ${fmt.num(bestFmt.index / 100, 1)}× your average engagement off ${fmt.num(bestFmt.share, 0)}% of your posts`);
+  const bd = deriveBestDay(d, keys, pid).best;
+  if (bd) clauses.push(`<strong>${DOWS[bd.dow]}</strong> was your strongest day at ${fmt.pct(bd.er)} average engagement — put the posts that matter there`);
+  if (clauses.length < 2) {
+    const pils = derivePillars(d, keys, pid).list.filter(pl => pl.n >= 2 && pl.saves > 0)
+      .sort((a, c) => c.saves - a.saves);
+    if (pils.length) clauses.push(`<strong>“${esc(pils[0].name)}”</strong> posts collected the most saves (${fmt.int(pils[0].saves)}) — saves are the signal worth chasing, so make more of them`);
+  }
+  if (clauses.length < 2 && r.cadenceTarget && r.nPosts < r.cadenceTarget) {
+    const gap = r.cadenceTarget - r.nPosts;
+    clauses.push(`you came in <strong>${gap} post${gap === 1 ? '' : 's'} under</strong> your planned cadence — the cheapest win next month is simply publishing them`);
+  }
+  if (!clauses.length) return null;
+  const s = clauses.slice(0, 2).join(', and ');
+  return s.charAt(0).toUpperCase() + s.slice(1) + '.';
+}
+
+function monthInReview(d) {
+  const key = ui.reviewMonth, keys = [key], pid = ui.platform;
+  const r = derive(d, keys, pid);
+  const band = healthBand(r.health);
+  const onPid = p => pid === 'all' || p.pid === pid;
+  const inMonth = p => p.date && p.date.slice(0, 7) === key;
+  const queued = (d.posts || []).filter(p => p.status !== 'posted' && inMonth(p) && onPid(p)).length;
+  const logo = assetGet(state.meta.logo);
+  const head = `<div class="rvhead">
+    <div class="rv-brand">
+      ${logo ? `<img class="rv-logo" src="${logo}" alt="">` : ''}
+      <div>
+        <div class="rv-name">${esc(d.brand.name || 'Your brand')}</div>
+        <div class="rv-sub">Month in Review · ${monthLabel(key)}${pid === 'all' ? '' : ' · ' + esc((PLATFORM_META[pid] || {label: pid}).label) + ' only'}</div>
+      </div>
+    </div>
+    ${r.health === null ? '' : `<span class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : 'alert', 13)}Program health ${r.health}/100 — ${band.label}</span>`}
+  </div>`;
+  const foot = `<p class="rvfoot">Worked out from the posts you logged — nothing here was typed twice. Prepared with Clearly · ${new Date().toLocaleDateString('en-US', {month: 'long', day: 'numeric', year: 'numeric'})}</p>`;
+
+  /* Honest degradation. An empty month renders ONE panel that says so — not six
+     blocks of empty chrome, and never a zero dressed up as a result. */
+  if (!r.nPosts) {
+    return `<section class="card report-page"><div class="card-b">
+      ${head}
+      <div class="rvb rv12" style="text-align:center;padding:30px 18px">
+        <div class="rvb-big" style="color:var(--muted)">No posts published in ${esc(monthLabel(key))}</div>
+        <p class="rvb-sub" style="font-size:13px;max-width:460px;margin:10px auto 0">${queued
+          ? `You have <strong>${queued}</strong> post${queued === 1 ? '' : 's'} still scheduled or in production for this month. Flip one to <em>Posted</em> and add its numbers, and this page fills itself in.`
+          : 'Log a few posts with the numbers off the app — reach, likes, comments, saves — and this page fills itself in. Nothing here is typed twice.'}</p>
+        <div class="noprint" style="margin-top:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-primary" data-action="goto" data-view="posts">${icon('plus', 14)}Open Post Performance</button>
+          <button class="btn" data-action="revmonth" data-dir="-1">${icon('reset', 13)}Try the previous month</button>
+        </div>
+      </div>
+      ${foot}
+    </div></section>`;
+  }
+
+  const pp = derivePillars(d, keys, pid);
+  const withPosts = pp.list.filter(pl => pl.n > 0);
+  const planned = pp.list.filter(pl => pl.target !== null);
+  const bd = deriveBestDay(d, keys, pid);
+  const fmts = deriveFormats(d, keys, pid).filter(f => f.er !== null);
+  const topFmt = fmts.filter(f => f.n >= 2)[0] || null;
+  const top = (d.posts || []).filter(p => p.status === 'posted' && onPid(p) && inMonth(p) && div(postInteractions(p), p.reach) !== null)
+    .sort((a, c) => div(postInteractions(c), c.reach) - div(postInteractions(a), a.reach)).slice(0, 3);
+  const repeat = repeatNextMonth(d, keys, pid, r);
+  const consist = r.consistencyPct;
+
+  return `<section class="card report-page"><div class="card-b">
+    ${head}
+    <div class="rvblocks">
+
+      <div class="rvb">
+        <h3>Published</h3>
+        <div class="rvb-big">${fmt.int(r.nPosts)}${r.cadenceTarget ? ` <span class="rv-of">of ~${r.cadenceTarget} planned</span>` : ''}</div>
+        ${r.cadenceTarget
+          ? `<span class="meterbar" style="height:7px"><i style="width:${clamp((consist || 0), 0, 100)}%"></i></span>
+             <div class="rvb-sub">${consist >= 100 ? 'Cadence met — ' : ''}${fmt.pct(consist, 0)} of the cadence you set in Accounts &amp; Platforms.</div>`
+          : `<div class="rvb-sub">Set a weekly cadence per platform and this gets a target to measure against.</div>`}
+      </div>
+
+      <div class="rvb">
+        <h3>Best posting day</h3>
+        ${bd.best
+          ? `<div class="rvb-big">${DOWS[bd.best.dow]}</div>
+             <div class="rvb-sub">${fmt.pct(bd.best.er)} average engagement across ${bd.best.n} post${bd.best.n === 1 ? '' : 's'}.</div>`
+          : `<div class="rvb-none">Not enough posts on any one weekday yet — two on the same day is the least it takes to call it a pattern.</div>`}
+      </div>
+
+      <div class="rvb">
+        <h3>Best format</h3>
+        ${topFmt
+          ? `<div class="rvb-big" style="font-size:24px;display:flex;align-items:center;gap:9px">${icon((FORMATS[topFmt.format] || {}).icon || 'image', 20)}${esc((FORMATS[topFmt.format] || {label: topFmt.format}).label)}</div>
+             <div class="rvb-sub">${fmt.pct(topFmt.er)} engagement${topFmt.index !== null ? ` · ${fmt.num(topFmt.index, 0)} index against your own average` : ''} · ${topFmt.n} post${topFmt.n === 1 ? '' : 's'}.</div>`
+          : `<div class="rvb-none">Add reach and engagement to a couple more posts and your strongest format shows up here.</div>`}
+      </div>
+
+      <div class="rvb rv6">
+        <h3>Content pillars — published vs intended</h3>
+        ${withPosts.length ? `<div class="donutrow" style="gap:16px">
+          ${donutSegSVG(withPosts.map(pl => ({v: pl.n, colorVar: PTONE_VARS[pl.color % 6], label: pl.name})), {size: 104, centerBig: String(pp.total), centerSub: 'posts', label: 'Published content mix'})}
+          <div style="font-size:12px;min-width:0;flex:1">
+            ${pp.list.filter(pl => pl.n > 0 || pl.target !== null).map(pl => `<div class="mixrow" style="padding:2px 0"><span class="sw" style="background:var(${PTONE_VARS[pl.color % 6]})"></span><span class="mx-name">${esc(pl.name)}</span><span class="mx-nums">${pl.actualPct === null ? '—' : fmt.num(pl.actualPct, 0) + '%'}${pl.target !== null ? ' <span style="color:var(--muted)">/ ' + fmt.num(pl.target, 0) + '% planned</span>' : ''}</span></div>`).join('')}
+          </div></div>
+          ${planned.length ? '' : `<div class="rvb-sub">Give each pillar a target % in Content Strategy &amp; Pillars to see drift, not just the mix.</div>`}`
+          : `<div class="rvb-none">None of this month's posts are tagged to a pillar yet — tag them and the mix draws itself.</div>`}
+      </div>
+
+      <div class="rvb rv6">
+        <h3>Top posts this month</h3>
+        ${top.length ? `<ul class="rvtop">${top.map(p => {
+          const er = div(postInteractions(p), p.reach) * 100;
+          return `<li class="rowlink noprint-link" data-action="editpost" data-id="${p.id}" role="button" tabindex="0" title="Click to open this post">
+            ${thumbTile(d, p, {size: 'sm'})}
+            <span class="rvt-main"><span class="rvt-title">${esc(p.title || 'Untitled')}</span>
+            <span class="rvt-sub">${esc((PLATFORM_META[p.pid] || {label: p.pid}).label)} · ${esc((FORMATS[p.format] || {label: p.format}).label)} · ${fmt.int(p.reach)} reach${num(p.saves) ? ' · ' + fmt.int(p.saves) + ' saves' : ''}</span></span>
+            <span class="rvt-er">${fmt.pct(er)}</span></li>`; }).join('')}</ul>
+          <div class="rvb-sub">Ranked by engagement rate against reach.</div>`
+          : `<div class="rvb-none">No post this month has both reach and engagement logged yet — add those two numbers to any post and it can be ranked.</div>`}
+      </div>
+
+      <div class="rvrepeat">
+        ${icon('zap', 18)}
+        <div><span class="rvr-t">What to repeat next month</span>
+        <div class="rvr-b">${repeat || 'Not enough logged yet to call a pattern. Log four or five posts with their reach and engagement, and this line will tell you what worked and what to do again.'}</div></div>
+      </div>
+
+    </div>
+    ${foot}
+  </div></section>`;
+}
+
+/* One switcher, two deliverables. Month in Review is the default because it is the
+   one a buyer can read in five seconds and screenshot; the full client report is the
+   same data at length, and it collapses behind the second tab rather than stacking
+   underneath. Opening this view is now strictly simpler than it was. */
+function reportTabs() {
+  return `<div class="rvtabs noprint" role="group" aria-label="Which report to show">
+    ${[['review', 'Month in Review'], ['full', 'Full client report']].map(([id, label]) =>
+      `<button data-action="reporttab" data-tab="${id}" aria-pressed="${ui.reportTab === id}">${label}</button>`).join('')}
+  </div>`;
+}
+function monthStepper() {
+  const onNow = ui.reviewMonth === monthKey();
+  return `<div class="monthstep noprint" role="group" aria-label="Which month to review">
+    <button class="btn btn-ghost" data-action="revmonth" data-dir="-1" aria-label="Previous month">←</button>
+    <strong class="ms-label">${monthLabel(ui.reviewMonth)}</strong>
+    <button class="btn btn-ghost" data-action="revmonth" data-dir="1" aria-label="Next month">→</button>
+    ${onNow ? '' : `<button class="btn" data-action="revmonth" data-dir="0">This month</button>`}
+  </div>`;
+}
 function viewReport() {
   const d = D(), b = d.benchmarks;
+  if (ui.reportTab === 'review') {
+    return `
+  ${viewHead('Month in Review', 'What your month actually did — worked out from the posts you already logged. Print it or save it as a PDF.', `<button class="btn btn-primary noprint" data-action="print">${icon('printer', 14)}Print / Save PDF</button>`)}
+  ${reportTabs()}
+  ${monthStepper()}
+  ${platformPills(d)}
+  ${monthInReview(d)}`;
+  }
   const pKeys = periodMonthsKeys();
   /* The report follows the platform filter. It is the client-facing deliverable, and
      an agency running one platform for a client could not produce a report for just
@@ -3976,15 +5237,19 @@ function viewReport() {
   const topPosts = (d.posts || []).filter(p => p.status === 'posted' && (pid === 'all' || p.pid === pid) && p.date && pKeys.includes(p.date.slice(0, 7)) && div(postInteractions(p), p.reach) !== null)
     .sort((a, c) => div(postInteractions(c), c.reach) - div(postInteractions(a), a.reach)).slice(0, 3);
   return `
-  ${viewHead('Goals, Benchmarks & Client Report', 'A clean one-page summary — print it or save as PDF for your client (or future you).', `<button class="btn btn-primary noprint" data-action="print">${icon('printer', 14)}Print / Save PDF</button>`)}
+  ${viewHead('Goals, Benchmarks & Client Report', 'The long version — every figure, your goals, and a narrative you can hand a client.', `<button class="btn btn-primary noprint" data-action="print">${icon('printer', 14)}Print / Save PDF</button>`)}
+  ${reportTabs()}
   ${periodBar()}
   ${platformPills(d)}
   <div class="grid report-page">
     <section class="card">
       <div class="card-b">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--hairline);padding-bottom:12px;margin-bottom:14px">
-          <div><div style="font-weight:800;letter-spacing:-.02em;font-size:24px">${esc(d.brand.name)}</div>
-          <div style="color:var(--ink-2);font-size:12.5px">Social media report · ${periodLabel()}${pid === 'all' ? '' : ' · ' + esc((PLATFORM_META[pid] || {label: pid}).label) + ' only'}${d.brand.niche ? ' · ' + esc(d.brand.niche) : ''}</div></div>
+        <div class="rvhead">
+          <div class="rv-brand">
+            ${assetGet(state.meta.logo) ? `<img class="rv-logo" src="${assetGet(state.meta.logo)}" alt="">` : ''}
+            <div><div class="rv-name" style="font-size:24px">${esc(d.brand.name)}</div>
+            <div class="rv-sub">Social media report · ${periodLabel()}${pid === 'all' ? '' : ' · ' + esc((PLATFORM_META[pid] || {label: pid}).label) + ' only'}${d.brand.niche ? ' · ' + esc(d.brand.niche) : ''}</div></div>
+          </div>
           <div class="chip ${band.cls}">${icon(band.cls === 'good' ? 'checkcircle' : 'alert', 13)}Program health ${r.health ?? '—'}/100 — ${band.label}</div>
         </div>
         <div class="rep-sec rep-kpis">
@@ -4065,76 +5330,74 @@ function viewReport() {
    Render + events
 ================================================================ */
 function startStep(n, title, body, act) {
-  return `<section class="card c4">
-    ${cardH(n === 1 ? 'sliders' : (n === 2 ? 'barchart' : 'gauge'), title, 'Step ' + n, n === 1 ? 'coral' : (n === 2 ? 'golden' : 'aqua'))}
-    <div class="card-b"><p style="margin:0 0 10px">${body}</p>
-      <button class="btn btn-primary" data-action="goto" data-view="${act[0]}">${act[1]}</button></div>
+  return `<section class="stepcard">
+    <span class="st-n" aria-hidden="true">${n}</span>
+    <h3>${title}</h3>
+    <p>${body}</p>
+    <button class="btn btn-primary" data-action="goto" data-view="${act[0]}">${act[1]}</button>
   </section>`;
 }
-function startLegend() {
-  return `<section class="card c4">
-    ${cardH('sliders', 'What you type, what it works out')}
-    <div class="card-b">
-      <p style="margin:0 0 8px"><span class="ed-demo">like this</span> &nbsp;is yours to type in — click it and start typing.</p>
-      <p style="margin:0 0 8px"><strong>Bold numbers</strong> and every chart, rate and score are worked out from what you typed. You never edit those.</p>
-      <p style="margin:0;color:var(--muted)">Enter saves, Escape undoes. Everything saves by itself about a third of a second after you stop typing.</p>
-    </div></section>`;
-}
-function startData() {
-  return `<section class="card c4">
-    ${cardH('shield', 'Where your data lives')}
-    <div class="card-b">
-      <p style="margin:0 0 8px">On this computer, in this browser. It is never uploaded and I never see it.</p>
-      <p style="margin:0 0 10px">That means the file is private — and that it is the only copy. <strong>Backup</strong> saves a dated file you can keep anywhere; <strong>Restore</strong> loads it back, on any computer.</p>
-      <button class="btn" data-action="backup">${icon('download', 14)}Back up now</button>
-    </div></section>`;
-}
-function startSample() {
-  // key off the rows, not the meta flag — 'Keep it for now' leaves every sample
-  // row in place, and this card is the promised "clear it later" home
-  const present = sampleRowsPresent();
-  return `<section class="card c4">
-    ${cardH('bulb', 'The example data')}
-    <div class="card-b">
-      <p style="margin:0 0 10px">${present
-        ? 'This file opens filled with a realistic example so you can see how every part works before you type anything. Clear it whenever you like — your own entries and settings stay.'
-        : 'The example data has been cleared. Anything you add from here is yours.'}</p>
-      ${present ? `<button class="btn btn-primary" data-action="sample-clear">Clear example data &amp; start fresh</button>` : staticChip('good', 'checkcircle', 'Cleared')}
-    </div></section>`;
-}
-function viewStart() {
-  return `
-  ${viewHead('Start Here', 'Three things and this is running. Nothing here takes more than a few minutes.')}
-  <div class="grid startgrid">
-    ${startStep(1, 'Name your brand', 'Open Setup and type your brand name, then open Accounts & Platforms and add each platform you post on (tick Active on it). A couple of minutes.', ['setup', 'Open Setup'])}
-    ${startStep(2, 'Log two or three posts', 'Add your last few posts with the numbers off the app — reach, likes, comments, saves. Engagement rate and the rest work themselves out.', ['posts', 'Open Post Performance'])}
-    ${startStep(3, 'Look at Home', 'That is enough for the whole planner to come alive — rates, benchmarks, your streak and what needs you today.', ['home', 'Open Home'])}
-
-    <section class="card c8">
-      ${cardH('target', 'What each part is for', '6 sections')}
-      <div class="card-b">
+/* Start Here shows three steps and a footnote — nothing else above the fold.
+   Everything that used to sit here as its own card (what the sections are, how the
+   editable fields work, where the data lives, how to get help) is true and worth
+   having, but none of it is a thing to DO on first open, and six extra cards was the
+   friction this screen exists to remove. It is one click away, not gone. */
+function startMoreHTML() {
+  const open = !!ui.startMore;
+  return `<div class="startmore">
+    <button data-action="startmore" aria-expanded="${open}">${icon('chevd', 15)}More about this file — what the sections are, how editing works, where your data lives</button>
+    ${open ? `<div class="sm-body">
+      <div>
+        <h4>What each part is for</h4>
         <ul class="startlist">
-      <li><strong>Plan</strong><span class="li-sub">Your brand, your platforms, your content pillars, and the hooks and ideas you are collecting.</span></li>
-      <li><strong>Create &amp; Publish</strong><span class="li-sub">The calendar — what is going out, on which platform, and when.</span></li>
-      <li><strong>Analyze</strong><span class="li-sub">What each post actually did, and which patterns are worth repeating.</span></li>
-      <li><strong>Engage &amp; Grow</strong><span class="li-sub">Replies, DMs and the experiments you are running.</span></li>
-      <li><strong>Monetize</strong><span class="li-sub">Brand deals, what to charge, and what you have actually been paid.</span></li>
-      <li><strong>Report</strong><span class="li-sub">Goals, benchmarks, and the one-page report you send a client.</span></li>
+          <li><strong>Plan</strong><span class="li-sub">Your brand, platforms, content pillars, and the hooks and ideas you are collecting.</span></li>
+          <li><strong>Create &amp; Publish</strong><span class="li-sub">The calendar — what is going out, where, and when.</span></li>
+          <li><strong>Analyze</strong><span class="li-sub">What each post actually did, and which patterns are worth repeating.</span></li>
+          <li><strong>Engage &amp; Grow</strong><span class="li-sub">Replies, DMs and the experiments you are running.</span></li>
+          <li><strong>Monetize</strong><span class="li-sub">Brand deals, what to charge, and what you have been paid.</span></li>
+          <li><strong>Report</strong><span class="li-sub">Your Month in Review, and the long report you send a client.</span></li>
         </ul>
         <p class="startre">You do not have to fill in every section. Most people use three or four and ignore the rest — that is the intended way to use it, not a shortcut.</p>
       </div>
-    </section>
-    ${startLegend()}
-
-    ${startData()}
-    ${startSample()}
-    <section class="card c4">
-      ${cardH('bulb', 'If you get stuck')}
-      <div class="card-b">
-        <p style="margin:0 0 8px">Every screen has a line under its title telling you what it is for, and most numbers explain themselves when you tap or hover on them.</p>
+      <div>
+        <h4>What you type, what it works out</h4>
+        <p><span class="ed-demo">like this</span> &nbsp;is yours to type in — click it and start typing.</p>
+        <p><strong>Bold numbers</strong> and every chart, rate and score are worked out from what you typed. You never edit those.</p>
+        <p style="color:var(--muted)">Enter saves, Escape undoes. Everything saves by itself about a third of a second after you stop typing.</p>
+      </div>
+      <div>
+        <h4>Where your data lives</h4>
+        <p>On this computer, in this browser. It is never uploaded and I never see it.</p>
+        <p>That means the file is private — and that it is the only copy. <strong>Backup</strong> saves a dated file you can keep anywhere; <strong>Restore</strong> loads it back, on any computer.</p>
+        <button class="btn" data-action="backup">${icon('download', 14)}Back up now</button>
+      </div>
+      <div>
+        <h4>Make it yours, and getting stuck</h4>
+        <p>The swatch in the top bar opens <strong>Appearance</strong> — five palettes, your own brand colors, your logo, light or dark.</p>
+        <p>Every screen has a line under its title saying what it is for, and most numbers explain themselves when you tap or hover on them.</p>
         <p style="margin:0">Still stuck? Message me through the shop — I answer my own messages, usually within a few hours.</p>
-      </div></section>
+      </div>
+    </div>` : ''}
   </div>`;
+}
+function viewStart() {
+  // key off the rows, not the meta flag — 'Keep it for now' leaves every sample
+  // row in place, and this strip is the promised "clear it later" home
+  const present = sampleRowsPresent();
+  return `
+  ${viewHead('Start Here', 'Three things and this is running. Nothing here takes more than a few minutes.')}
+  <div class="startsteps">
+    ${startStep(1, 'Name your brand', 'Open Setup and type your brand name, then add each platform you post on in Accounts &amp; Platforms and tick Active. A couple of minutes.', ['setup', 'Open Setup'])}
+    ${startStep(2, 'Log two or three posts', 'Add your last few posts with the numbers off the app — reach, likes, comments, saves. Engagement rate and the rest work themselves out.', ['posts', 'Open Post Performance'])}
+    ${startStep(3, 'Look at Home', 'That is enough for the whole planner to come alive — rates, benchmarks, your streak, and what needs you today.', ['home', 'Open Home'])}
+  </div>
+  <div class="startclear">
+    <span class="sc-t">${present
+      ? '<strong>This file opens filled with a realistic example</strong> so you can see how every part works before you type anything. Clearing it keeps your own entries and settings.'
+      : '<strong>The example data has been cleared.</strong> Anything you add from here is yours.'}</span>
+    ${present ? `<button class="btn btn-primary" data-action="sample-clear">Clear example data &amp; start fresh</button>` : staticChip('good', 'checkcircle', 'Cleared')}
+  </div>
+  ${startMoreHTML()}`;
 }
 const VIEW_FN = {
   start: viewStart,
@@ -4187,6 +5450,7 @@ function render() {
   // storage first: "your work is not being saved" outranks every other notice
   if (!modal && ui.addModal) modal = addModalHTML();
   if (!modal && ui.dayPeek) modal = dayPeekHTML();
+  if (!modal && ui.appearance) modal = appearanceHTML();
   main.innerHTML = storageBanner() + demoBanner() + sampleBanner() + nudgeHTML() + (VIEW_FN[ui.view] || viewHome)() + modal + bankLists(D());
   const anim = animPending && !reducedMotion();
   main.classList.toggle('anim', anim); // toggled OFF on edit renders — prevents replay
@@ -4269,7 +5533,10 @@ const NEW_ROW = {
   ctas: () => ({id: uid(), text: 'New CTA…', pid: filterPid(), goal: ''}),
   captions: () => ({id: uid(), text: 'New caption…', pid: filterPid(), pillar: '', format: 'reel', notes: ''}),
   hashtags: () => ({id: uid(), name: 'New set', pid: filterPid() || 'ig', pillar: '', tags: '', notes: ''}),
-  repurpose: () => ({id: uid(), idea: 'New idea', source: 'ig', cuts: '', notes: ''}),
+  /* `cuts` stays on new rows as an empty string on purpose: every existing file has it,
+     every existing row may have text in it, and a shape that differs row to row is how
+     you end up with an undefined creeping into a template. New rows just never fill it. */
+  repurpose: () => ({id: uid(), idea: 'New idea', source: 'ig', cuts: '', notes: '', outs: {}}),
   milestones: () => ({id: uid(), date: localISO(new Date()), label: 'New milestone'}),
   deals: () => ({id: uid(), brand: 'New brand', deliverable: '', pid: 'ig', due: isoOffset(14), fee: null, status: 'pitched', notes: ''}),
   goals: () => ({id: uid(), name: 'New goal', target: null, actual: null, unit: ''}),
@@ -4361,8 +5628,11 @@ const ADD_FORMS = {
    below 700px the event chips are hidden and only dots remain. */
 function dayPeekHTML() {
   const d = D(), iso = ui.dayPeek;
-  const posts = (d.posts || []).filter(p => p.date === iso);
-  const deals = (d.deals || []).map((dl, di) => ({dl, di})).filter(x => x.dl.due === iso && x.dl.status !== 'paid');
+  // opened by clicking a filtered calendar cell, so it must honour the same filter —
+  // otherwise a day that showed one chip opens listing five
+  const onPid = x => ui.platform === 'all' || x.pid === ui.platform;
+  const posts = (d.posts || []).filter(p => p.date === iso && onPid(p));
+  const deals = (d.deals || []).map((dl, di) => ({dl, di})).filter(x => x.dl.due === iso && x.dl.status !== 'paid' && onPid(x.dl));
   const stageMeta = CYCLE_SETS.pipeline.meta;
   return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="Day view">
     <div class="pm-scrim" data-action="daypeekclose"></div>
@@ -4380,6 +5650,84 @@ function dayPeekHTML() {
             ${staticChip('warning', 'clock', 'deal deadline')}</li>`).join('')}
       </ul>` : `<div class="emptystate">Nothing on this day yet.</div>`}
       <div class="af-foot"><button class="btn btn-primary" data-action="addrow" data-list="posts" data-date="${iso}">${icon('plus', 14)}Add post for this day</button></div>
+    </div></div>`;
+}
+
+/* ================================================================
+   APPEARANCE PANEL — portable
+   ----------------------------------------------------------------
+   One panel, reached from the swatch button that was already in the top bar.
+   It adds NOTHING to any default screen: no nav entry, no card on Home, and the
+   Setup card it replaces got smaller, not bigger. Like the engine in p3.js this
+   knows nothing about social media and lifts into the other three products as-is.
+================================================================ */
+function appearanceHTML() {
+  const m = state.meta, dark = document.documentElement.dataset.theme === 'dark';
+  const bc = m.brandColors || {};
+  const anyCustom = COLOR_SLOTS.some(s => normHex(bc[s.id]));
+  const logo = assetGet(m.logo);
+  /* The picker needs a concrete starting color even when the buyer has not chosen
+     one — read what the live palette is actually using so the swatch opens on-theme. */
+  const live = v => (getComputedStyle(document.documentElement).getPropertyValue(v).trim() || '#587987');
+  const seedFor = slot => normHex(bc[slot.id]) || normHex(live(slot.vars[0])) || '#587987';
+  return `<div class="pmodal" role="dialog" aria-modal="true" aria-label="Appearance">
+    <div class="pm-scrim" data-action="apclose"></div>
+    <div class="pm-panel ap-panel">
+      <div class="pm-head">${icon('swatch', 14)}<h3>Appearance</h3><span class="pm-hint">${DEMO_LOCKED ? 'lasts until refresh in this demo' : 'saved automatically'}</span>
+        <button class="btn btn-ghost" data-action="apclose" aria-label="Close appearance" style="margin-left:auto;padding:4px 8px">${icon('x', 15)}</button></div>
+
+      <div class="ap-sec">
+        <h4>Light or dark</h4>
+        <p>Pick one and it stays that way. <strong>Match my device</strong> means this file follows whatever your computer or phone is already set to — so it turns dark in the evening if your device does, without you doing anything.</p>
+        <div class="ap-row">
+          ${[['light', 'Light', 'sun', 'always light'], ['dark', 'Dark', 'moon', 'always dark'], ['', 'Match my device', 'gauge', 'follows your settings']].map(([v, label, ic, sub]) =>
+            `<button class="ap-pal" data-action="apmode" data-mode="${v}" aria-pressed="${(m.theme || '') === v}">${icon(ic, 15)}<span class="app-t"><b>${label}</b><span>${sub}</span></span></button>`).join('')}
+        </div>
+      </div>
+
+      <div class="ap-sec">
+        <h4>Color palette</h4>
+        <p>Five built in. Each one has its own light and dark version — nothing is just inverted.</p>
+        <div class="ap-row ap-pals">
+          ${PALETTES.map(p => `<button class="ap-pal" data-action="palette" data-palette="${p.id}" aria-pressed="${(m.palette || 'clearly') === p.id}" aria-label="${esc(p.name)} palette — ${esc(p.sub)}">
+            <span class="ap-sw" aria-hidden="true">${p.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span>
+            <span class="app-t"><b>${esc(p.name)}</b><span>${esc(p.sub)}</span></span></button>`).join('')}
+        </div>
+      </div>
+
+      <div class="ap-sec">
+        <h4>Your own brand colors</h4>
+        <p>Override any of the three. Each is re-stepped for light and dark automatically, so the file stays readable either way.</p>
+        <div class="ap-colors">
+          ${COLOR_SLOTS.map(s => `<label class="ap-color">
+            <input type="color" data-apcolor="${s.id}" value="${seedFor(s)}" aria-label="${esc(s.label)} brand color — ${esc(s.hint)}">
+            <span class="apc-t"><b>${esc(s.label)}</b><span>${esc(s.hint)}</span></span></label>`).join('')}
+        </div>
+        ${anyCustom ? `<div class="ap-row" style="margin-top:11px"><button class="btn" data-action="apcolorreset">${icon('reset', 13)}Back to the palette’s colors</button></div>` : ''}
+        <p class="ap-note">Status colors — good, warning, critical — stay as they are on purpose: your brand color should never come to mean “something is wrong”.</p>
+      </div>
+
+      <div class="ap-sec">
+        <h4>Your logo</h4>
+        <p>Appears in the sidebar and at the top of both reports. Like your post photos it is stored on this device only and never uploaded — and it travels in your Backup file.</p>
+        <div class="ap-logo">
+          <span class="apl-prev">${logo ? `<img src="${logo}" alt="Your logo">` : `<span>no logo<br>yet</span>`}</span>
+          <span style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" data-action="aplogo">${icon('upload', 13)}${logo ? 'Replace' : 'Choose'} image</button>
+            ${logo ? `<button class="btn btn-danger" data-action="aplogodel">${icon('x', 13)}Remove</button>` : ''}
+          </span>
+        </div>
+        <p class="ap-note">PNG with a transparent background works best. It is scaled down to about 300px wide on the way in, so a huge file will not fill up your browser's storage.</p>
+      </div>
+
+      <div class="ap-sec">
+        <h4>Type</h4>
+        <p>Three pairings, all using faces your device already has or that ship inside this file. Nothing is fetched from the internet.</p>
+        <div class="ap-row">
+          ${FONT_SETS.map(f => `<button class="ap-font apf-${f.id}" data-action="apfont" data-font="${f.id}" aria-pressed="${(m.font || 'default') === f.id}">
+            <b>${esc(f.name)}</b><span>${esc(f.sub)}</span></button>`).join('')}
+        </div>
+      </div>
     </div></div>`;
 }
 
@@ -4426,16 +5774,19 @@ document.addEventListener('click', e => {
   if (!btn) return;
   const act = btn.dataset.action;
   if (act === 'sample-clear') {
-    if (!confirm('Clear the sample data?\n\nThis removes only the example rows that came with the file. Anything you have typed yourself — your brand details, your platforms, your own posts — is kept exactly as it is.')) return;
-    clearSampleData(state.data);
-    state.meta.sample = 'cleared';
+    const who = brandLabel(activeBrand()), multi = brandList().length > 1;
+    if (!confirm('Clear the sample data' + (multi ? ' from “' + who + '”' : '') + '?\n\nThis removes only the example rows that came with the file'
+      + (multi ? ', and only from this brand — the others are untouched' : '')
+      + '. Anything you have typed yourself — your brand details, your platforms, your own posts — is kept exactly as it is.')) return;
+    clearSampleData(D());
+    const ab = activeBrand(); if (ab) ab.sample = 'cleared';
     save();
     render();
-    toast('✓ Sample data cleared — the file is yours now');
+    toast(multi ? '✓ Sample data cleared from “' + who + '”' : '✓ Sample data cleared — the file is yours now');
     return;
   }
   if (act === 'sample-keep') {
-    state.meta.sample = 'kept';
+    const ab = activeBrand(); if (ab) ab.sample = 'kept';
     save();
     render();
     toast('✓ Kept — you can clear it later from Start Here');
@@ -4448,6 +5799,8 @@ document.addEventListener('click', e => {
     ui.editPost = null;
     ui.addModal = null;
     ui.dayPeek = null;
+    ui.appearance = false;
+    ui.brandMenu = false;
     document.body.classList.remove('nav-open');
     try { history.replaceState(null, '', '#' + ui.view); } catch (err) {}
     animPending = true;
@@ -4498,12 +5851,107 @@ document.addEventListener('click', e => {
   } else if (act === 'theme') {
     state.meta.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     save(false);
-    applyTheme();
+    applyTheme(); applyAppearance();   // custom color ramps are derived per theme
     render();
   } else if (act === 'palette') {
-    state.meta.palette = (btn.dataset.palette || (state.meta.palette === 'blush' ? 'clearly' : 'blush'));
+    state.meta.palette = btn.dataset.palette || 'clearly';
     save(false);
-    applyPalette();
+    applyAppearance();
+    render();
+  } else if (act === 'brandmenu') {
+    ui.brandMenu = !ui.brandMenu;
+    render();
+  } else if (act === 'brandgo') {
+    if (ui.editPost && !cancelPostEdit()) return;   // unsaved draft in the brand we are leaving
+    if (switchBrand(btn.dataset.id)) {
+      ui.brandMenu = false; ui.editPost = null; ui.addModal = null; ui.dayPeek = null;
+      ui.platform = 'all'; ui.monthOffset = 0; ui.reviewMonth = monthKey();
+      animPending = true;
+      render();
+      toast('✓ Now editing “' + brandLabel(activeBrand()) + '”');
+    }
+  } else if (act === 'brandadd') {
+    const name = (prompt('Name this brand — it is a separate dashboard inside this same file.\n\nIts posts, platforms, pillars and reports are its own. One Backup still covers everything.', '') || '').trim();
+    if (!name) { ui.brandMenu = false; render(); return; }
+    const b = addBrand(name);
+    ui.brandMenu = false;
+    if (!b) { toast('⚠ ' + MAX_BRANDS + ' brands is the limit in one file'); render(); return; }
+    ui.view = 'setup'; ui.platform = 'all'; ui.monthOffset = 0;
+    animPending = true;
+    render();
+    toast('✓ “' + brandLabel(b) + '” added — start with your brand name and platforms');
+  } else if (act === 'brandrename') {
+    const cur = activeBrand();
+    if (!cur) return;
+    const name = (prompt('Rename this brand.\n\nThis is the brand name shown in the top bar and at the top of your reports — the same field as “Brand / client name” in Setup.', brandLabel(cur)) || '').trim();
+    ui.brandMenu = false;
+    if (name) { renameBrand(cur.id, name); toast('✓ Renamed'); }
+    render();
+  } else if (act === 'branddel') {
+    const cur = activeBrand();
+    if (!cur) return;
+    ui.brandMenu = false;
+    /* Deleting a brand throws away a whole dashboard and its photos. Typing the name
+       is deliberate friction — a mis-click here is not recoverable without a backup. */
+    const typed = prompt('Delete “' + brandLabel(cur) + '” and everything in it?\n\nThis removes that brand\u2019s posts, platforms, pillars, deals and photos. It cannot be undone — Restore a backup is the only way back.\n\nType the brand name to confirm:', '');
+    if (typed === null) { render(); return; }
+    if (typed.trim() !== brandLabel(cur)) { toast('Not deleted — the name did not match'); render(); return; }
+    removeBrand(cur.id);
+    ui.view = 'home'; ui.platform = 'all'; ui.editPost = null;
+    animPending = true;
+    render();
+    toast('✓ Deleted — now editing “' + brandLabel(activeBrand()) + '”');
+  } else if (act === 'apopen') {
+    ui.appearance = true;
+    render();
+  } else if (act === 'apclose') {
+    ui.appearance = false;
+    render();
+  } else if (act === 'apmode') {
+    // '' means "match my device" — meta.theme absent is what applyTheme() reads as system
+    const mode = btn.dataset.mode;
+    if (mode) state.meta.theme = mode; else delete state.meta.theme;
+    save(false);
+    applyTheme(); applyAppearance();
+    render();
+  } else if (act === 'apfont') {
+    state.meta.font = btn.dataset.font || 'default';
+    save(false);
+    applyAppearance();
+    render();
+  } else if (act === 'apcolorreset') {
+    delete state.meta.brandColors;
+    save(false);
+    applyAppearance();
+    render();
+    toast('✓ Back to the palette’s own colors');
+  } else if (act === 'aplogo') { $('#logoFile').click(); }
+  else if (act === 'aplogodel') {
+    assetDel('logo');
+    delete state.meta.logo;
+    save(false);
+    render();
+    toast('✓ Logo removed');
+  } else if (act === 'reporttab') {
+    ui.reportTab = btn.dataset.tab;
+    animPending = true;
+    render();
+    window.scrollTo({top: 0});
+  } else if (act === 'revmonth') {
+    const dir = parseInt(btn.dataset.dir, 10);
+    ui.reviewMonth = dir === 0 ? monthKey() : addMonths(ui.reviewMonth, dir);
+    render();
+  } else if (act === 'startmore') {
+    ui.startMore = !ui.startMore;
+    render();
+  } else if (act === 'rpout') {
+    const i = parseInt(btn.dataset.i, 10), key = btn.dataset.out;
+    const rp = (D().repurpose || [])[i];
+    if (!rp) return;
+    // rows written before the four cuts existed have no `outs` — give them one on demand
+    if (!rp.outs || typeof rp.outs !== 'object') rp.outs = {};
+    rp.outs[key] = !rp.outs[key];
+    save(true);
     render();
   } else if (act === 'backup') { doBackup(); }
   else if (act === 'restore') { $('#restoreFile').click(); }
@@ -4521,6 +5969,7 @@ document.addEventListener('click', e => {
         toast(`The ${label} copy has logged numbers — delete it from Post Performance instead`);
         return;
       }
+      assetDel(postImgId(sib));   // the copy goes, and so does the copy's photo
       d.posts.splice(d.posts.indexOf(sib), 1);
       // last sibling gone → drop the groupId, so add-then-remove is a true no-op
       // (and the draft dirty-check doesn't prompt over an invisible change)
@@ -4528,9 +5977,17 @@ document.addEventListener('click', e => {
       toast(`${label} copy removed`);
     } else {
       // an independent copy: planning fields + photo travel, numbers start empty
-      d.posts.push({...src, id: uid(), pid,
+      const copy = {...src, id: uid(), pid,
         reach: null, impressions: null, likes: null, comments: null, shares: null, saves: null,
-        watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null});
+        watchPct: null, visits: null, follows: null, linkClicks: null, boostSpend: null};
+      /* The photo is filed under the post's own id now, so "travels" means a real copy
+         under the new id — spreading src only carried the flag, which would have left
+         the copy showing placeholder art. */
+      const photo = src.img || assetGet(postImgId(src));
+      delete copy.img;
+      copy.hasImg = false;
+      if (photo) { assetSet(postImgId(copy), photo); copy.hasImg = true; }
+      d.posts.push(copy);
       toast(`✓ Copied to ${label} — it's now its own post`);
     }
     save(true); render();
@@ -4540,7 +5997,11 @@ document.addEventListener('click', e => {
     $('#postImgFile').click();
   }
   else if (act === 'postimgdel') {
-    setPath(`posts.${parseInt(btn.dataset.i, 10)}.img`, null);
+    const p = D().posts[parseInt(btn.dataset.i, 10)];
+    if (!p) return;
+    assetDel(postImgId(p));
+    delete p.img;          // legacy inline copy, if this file predates the split
+    p.hasImg = false;
     save(true); render();
     toast('Photo removed — placeholder art is back');
   }
@@ -4593,6 +6054,7 @@ document.addEventListener('click', e => {
     const arr = listRef(list);
     const label = arr[i] && (arr[i].title || arr[i].name || arr[i].brand || arr[i].text || arr[i].idea || arr[i].label || arr[i].handle) || 'this row';
     if (!confirm(`Delete “${String(label).slice(0, 60)}”?`)) return;
+    if (list === 'posts' && arr[i]) assetDel(postImgId(arr[i]));   // the post's photo goes with it
     arr.splice(i, 1);
     ui.addModal = null;
     save(true); render();
@@ -4618,6 +6080,7 @@ document.addEventListener('click', e => {
     const label = arr[i] && (arr[i].title || arr[i].name || arr[i].brand || arr[i].text || arr[i].idea || arr[i].label || arr[i].handle) || 'this row';
     if (!confirm(`Delete “${String(label).slice(0, 60)}”?`)) return;
     const gone = arr.splice(i, 1)[0];
+    if (list === 'posts' && gone) assetDel(postImgId(gone));   // the post's photo goes with it
     // deleting the post that's open in the editor is an explicit, confirmed act —
     // keep the deletion, drop the draft snapshot so Cancel can't resurrect it
     if (list === 'posts' && gone && gone.id === ui.editPost) { ui.editPost = null; ui.postsSnapshot = null; }
@@ -4637,6 +6100,49 @@ $('#postImgFile').addEventListener('change', e => {
   imgTargetIdx = null;
   e.target.value = '';
 });
+/* Read a logo locally and shrink it to fit a 300×120 box, preserving aspect ratio —
+   CONTAIN, not the cover-crop a post thumbnail gets: a cropped logo is a ruined logo.
+   PNG out so transparency survives. Everything happens on-device; nothing is uploaded. */
+function attachLogo(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const MW = 300, MH = 120;
+      const k = Math.min(MW / im.width, MH / im.height, 1);
+      const w = Math.max(1, Math.round(im.width * k)), h = Math.max(1, Math.round(im.height * k));
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(im, 0, 0, w, h);
+      assetSet('logo', c.toDataURL('image/png')).then(res => {
+        /* Full is the one failure worth refusing: the logo will never be stored, and
+           leaving meta.logo pointing at nothing means an empty box after every reload.
+           Blocked storage is different — nothing in this file persists in that state,
+           the banner already says so, and the logo still works for the session. */
+        if (res === 'full') {
+          assetDel('logo');
+          toast('⚠ No room left in this browser to store the logo — remove a post photo first, then try again.');
+          return;
+        }
+        state.meta.logo = 'logo';
+        save(false);
+        render();
+        toast(res === 'ok'
+          ? '✓ Logo added — stored only on this device'
+          : '⚠ Logo added, but this browser is blocking storage — it will not survive a reload.');
+      });
+    };
+    im.onerror = () => toast('Couldn’t read that image — try a PNG or JPG');
+    im.src = reader.result;
+  };
+  reader.onerror = () => toast('Couldn’t read that file');
+  reader.readAsDataURL(file);
+}
+$('#logoFile').addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) attachLogo(f);
+  e.target.value = '';
+});
 
 /* Editable field lifecycle */
 document.addEventListener('focusin', e => {
@@ -4650,6 +6156,8 @@ document.addEventListener('keydown', e => {
     else if (e.key === 'Escape' && ui.addModal) { ui.addModal = null; render(); }
     else if (e.key === 'Escape' && ui.editPost) { if (cancelPostEdit()) render(); }
     else if (e.key === 'Escape' && ui.dayPeek) { ui.dayPeek = null; render(); }
+    else if (e.key === 'Escape' && ui.appearance) { ui.appearance = false; render(); }
+    else if (e.key === 'Escape' && ui.brandMenu) { ui.brandMenu = false; render(); }
     else if (e.key === 'Enter' && e.target.dataset && e.target.dataset.action === 'daypeek') { e.preventDefault(); e.target.click(); }
     else if (e.key === 'Enter' && ui.addModal && el.classList && el.classList.contains('af-in') && el.tagName === 'INPUT') {
       const saveBtn = document.querySelector('.pmodal [data-action="addsave"]');
@@ -4662,6 +6170,17 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('input', e => {
   const el = e.target;
+  /* Color pickers apply live as the buyer drags — the whole point is watching the
+     dashboard change. Re-render only on `change` (below), when they let go: a full
+     render per input event would close the native picker on some platforms. */
+  if (el.dataset && el.dataset.apcolor) {
+    const hex = normHex(el.value);
+    if (!hex) return;
+    if (!state.meta.brandColors) state.meta.brandColors = {};
+    state.meta.brandColors[el.dataset.apcolor] = hex;
+    applyAppearance();
+    return;
+  }
   if (el.classList && el.classList.contains('ed')) {
     if (el.tagName === 'INPUT') el.style.width = Math.min(Math.max(el.value.length, 2) + 1, 40) + 'ch';
     else if (el.tagName === 'TEXTAREA') autosize(el.parentNode); // grow as they type, not on the next render
@@ -4682,6 +6201,16 @@ document.addEventListener('focusout', e => {
 /* Checkboxes, filters & status dropdowns */
 document.addEventListener('change', e => {
   const el = e.target;
+  if (el.dataset && el.dataset.apcolor) {
+    const hex = normHex(el.value);
+    if (!hex) return;
+    if (!state.meta.brandColors) state.meta.brandColors = {};
+    state.meta.brandColors[el.dataset.apcolor] = hex;
+    save(false);
+    applyAppearance();
+    render();   // brings back the "back to the palette's colors" button
+    return;
+  }
   if (el.dataset && el.dataset.checkpath) {
     setPath(el.dataset.checkpath, el.checked);
     save(true);
@@ -4709,8 +6238,13 @@ document.addEventListener('change', e => {
   }
 });
 
-/* Init — brand fonts are embedded in the stylesheet, so no network is ever needed */
-render();
+/* Init — brand fonts are embedded in the stylesheet, so no network is ever needed.
+   The logo and every post photo live outside the state blob and load asynchronously, so
+   they are hydrated BEFORE the first paint: thumbSrc() is synchronous, and a render that
+   beat the hydration would paint placeholder art over every photo the buyer attached.
+   hydrateAssets() never rejects and gives up after 1.5s, so a browser without usable
+   IndexedDB costs a moment at boot and then runs on the localStorage tier. */
+hydrateAssets().then(migrateInlineImages).then(render, render);
 window.addEventListener('hashchange', () => {
   const h = location.hash.replace('#', '');
   if (VIEWS.some(v => v.id === h) && h !== ui.view) {
